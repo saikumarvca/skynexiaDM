@@ -1,36 +1,193 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# Skynexia Digital Marketing Review Management Dashboard
+
+A comprehensive internal client-specific digital marketing review management dashboard built with Next.js, TypeScript, Tailwind CSS, shadcn/ui, and MongoDB.
+
+## Features
+
+### Client Management
+- Create, edit, and manage client accounts
+- Client status tracking (Active, Inactive, Archived)
+- Comprehensive client information storage
+
+### Review Management
+- AI-generated review storage and management
+- Bulk import functionality for multiple reviews
+- Review status tracking (Unused, Used, Archived)
+- Categorization and language support
+
+### Usage Tracking
+- Mark reviews as used with detailed metadata
+- Track usage by platform, team member, and profile
+- Comprehensive usage history and analytics
+
+### Dashboard Analytics
+- Real-time statistics and metrics
+- Client-wise and system-wide analytics
+- Recent activity monitoring
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui with Radix UI primitives
+- **Database**: MongoDB with Mongoose ODM
+- **Icons**: Lucide React
+- **Build Tool**: Turborepo
+
+## Project Structure
+
+```
+apps/dm/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   ├── clients/           # Client management pages
+│   ├── dashboard/         # Main dashboard
+│   └── layout.tsx         # Root layout
+├── components/            # Reusable UI components
+│   ├── ui/               # shadcn/ui components
+│   └── ...               # Custom components
+├── lib/                  # Utility libraries
+├── models/               # Mongoose models
+├── types/                # TypeScript type definitions
+└── ...
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- MongoDB (local or cloud instance)
+- npm or yarn
 
+### Installation
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd apps/dm
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables:
+Create `.env.local` with:
+```env
+MONGODB_URI=mongodb://localhost:27017/skynexia-dm
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start MongoDB service
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
+4. Run the development server:
+```bash
+npm run dev
+```
 
-## Learn More
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-To learn more about Next.js, take a look at the following resources:
+## API Endpoints
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Clients
+- `GET /api/clients` - List all clients
+- `POST /api/clients` - Create new client
+- `GET /api/clients/[id]` - Get client details
+- `PUT /api/clients/[id]` - Update client
+- `DELETE /api/clients/[id]` - Archive client
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Reviews
+- `GET /api/reviews` - List reviews (with filters)
+- `POST /api/reviews` - Create review
+- `POST /api/reviews/bulk` - Bulk import reviews
+- `GET /api/reviews/[id]` - Get review details
+- `PATCH /api/reviews/[id]` - Update review
+- `DELETE /api/reviews/[id]` - Archive review
+- `POST /api/reviews/mark-used` - Mark review as used
 
-## Deploy on Vercel
+### Analytics
+- `GET /api/dashboard/stats` - Dashboard statistics
+- `GET /api/review-usage` - Usage history
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Database Schema
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Client
+```javascript
+{
+  name: String,
+  businessName: String,
+  brandName: String,
+  contactName: String,
+  phone: String,
+  email: String,
+  notes: String,
+  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED',
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Review
+```javascript
+{
+  clientId: ObjectId,
+  shortLabel: String,
+  reviewText: String,
+  category: String,
+  language: String,
+  ratingStyle: String,
+  status: 'UNUSED' | 'USED' | 'ARCHIVED',
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### ReviewUsage
+```javascript
+{
+  clientId: ObjectId,
+  reviewId: ObjectId,
+  sourceName: String,
+  usedBy: String,
+  profileName: String,
+  usedAt: Date,
+  notes: String,
+  createdAt: Date
+}
+```
+
+## Key Features Implemented
+
+✅ Client-first architecture
+✅ MongoDB with Mongoose models
+✅ Responsive admin dashboard
+✅ Bulk review import
+✅ Review usage tracking
+✅ Status management
+✅ Search and filtering
+✅ Professional UI with shadcn/ui
+✅ TypeScript throughout
+✅ API routes with proper error handling
+
+## Usage Workflow
+
+1. **Create Client**: Admin creates a new client account
+2. **Add Reviews**: Upload AI-generated reviews for the client
+3. **Track Usage**: Mark reviews as used when deployed by marketing team
+4. **Monitor Analytics**: View usage statistics and client performance
+
+## Development
+
+### Adding New Components
+Components are located in `components/` directory. Use shadcn/ui for consistent styling.
+
+### API Development
+API routes follow Next.js App Router conventions in `app/api/`.
+
+### Database Changes
+Update Mongoose models in `models/` and corresponding types in `types/`.
+
+## Deployment
+
+Build for production:
+```bash
+npm run build
+npm start
+```
+
+Ensure MongoDB connection string is properly configured for production environment.
