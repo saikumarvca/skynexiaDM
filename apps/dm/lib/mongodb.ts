@@ -28,14 +28,14 @@ if (!cached) {
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
-  if (cached.conn) {
+  if (cached?.conn) {
     // Check if connection is still alive
     if (mongoose.connection.readyState === 1) {
       return cached.conn;
     }
   }
 
-  if (!cached.promise) {
+  if (!cached?.promise) {
     const opts = {
       bufferCommands: false,
       maxPoolSize: 10, // Maintain up to 10 socket connections
@@ -44,23 +44,29 @@ async function dbConnect(): Promise<typeof mongoose> {
       family: 4, // Use IPv4, skip trying IPv6
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('Connected to MongoDB');
-      return mongoose;
-    }).catch((error) => {
-      console.error('MongoDB connection error:', error);
-      throw error;
-    });
+    if (cached) {
+      cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+        console.log('Connected to MongoDB');
+        return mongoose;
+      }).catch((error) => {
+        console.error('MongoDB connection error:', error);
+        throw error;
+      });
+    }
   }
 
   try {
-    cached.conn = await cached.promise;
+    if (cached?.promise) {
+      cached.conn = await cached.promise;
+    }
   } catch (e) {
-    cached.promise = null;
+    if (cached) {
+      cached.promise = null;
+    }
     throw e;
   }
 
-  return cached.conn;
+  return cached!.conn!;
 }
 
 export default dbConnect;
