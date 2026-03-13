@@ -28,7 +28,13 @@ const ReviewSchema: Schema = new Schema({
   timestamps: true,
 });
 
-// Prevent model overwrite during hot reload
-const Review = mongoose.models.Review || mongoose.model<IReview>('Review', ReviewSchema);
+// Add indexes for better query performance
+ReviewSchema.index({ clientId: 1, status: 1, createdAt: -1 });
+ReviewSchema.index({ status: 1, createdAt: -1 });
+ReviewSchema.index({ category: 1 });
+ReviewSchema.index({ language: 1 });
+
+// Prevent model overwrite during hot reload in development
+const Review = (mongoose.models.Review as mongoose.Model<IReview> | undefined) || mongoose.model<IReview>('Review', ReviewSchema);
 
 export default Review;

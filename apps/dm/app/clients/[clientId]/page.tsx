@@ -40,19 +40,20 @@ async function getClientStats(clientId: string) {
 }
 
 interface ClientDetailPageProps {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
-  const client = await getClient(params.clientId)
-  const stats = await getClientStats(params.clientId)
+  const { clientId } = await params
+  const client = await getClient(clientId)
+  const stats = await getClientStats(clientId)
 
   if (!client) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold">Client not found</h1>
-          <p className="text-muted-foreground">The client you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground">The client you&apos;re looking for doesn&apos;t exist.</p>
           <Link href="/clients">
             <Button className="mt-4">Back to Clients</Button>
           </Link>

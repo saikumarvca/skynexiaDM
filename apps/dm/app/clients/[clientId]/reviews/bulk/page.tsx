@@ -24,15 +24,17 @@ async function createBulkReviews(data: BulkReviewFormData) {
 }
 
 interface BulkReviewPageProps {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }
 
-export default function BulkReviewPage({ params }: BulkReviewPageProps) {
+export default async function BulkReviewPage({ params }: BulkReviewPageProps) {
+  const { clientId } = await params
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
-          <Link href={`/clients/${params.clientId}/reviews`}>
+          <Link href={`/clients/${clientId}/reviews`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Reviews
@@ -47,7 +49,7 @@ export default function BulkReviewPage({ params }: BulkReviewPageProps) {
         </div>
 
         <div className="max-w-2xl">
-          <BulkReviewForm clientId={params.clientId} onSubmit={createBulkReviews} />
+          <BulkReviewForm clientId={clientId} onSubmit={createBulkReviews} />
         </div>
       </div>
     </DashboardLayout>

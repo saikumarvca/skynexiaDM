@@ -3,14 +3,15 @@ import dbConnect from '@/lib/mongodb'
 import Review from '@/models/Review'
 
 interface RouteParams {
-  params: { reviewId: string }
+  params: Promise<{ reviewId: string }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
 
-    const review = await Review.findById(params.reviewId).populate('clientId', 'name businessName')
+    const { reviewId } = await params
+    const review = await Review.findOne({ _id: reviewId }).populate('clientId', 'name businessName')
     if (!review) {
       return NextResponse.json(
         { error: 'Review not found' },
@@ -32,9 +33,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
 
+    const { reviewId } = await params
     const body = await request.json()
-    const review = await Review.findByIdAndUpdate(
-      params.reviewId,
+    const review = await Review.findOneAndUpdate(
+      { _id: reviewId },
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     ).populate('clientId', 'name businessName')
@@ -60,8 +62,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
 
-    const review = await Review.findByIdAndUpdate(
-      params.reviewId,
+    const { reviewId } = await params
+    const review = await Review.findOneAndUpdate(
+      { _id: reviewId },
       { status: 'ARCHIVED', updatedAt: new Date() },
       { new: true }
     )

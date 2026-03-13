@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId')
     const reviewId = searchParams.get('reviewId')
 
-    let query: any = {}
+    const query: Record<string, string> = {}
     if (clientId) query.clientId = clientId
     if (reviewId) query.reviewId = reviewId
 

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const search = searchParams.get('search')
 
-    let query: any = {}
+    const query: Record<string, unknown> = {}
     if (clientId) query.clientId = clientId
     if (status) query.status = status
     if (search) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const review = new Review(body)
     await review.save()
 
-    const populatedReview = await Review.findById(review._id).populate('clientId', 'name businessName')
+    const populatedReview = await Review.findOne({ _id: review._id }).populate('clientId', 'name businessName')
 
     return NextResponse.json(populatedReview, { status: 201 })
   } catch (error) {

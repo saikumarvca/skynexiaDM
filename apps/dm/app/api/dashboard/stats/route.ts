@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Client from '@/models/Client'
 import Review from '@/models/Review'

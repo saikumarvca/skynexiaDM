@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StatusBadge } from "@/components/status-badge"
 import { MarkUsedModal } from "@/components/mark-used-modal"
 import { Review, MarkUsedFormData } from "@/types"
-import { Copy, CheckCircle, Archive, Eye } from "lucide-react"
+import { Copy, CheckCircle, Archive } from "lucide-react"
 
 interface ReviewTableProps {
   reviews: Review[]

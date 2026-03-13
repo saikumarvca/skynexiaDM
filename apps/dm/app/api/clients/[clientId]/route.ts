@@ -3,14 +3,15 @@ import dbConnect from '@/lib/mongodb'
 import Client from '@/models/Client'
 
 interface RouteParams {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
 
-    const client = await Client.findById(params.clientId)
+    const { clientId } = await params
+    const client = await Client.findOne({ _id: clientId })
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },
@@ -32,9 +33,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
 
+    const { clientId } = await params
     const body = await request.json()
-    const client = await Client.findByIdAndUpdate(
-      params.clientId,
+    const client = await Client.findOneAndUpdate(
+      { _id: clientId },
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     )
@@ -60,8 +62,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
 
-    const client = await Client.findByIdAndUpdate(
-      params.clientId,
+    const { clientId } = await params
+    const client = await Client.findOneAndUpdate(
+      { _id: clientId },
       { status: 'ARCHIVED', updatedAt: new Date() },
       { new: true }
     )

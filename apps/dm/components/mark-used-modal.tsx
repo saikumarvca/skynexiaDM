@@ -22,7 +22,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
     sourceName: "",
     usedBy: "",
     profileName: "",
-    usedAt: new Date().toISOString().split('T')[0], // Today's date
+    usedAt: new Date().toLocaleDateString('en-CA'), // Today's date in YYYY-MM-DD format
     notes: "",
   })
 
@@ -38,7 +38,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
         sourceName: "",
         usedBy: "",
         profileName: "",
-        usedAt: new Date().toISOString().split('T')[0],
+        usedAt: new Date().toLocaleDateString('en-CA'),
         notes: "",
       })
     } catch (error) {

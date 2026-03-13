@@ -19,6 +19,8 @@ export const config = [
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
+      // TypeScript provides type safety; prop-types is not needed.
+      "react/prop-types": "off",
     },
   },
   {

@@ -30,7 +30,13 @@ const ClientSchema: Schema = new Schema({
   timestamps: true,
 });
 
-// Prevent model overwrite during hot reload
-const Client = mongoose.models.Client || mongoose.model<IClient>('Client', ClientSchema);
+// Add indexes for better query performance
+ClientSchema.index({ status: 1, createdAt: -1 });
+ClientSchema.index({ email: 1 }, { unique: true });
+ClientSchema.index({ name: 1 });
+ClientSchema.index({ businessName: 1 });
+
+// Prevent model overwrite during hot reload in development
+const Client = (mongoose.models.Client as mongoose.Model<IClient> | undefined) || mongoose.model<IClient>('Client', ClientSchema);
 
 export default Client;

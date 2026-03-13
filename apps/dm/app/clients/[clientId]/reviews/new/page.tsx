@@ -24,15 +24,17 @@ async function createReview(data: ReviewFormData) {
 }
 
 interface NewReviewPageProps {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }
 
-export default function NewReviewPage({ params }: NewReviewPageProps) {
+export default async function NewReviewPage({ params }: NewReviewPageProps) {
+  const { clientId } = await params
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
-          <Link href={`/clients/${params.clientId}/reviews`}>
+          <Link href={`/clients/${clientId}/reviews`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Reviews
@@ -47,7 +49,7 @@ export default function NewReviewPage({ params }: NewReviewPageProps) {
         </div>
 
         <div className="max-w-2xl">
-          <ReviewForm clientId={params.clientId} onSubmit={createReview} />
+          <ReviewForm clientId={clientId} onSubmit={createReview} />
         </div>
       </div>
     </DashboardLayout>

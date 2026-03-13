@@ -55,18 +55,19 @@ async function archiveReview(reviewId: string) {
 }
 
 interface ClientReviewsPageProps {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }
 
 export default async function ClientReviewsPage({ params }: ClientReviewsPageProps) {
-  const reviews = await getClientReviews(params.clientId)
+  const { clientId } = await params
+  const reviews = await getClientReviews(clientId)
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href={`/clients/${params.clientId}`}>
+            <Link href={`/clients/${clientId}`}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Client
@@ -80,13 +81,13 @@ export default async function ClientReviewsPage({ params }: ClientReviewsPagePro
             </div>
           </div>
           <div className="flex space-x-2">
-            <Link href={`/clients/${params.clientId}/reviews/new`}>
+            <Link href={`/clients/${clientId}/reviews/new`}>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Review
               </Button>
             </Link>
-            <Link href={`/clients/${params.clientId}/reviews/bulk`}>
+            <Link href={`/clients/${clientId}/reviews/bulk`}>
               <Button variant="outline">
                 <Plus className="mr-2 h-4 w-4" />
                 Bulk Import

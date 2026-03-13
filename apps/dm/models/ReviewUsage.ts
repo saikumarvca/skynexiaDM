@@ -23,7 +23,13 @@ const ReviewUsageSchema: Schema = new Schema({
   timestamps: true,
 });
 
-// Prevent model overwrite during hot reload
-const ReviewUsage = mongoose.models.ReviewUsage || mongoose.model<IReviewUsage>('ReviewUsage', ReviewUsageSchema);
+// Add indexes for better query performance
+ReviewUsageSchema.index({ clientId: 1, usedAt: -1 });
+ReviewUsageSchema.index({ reviewId: 1, usedAt: -1 });
+ReviewUsageSchema.index({ usedAt: -1 });
+ReviewUsageSchema.index({ sourceName: 1 });
+
+// Prevent model overwrite during hot reload in development
+const ReviewUsage = (mongoose.models.ReviewUsage as mongoose.Model<IReviewUsage> | undefined) || mongoose.model<IReviewUsage>('ReviewUsage', ReviewUsageSchema);
 
 export default ReviewUsage;

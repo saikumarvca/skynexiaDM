@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const { reviewId, sourceName, usedBy, profileName, usedAt, notes } = await request.json()
 
     // First, get the review to get clientId
-    const review = await Review.findById(reviewId)
+    const review = await Review.findOne({ _id: reviewId })
     if (!review) {
       return NextResponse.json(
         { error: 'Review not found' },
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     await usage.save()
 
     // Update review status to USED
-    await Review.findByIdAndUpdate(reviewId, {
+    await Review.findOneAndUpdate({ _id: reviewId }, {
       status: 'USED',
       updatedAt: new Date()
     })
