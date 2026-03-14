@@ -87,11 +87,14 @@ export function Sidebar() {
   }, [pathname, isTeamActive])
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-50 dark:bg-gray-900">
-      <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold">DM Dashboard</h1>
+    <div className="flex h-full w-64 flex-col border-r bg-white dark:bg-gray-950">
+      <div className="flex h-16 items-center border-b px-6 gap-2.5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+          <BarChart3 className="h-4 w-4 text-primary-foreground" />
+        </div>
+        <h1 className="text-base font-semibold tracking-tight">DM Dashboard</h1>
       </div>
-      <nav className="flex-1 space-y-1 px-4 py-4 overflow-y-auto">
+      <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto scrollbar-thin">
         {navigation.map((item) => {
           if ("children" in item && item.children) {
             const sectionActive = item.name === "Reviews" ? isReviewActive : item.name === "Team" ? isTeamActive : false
@@ -107,22 +110,22 @@ export function Sidebar() {
                   className={cn(
                     "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isParentActive || sectionActive
-                      ? "bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-100"
                   )}
                 >
                   <div className="flex items-center">
-                    <item.icon className="mr-3 h-5 w-5" />
+                    <item.icon className="mr-3 h-4 w-4" />
                     {item.name}
                   </div>
                   {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 shrink-0" />
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 shrink-0" />
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" />
                   )}
                 </button>
                 {isExpanded && (
-                  <div className="ml-4 mt-1 space-y-0.5 border-l border-gray-200 dark:border-gray-700 pl-3">
+                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-800 pl-3">
                     {item.children.map((child) => {
                       const isChildActive =
                         pathname === child.href || pathname.startsWith(`${child.href}/`)
@@ -133,11 +136,11 @@ export function Sidebar() {
                           className={cn(
                             "flex items-center rounded-md px-2 py-1.5 text-sm transition-colors",
                             isChildActive
-                              ? "bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-100 font-medium"
-                              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                              ? "bg-primary/10 text-primary dark:bg-primary/20 font-medium"
+                              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-100"
                           )}
                         >
-                          <child.icon className="mr-2 h-4 w-4 shrink-0" />
+                          <child.icon className="mr-2 h-3.5 w-3.5 shrink-0" />
                           {child.name}
                         </Link>
                       )
@@ -156,11 +159,11 @@ export function Sidebar() {
               className={cn(
                 "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                  ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-100"
               )}
             >
-              <item.icon className="mr-3 h-5 w-5" />
+              <item.icon className="mr-3 h-4 w-4" />
               {item.name}
             </Link>
           )

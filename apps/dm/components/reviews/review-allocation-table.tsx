@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { MarkSharedModal } from "./mark-shared-modal";
 import { MarkPostedModal } from "./mark-posted-modal";
 import { ReviewActivityTimeline } from "./review-activity-timeline";
+import { ReviewDetailSidePane } from "./review-detail-side-pane";
 import type { ReviewAllocation } from "@/types/reviews";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -55,6 +56,7 @@ export function ReviewAllocationTable({
   const [sharedAlloc, setSharedAlloc] = useState<ReviewAllocation | null>(null);
   const [postedAlloc, setPostedAlloc] = useState<ReviewAllocation | null>(null);
   const [activityAlloc, setActivityAlloc] = useState<ReviewAllocation | null>(null);
+  const [detailAlloc, setDetailAlloc] = useState<ReviewAllocation | null>(null);
   const [activity, setActivity] = useState<{ action: string; performedBy: string; performedAt: string }[]>([]);
 
   const fetchActivity = async (entityType: string, entityId: string) => {
@@ -72,21 +74,21 @@ export function ReviewAllocationTable({
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-lg border bg-white shadow-sm dark:bg-gray-950">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Subject</TableHead>
-              <TableHead>Draft Preview</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Assigned To</TableHead>
-              <TableHead>Customer Name</TableHead>
-              <TableHead>Platform</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Sent Date</TableHead>
-              <TableHead>Posted Date</TableHead>
-              <TableHead>Used</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-slate-50 hover:bg-slate-50 dark:bg-gray-900/50">
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Subject</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Draft Preview</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Client</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Assigned To</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Customer</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Platform</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Status</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Sent</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Posted</TableHead>
+              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Used</TableHead>
+              <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -94,37 +96,45 @@ export function ReviewAllocationTable({
               const { subject, preview, clientName } = getDraftInfo(a);
               const isUsed = a.allocationStatus === "Used" || a.allocationStatus === "Posted";
               return (
-                <TableRow key={a._id}>
-                  <TableCell className="font-medium">{subject}</TableCell>
-                  <TableCell className="max-w-[180px] truncate" title={preview}>
+                <TableRow
+                  key={a._id}
+                  className="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-gray-900/40 transition-colors"
+                  onClick={() => setDetailAlloc(a)}
+                >
+                  <TableCell className="font-medium text-primary">{subject}</TableCell>
+                  <TableCell className="max-w-[180px] truncate text-sm text-muted-foreground" title={preview}>
                     {truncate(preview, 50)}
                   </TableCell>
-                  <TableCell>{clientName}</TableCell>
-                  <TableCell>{a.assignedToUserName}</TableCell>
-                  <TableCell>{a.customerName ?? "—"}</TableCell>
-                  <TableCell>{a.platform ?? "—"}</TableCell>
+                  <TableCell className="text-sm">{clientName}</TableCell>
+                  <TableCell className="text-sm">{a.assignedToUserName}</TableCell>
+                  <TableCell className="text-sm">{a.customerName ?? <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="text-sm">{a.platform ?? <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell>
                     <StatusBadge status={a.allocationStatus} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {a.sentDate ? new Date(a.sentDate).toLocaleDateString() : "—"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {a.postedDate ? new Date(a.postedDate).toLocaleDateString() : "—"}
                   </TableCell>
                   <TableCell>
                     {isUsed ? (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">Used</span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Used
+                      </span>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground text-sm">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end gap-1.5">
                       {a.allocationStatus === "Assigned" && (
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
+                          className="h-7 text-xs"
                           onClick={() => setSharedAlloc(a)}
                         >
                           Mark Shared
@@ -132,19 +142,20 @@ export function ReviewAllocationTable({
                       )}
                       {(a.allocationStatus === "Assigned" || a.allocationStatus === "Shared with Customer") && (
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
+                          className="h-7 text-xs"
                           onClick={() => setPostedAlloc(a)}
                         >
-                          Mark Posted / Used
+                          Mark Posted
                         </Button>
                       )}
                       {onCancel && a.allocationStatus !== "Used" && a.allocationStatus !== "Posted" && (
-                        <Button variant="ghost" size="sm" onClick={() => onCancel(a._id)}>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => onCancel(a._id)}>
                           Cancel
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => openActivity(a)}>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => openActivity(a)}>
                         History
                       </Button>
                     </div>
@@ -157,7 +168,15 @@ export function ReviewAllocationTable({
       </div>
 
       {allocations.length === 0 && (
-        <p className="text-center py-8 text-muted-foreground">No allocations found.</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium">No allocations found</p>
+          <p className="mt-1 text-sm text-muted-foreground">Allocations will appear here once created.</p>
+        </div>
       )}
 
       <MarkSharedModal
@@ -193,6 +212,15 @@ export function ReviewAllocationTable({
         isOpen={!!activityAlloc}
         onClose={() => { setActivityAlloc(null); setActivity([]); }}
         activity={activity}
+      />
+
+      <ReviewDetailSidePane
+        allocation={detailAlloc}
+        isOpen={!!detailAlloc}
+        onClose={() => setDetailAlloc(null)}
+        onMarkShared={onMarkShared}
+        onMarkPosted={onMarkPosted}
+        onRefresh={() => router.refresh()}
       />
     </>
   );
