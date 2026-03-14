@@ -15,10 +15,11 @@ async function getAllocations(assignedToUserId: string | undefined): Promise<Rev
   return res.json();
 }
 
-async function getUsers(): Promise<{ _id: string; name: string }[]> {
-  const res = await fetch(`${BASE}/api/users`, { cache: "no-store" });
+async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
+  const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" });
   if (!res.ok) return [];
-  return res.json();
+  const data = await res.json();
+  return data.items ?? [];
 }
 
 async function markShared(id: string, data: { customerName: string; customerContact?: string; platform?: string; sentDate: string }) {
@@ -66,12 +67,12 @@ interface PageProps {
 
 export default async function MyAssignedReviewsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const [allocations, users] = await Promise.all([
+  const [allocations, teamMembers] = await Promise.all([
     getAllocations(params.assignedTo),
-    getUsers(),
+    getTeamMembers(),
   ]);
 
-  const selectedUserId = params.assignedTo || users[0]?._id;
+  const selectedUserId = params.assignedTo || teamMembers[0]?._id;
   const filtered = selectedUserId
     ? allocations.filter((a) => a.assignedToUserId === selectedUserId)
     : allocations;
@@ -91,10 +92,10 @@ export default async function MyAssignedReviewsPage({ searchParams }: PageProps)
             <label className="mb-1 block text-sm font-medium text-muted-foreground">View as</label>
             <select
               name="assignedTo"
-              defaultValue={params.assignedTo ?? users[0]?._id ?? ""}
+              defaultValue={params.assignedTo ?? teamMembers[0]?._id ?? ""}
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[180px]"
             >
-              {users.map((u) => (
+              {teamMembers.map((u) => (
                 <option key={u._id} value={u._id}>{u.name}</option>
               ))}
             </select>

@@ -32,10 +32,11 @@ async function getClients(): Promise<Client[]> {
   return res.json();
 }
 
-async function getUsers(): Promise<{ _id: string; name: string }[]> {
-  const res = await fetch(`${BASE}/api/users`, { cache: "no-store" });
+async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
+  const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" });
   if (!res.ok) return [];
-  return res.json();
+  const data = await res.json();
+  return data.items ?? [];
 }
 
 async function markShared(id: string, data: { customerName: string; customerContact?: string; platform?: string; sentDate: string }) {
@@ -101,7 +102,7 @@ interface PageProps {
 
 export default async function ReviewAllocationsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const [allocations, clients, users] = await Promise.all([
+  const [allocations, clients, teamMembers] = await Promise.all([
     getAllocations({
       clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
       status: params.status && params.status !== "ALL" ? params.status : undefined,
@@ -111,7 +112,7 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
       dateTo: params.dateTo,
     }),
     getClients(),
-    getUsers(),
+    getTeamMembers(),
   ]);
 
   return (
@@ -161,7 +162,7 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[140px]"
             >
               <option value="ALL">All</option>
-              {users.map((u) => (
+              {teamMembers.map((u) => (
                 <option key={u._id} value={u._id}>{u.name}</option>
               ))}
             </select>

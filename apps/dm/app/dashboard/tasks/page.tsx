@@ -66,7 +66,8 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
   }
   const clientId = (task: Task) =>
     typeof task.clientId === "object" ? (task.clientId as { _id: string })._id : (task.clientId as string)
-  const assigneeName = (task: Task) => {
+  const assigneeName = (task: Task & { assignedToName?: string }) => {
+    if (task.assignedToName) return task.assignedToName
     if (!task.assignedTo) return "—"
     const a = task.assignedTo
     if (typeof a === "object" && a && "name" in a) return (a as { name?: string }).name ?? (a as { email?: string }).email ?? "—"

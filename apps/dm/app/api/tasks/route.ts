@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
-    if (assignedTo) query.assignedTo = assignedTo;
+    if (assignedTo) {
+      query.$or = [{ assignedTo: assignedTo }, { assignedToUserId: assignedTo }];
+    }
     if (status) query.status = status;
     if (priority) query.priority = priority;
 
@@ -38,6 +40,8 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     const body = await request.json();
     const task = new Task(body);
+    if (body.assignedToUserId) task.assignedToUserId = body.assignedToUserId;
+    if (body.assignedToName) task.assignedToName = body.assignedToName;
     await task.save();
     return NextResponse.json(task, { status: 201 });
   } catch (error) {

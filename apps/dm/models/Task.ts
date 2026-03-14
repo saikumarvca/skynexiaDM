@@ -9,6 +9,8 @@ export interface ITask extends Document {
   title: string;
   description?: string;
   assignedTo?: mongoose.Types.ObjectId | null;
+  assignedToUserId?: string;
+  assignedToName?: string;
   priority: TaskPriority;
   deadline?: Date;
   status: TaskStatus;
@@ -23,6 +25,8 @@ const TaskSchema: Schema = new Schema(
     title: { type: String, required: true },
     description: { type: String },
     assignedTo: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    assignedToUserId: { type: String },
+    assignedToName: { type: String },
     priority: {
       type: String,
       enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],

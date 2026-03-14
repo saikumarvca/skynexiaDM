@@ -28,10 +28,11 @@ async function getClients(): Promise<Client[]> {
   return res.json();
 }
 
-async function getUsers(): Promise<{ _id: string; name: string }[]> {
-  const res = await fetch(`${BASE}/api/users`, { cache: "no-store" });
+async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
+  const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" });
   if (!res.ok) return [];
-  return res.json();
+  const data = await res.json();
+  return data.items ?? [];
 }
 
 async function createDraft(data: ReviewDraftFormData & { createdBy?: string }) {
@@ -101,7 +102,7 @@ interface PageProps {
 
 export default async function ReviewDraftsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const [drafts, clients, users] = await Promise.all([
+  const [drafts, clients, teamMembers] = await Promise.all([
     getDrafts({
       clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
       status: params.status && params.status !== "ALL" ? params.status : undefined,
@@ -109,7 +110,7 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
       language: params.language,
     }),
     getClients(),
-    getUsers(),
+    getTeamMembers(),
   ]);
 
   return (
@@ -177,7 +178,7 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
         <ReviewDraftTable
           drafts={drafts}
           clients={clients}
-          users={users}
+          users={teamMembers}
           selectedClientId={params.clientId}
           onCreate={createDraft}
           onUpdate={updateDraft}

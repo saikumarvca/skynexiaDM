@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   BarChart3,
   Users,
+  Users2,
   FileText,
   Home,
   Target,
@@ -20,6 +21,9 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronRight,
+  Activity,
+  TrendingUp,
+  Loader2,
 } from "lucide-react"
 
 const navigation = [
@@ -43,6 +47,21 @@ const navigation = [
       { name: "Review Analytics", href: "/dashboard/review-analytics", icon: BarChart3 },
     ],
   },
+  {
+    name: "Team",
+    href: "/team",
+    icon: Users2,
+    children: [
+      { name: "Overview", href: "/team", icon: Users2 },
+      { name: "Members", href: "/team/members", icon: Users },
+      { name: "Roles", href: "/team/roles", icon: UserCheck },
+      { name: "Assignments", href: "/team/assignments", icon: ClipboardList },
+      { name: "Performance", href: "/team/performance", icon: TrendingUp },
+      { name: "Workload", href: "/team/workload", icon: Loader2 },
+      { name: "Activity", href: "/team/activity", icon: Activity },
+      { name: "Review Assignments", href: "/team/review-assignments", icon: ClipboardCheck },
+    ],
+  },
   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
@@ -54,11 +73,18 @@ export function Sidebar() {
     pathname.startsWith("/dashboard/review-") ||
     pathname === "/dashboard/my-assigned-reviews" ||
     pathname === "/dashboard/used-reviews"
-  const [reviewsExpanded, setReviewsExpanded] = useState(isReviewActive)
+  const isTeamActive = pathname.startsWith("/team")
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    Reviews: isReviewActive,
+    Team: isTeamActive,
+  })
 
   useEffect(() => {
-    if (isReviewActive) setReviewsExpanded(true)
+    if (isReviewActive) setExpandedSections((p) => ({ ...p, Reviews: true }))
   }, [pathname, isReviewActive])
+  useEffect(() => {
+    if (isTeamActive) setExpandedSections((p) => ({ ...p, Team: true }))
+  }, [pathname, isTeamActive])
 
   return (
     <div className="flex h-full w-64 flex-col bg-gray-50 dark:bg-gray-900">
@@ -68,16 +94,19 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 px-4 py-4 overflow-y-auto">
         {navigation.map((item) => {
           if ("children" in item && item.children) {
-            const isExpanded = isReviewActive || reviewsExpanded
+            const sectionActive = item.name === "Reviews" ? isReviewActive : item.name === "Team" ? isTeamActive : false
+            const isExpanded = sectionActive || !!expandedSections[item.name]
             const isParentActive = pathname === item.href
             return (
               <div key={item.name}>
                 <button
                   type="button"
-                  onClick={() => setReviewsExpanded(!reviewsExpanded)}
+                  onClick={() =>
+                    setExpandedSections((p) => ({ ...p, [item.name]: !p[item.name] }))
+                  }
                   className={cn(
                     "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    isParentActive || isReviewActive
+                    isParentActive || sectionActive
                       ? "bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
                   )}

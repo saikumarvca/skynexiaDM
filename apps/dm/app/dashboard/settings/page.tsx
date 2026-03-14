@@ -13,34 +13,20 @@ import {
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
-interface UserItem {
-  _id: string
-  name: string
-  email: string
-  role: string
-}
-
-async function getUsers(): Promise<UserItem[]> {
+async function getTeamMembers(): Promise<{ _id: string; name: string; email: string; roleName?: string }[]> {
   try {
-    const res = await fetch(`${BASE}/api/users`, { cache: "no-store" })
+    const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" })
     if (!res.ok) return []
-    return res.json()
+    const data = await res.json()
+    return data.items ?? []
   } catch (e) {
-    console.error("Error fetching users:", e)
+    console.error("Error fetching team members:", e)
     return []
   }
 }
 
-const roleLabels: Record<string, string> = {
-  ADMIN: "Admin",
-  MANAGER: "Manager",
-  CONTENT_WRITER: "Content writer",
-  DESIGNER: "Designer",
-  ANALYST: "Analyst",
-}
-
 export default async function DashboardSettingsPage() {
-  const users = await getUsers()
+  const teamMembers = await getTeamMembers()
 
   return (
     <DashboardLayout>
@@ -61,13 +47,13 @@ export default async function DashboardSettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {users.length === 0 ? (
+              {teamMembers.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No team members yet. Add users from your admin panel.
+                  No team members yet. Add members from Team → Members.
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {users.map((u) => (
+                  {teamMembers.map((u) => (
                     <li
                       key={u._id}
                       className="flex items-center justify-between rounded-md border px-3 py-2"
@@ -85,7 +71,7 @@ export default async function DashboardSettingsPage() {
                         </div>
                       </div>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                        {roleLabels[u.role] ?? u.role}
+                        {u.roleName ?? "—"}
                       </span>
                     </li>
                   ))}

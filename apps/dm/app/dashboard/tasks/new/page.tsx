@@ -17,11 +17,12 @@ async function getClients() {
   }
 }
 
-async function getUsers() {
+async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
   try {
-    const res = await fetch(`${BASE}/api/users`, { cache: "no-store" })
+    const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" })
     if (!res.ok) return []
-    return res.json()
+    const data = await res.json()
+    return (data.items ?? []) as { _id: string; name: string }[]
   } catch {
     return []
   }
@@ -33,14 +34,15 @@ export default async function NewTaskPage({
   searchParams: Promise<{ clientId?: string }>
 }) {
   const params = await searchParams
-  const [clients, users] = await Promise.all([getClients(), getUsers()])
+  const [clients, teamMembers] = await Promise.all([getClients(), getTeamMembers()])
 
   async function createTask(formData: FormData) {
     "use server"
     const clientId = formData.get("clientId") as string
     const title = (formData.get("title") as string)?.trim()
     if (!clientId || !title) throw new Error("Client and title are required")
-    const assignedTo = formData.get("assignedTo") as string
+    const assignedToUserId = (formData.get("assignedTo") as string)?.trim() || undefined
+    const assignee = assignedToUserId ? teamMembers.find((m) => m._id === assignedToUserId) : null
     const res = await fetch(`${BASE}/api/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -48,7 +50,8 @@ export default async function NewTaskPage({
         clientId,
         title,
         description: (formData.get("description") as string)?.trim() || undefined,
-        assignedTo: assignedTo && assignedTo !== "" ? assignedTo : null,
+        assignedToUserId: assignedToUserId || undefined,
+        assignedToName: assignee?.name || undefined,
         priority: (formData.get("priority") as string) || "MEDIUM",
         status: (formData.get("status") as string) || "TODO",
         deadline: (formData.get("deadline") as string) || undefined,
@@ -81,7 +84,7 @@ export default async function NewTaskPage({
         <div className="max-w-2xl">
           <TaskForm
             clients={clients}
-            users={users}
+            users={teamMembers}
             action={createTask}
             defaultClientId={params.clientId}
           />

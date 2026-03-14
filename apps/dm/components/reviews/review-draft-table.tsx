@@ -12,12 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { StatusBadge } from "@/components/status-badge";
 import { ReviewDraftForm } from "./review-draft-form";
 import { AssignDraftModal } from "./assign-draft-modal";
 import { ReviewActivityTimeline } from "./review-activity-timeline";
+import { ReviewDraftDetailsPane } from "./review-draft-details-pane";
 import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/types/reviews";
 import type { Client } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface User {
   _id: string;
@@ -55,12 +56,15 @@ export function ReviewDraftTable({
   onArchive,
 }: ReviewDraftTableProps) {
   const [search, setSearch] = useState("");
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const selectedDraft = drafts.find((d) => d._id === selectedDraftId) ?? null;
   const [formOpen, setFormOpen] = useState(false);
   const [editDraft, setEditDraft] = useState<ReviewDraft | null>(null);
   const [assignDraft, setAssignDraft] = useState<ReviewDraft | null>(null);
   const [activityDraft, setActivityDraft] = useState<ReviewDraft | null>(null);
   const [activity, setActivity] = useState<{ action: string; performedBy: string; performedAt: string }[]>([]);
   const [importLoading, setImportLoading] = useState(false);
+  const [paneOpen, setPaneOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
 
@@ -111,8 +115,8 @@ export function ReviewDraftTable({
     reader.onload = async () => {
       try {
         const text = String(reader.result ?? "");
-        const drafts = parseCSV(text);
-        if (drafts.length === 0) {
+        const parsed = parseCSV(text);
+        if (parsed.length === 0) {
           alert("No valid rows found. CSV should have columns: subject, reviewText (or review text), and optionally category, language, suggestedRating.");
           return;
         }
@@ -120,7 +124,7 @@ export function ReviewDraftTable({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            drafts,
+            drafts: parsed,
             clientId: selectedClientId && selectedClientId !== "ALL" ? selectedClientId : undefined,
             createdBy: "system",
           }),
@@ -170,11 +174,8 @@ export function ReviewDraftTable({
   };
 
   const handleFetchActivity = async (entityType: string, entityId: string) => {
-    const res = await fetch(
-      `${BASE}/api/review-activity?entityType=${entityType}&entityId=${entityId}`
-    );
-    const data = await res.json();
-    return data;
+    const res = await fetch(`${BASE}/api/review-activity?entityType=${entityType}&entityId=${entityId}`);
+    return res.json();
   };
 
   const openActivity = async (d: ReviewDraft) => {
@@ -183,118 +184,127 @@ export function ReviewDraftTable({
     setActivity(logs);
   };
 
+  const handleRowClick = (d: ReviewDraft) => {
+    setSelectedDraftId(d._id);
+    setPaneOpen(true);
+  };
+
+  const handleArchiveClick = (d: ReviewDraft) => {
+    if (confirm("Archive this draft?")) wrapRefresh(onArchive)(d._id);
+  };
+
   return (
-    <>
-      <div className="mb-4 flex gap-4">
-        <Input
-          placeholder="Search subject, text, client, category..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-        <Button onClick={() => { setEditDraft(null); setFormOpen(true); }}>
-          Create Draft
-        </Button>
-        <Button variant="outline" onClick={() => window.open(`${BASE}/api/review-drafts/export`, "_blank")}>
-          Export CSV
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          onChange={handleImportFile}
-        />
-        <Button
-          variant="outline"
-          disabled={importLoading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {importLoading ? "Importing…" : "Import"}
-        </Button>
-      </div>
+    <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="mb-4 flex flex-wrap gap-4">
+          <Input
+            placeholder="Search subject, text, client, category..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-sm"
+          />
+          <Button onClick={() => { setEditDraft(null); setFormOpen(true); }}>
+            Create Draft
+          </Button>
+          <Button variant="outline" onClick={() => window.open(`${BASE}/api/review-drafts/export`, "_blank")}>
+            Export CSV
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+          <Button
+            variant="outline"
+            disabled={importLoading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {importLoading ? "Importing…" : "Import"}
+          </Button>
+        </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Subject</TableHead>
-              <TableHead>Review Text Preview</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Language</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead>Reusable</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created By</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((d) => (
-              <TableRow key={d._id}>
-                <TableCell className="font-medium">{d.subject}</TableCell>
-                <TableCell className="max-w-[200px] truncate" title={d.reviewText}>
-                  {truncate(d.reviewText, 60)}
-                </TableCell>
-                <TableCell>{clientName(d)}</TableCell>
-                <TableCell>{d.category}</TableCell>
-                <TableCell>{d.language}</TableCell>
-                <TableCell>{d.suggestedRating}</TableCell>
-                <TableCell>{d.reusable ? "Yes" : "No"}</TableCell>
-                <TableCell>
-                  <StatusBadge status={d.status as "Available" | "Allocated" | "Shared" | "Used" | "Archived"} />
-                </TableCell>
-                <TableCell>{d.createdBy}</TableCell>
-                <TableCell>{new Date(d.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => { setEditDraft(d); setFormOpen(true); }}>
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => wrapRefresh(onDuplicate)(d._id)}>
-                      Duplicate
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleCopy(d)} title="Copy text">
-                      Copy
-                    </Button>
-                    {d.status !== "Archived" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setAssignDraft(d)}
-                        disabled={!d.reusable && d.status === "Used"}
-                      >
-                        Assign
-                      </Button>
-                    )}
-                    {d.status !== "Archived" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={async () => {
-                          if (confirm("Archive this draft?")) {
-                            await wrapRefresh(onArchive)(d._id);
-                          }
-                        }}
-                      >
-                        Archive
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => openActivity(d)}>
-                      History
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Subject</TableHead>
+                <TableHead>Review Text Preview</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Language</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((d) => (
+                <TableRow
+                  key={d._id}
+                  className={cn(
+                    "cursor-pointer transition-colors",
+                    selectedDraftId === d._id
+                      ? "bg-blue-50 dark:bg-blue-950/30"
+                      : "hover:bg-gray-50 dark:hover:bg-muted/50"
+                  )}
+                  onClick={() => handleRowClick(d)}
+                >
+                  <TableCell
+                    className={cn(
+                      "font-medium",
+                      selectedDraftId === d._id && "border-l-4 border-l-blue-500"
+                    )}
+                  >
+                    {d.subject}
+                  </TableCell>
+                  <TableCell className="max-w-[240px] truncate" title={d.reviewText}>
+                    {truncate(d.reviewText, 80)}
+                  </TableCell>
+                  <TableCell>{clientName(d)}</TableCell>
+                  <TableCell>{d.category}</TableCell>
+                  <TableCell>{d.language}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {filtered.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground">No drafts found.</p>
+        )}
       </div>
 
-      {filtered.length === 0 && (
-        <p className="text-center py-8 text-muted-foreground">No drafts found.</p>
+      {/* Details pane - fixed right on desktop, slide-over on mobile */}
+      <aside
+        className={cn(
+          "flex flex-col rounded-lg border bg-background",
+          "lg:w-96 lg:shrink-0 lg:self-stretch",
+          "fixed inset-y-0 right-0 z-40 w-full max-w-md transform transition-transform duration-200 ease-out",
+          "lg:relative lg:transform-none",
+          paneOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0",
+          "lg:min-h-[400px]"
+        )}
+      >
+        <ReviewDraftDetailsPane
+          draft={selectedDraft}
+          clients={clients}
+          users={users}
+          onClose={() => { setPaneOpen(false); setSelectedDraftId(null); }}
+          onEdit={(d) => { setEditDraft(d); setFormOpen(true); }}
+          onDuplicate={(id) => wrapRefresh(onDuplicate)(id)}
+          onCopy={handleCopy}
+          onAssign={(d) => setAssignDraft(d)}
+          onArchive={handleArchiveClick}
+          onViewHistory={openActivity}
+        />
+      </aside>
+
+      {/* Mobile overlay when pane open */}
+      {paneOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setPaneOpen(false)}
+          aria-hidden
+        />
       )}
 
       <ReviewDraftForm
@@ -323,6 +333,6 @@ export function ReviewDraftTable({
         onClose={() => { setActivityDraft(null); setActivity([]); }}
         activity={activity}
       />
-    </>
+    </div>
   );
 }
