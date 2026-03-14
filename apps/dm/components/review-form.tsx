@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -22,6 +22,36 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
     language: "English",
     ratingStyle: "5-star",
   })
+
+  const [templates, setTemplates] = useState<{ _id: string; name: string; suggestedCategory?: string; suggestedLanguage?: string; suggestedRatingStyle?: string }[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
+
+  useEffect(() => {
+    async function fetchTemplates() {
+      try {
+        const res = await fetch('/api/templates')
+        if (!res.ok) return
+        const data = await res.json()
+        setTemplates(data)
+      } catch (error) {
+        console.error('Error fetching templates:', error)
+      }
+    }
+    fetchTemplates()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedTemplateId) return
+    const template = templates.find(t => t._id === selectedTemplateId)
+    if (!template) return
+
+    setFormData(prev => ({
+      ...prev,
+      category: template.suggestedCategory || prev.category,
+      language: template.suggestedLanguage || prev.language,
+      ratingStyle: template.suggestedRatingStyle || prev.ratingStyle,
+    }))
+  }, [selectedTemplateId, templates])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,6 +81,26 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {templates.length > 0 && (
+          <div className="md:col-span-2">
+            <label htmlFor="template" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Template (optional)
+            </label>
+            <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a template to prefill fields" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No template</SelectItem>
+                {templates.map((template) => (
+                  <SelectItem key={template._id} value={template._id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div>
           <label htmlFor="shortLabel" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Short Label

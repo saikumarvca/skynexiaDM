@@ -8,31 +8,47 @@ export interface IReview extends Document {
   language: string;
   ratingStyle: string;
   status: 'UNUSED' | 'USED' | 'ARCHIVED';
+  platform?: string;
+  source?: 'MANUAL' | 'AI' | 'IMPORT';
+  generatedByUserId?: string | null;
+  usedCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ReviewSchema: Schema = new Schema({
-  clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
-  shortLabel: { type: String, required: true },
-  reviewText: { type: String, required: true },
-  category: { type: String, required: true },
-  language: { type: String, required: true },
-  ratingStyle: { type: String, required: true },
-  status: {
-    type: String,
-    enum: ['UNUSED', 'USED', 'ARCHIVED'],
-    default: 'UNUSED'
+const ReviewSchema: Schema = new Schema(
+  {
+    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    shortLabel: { type: String, required: true },
+    reviewText: { type: String, required: true },
+    category: { type: String, required: true },
+    language: { type: String, required: true },
+    ratingStyle: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ['UNUSED', 'USED', 'ARCHIVED'],
+      default: 'UNUSED',
+    },
+    platform: { type: String },
+    source: {
+      type: String,
+      enum: ['MANUAL', 'AI', 'IMPORT'],
+      default: 'MANUAL',
+    },
+    generatedByUserId: { type: String, default: null },
+    usedCount: { type: Number, default: 0 },
   },
-}, {
-  timestamps: true,
-});
+  {
+    timestamps: true,
+  }
+);
 
 // Add indexes for better query performance
 ReviewSchema.index({ clientId: 1, status: 1, createdAt: -1 });
 ReviewSchema.index({ status: 1, createdAt: -1 });
 ReviewSchema.index({ category: 1 });
 ReviewSchema.index({ language: 1 });
+ReviewSchema.index({ clientId: 1, platform: 1, status: 1 });
 
 // Prevent model overwrite during hot reload in development
 const Review = (mongoose.models.Review as mongoose.Model<IReview> | undefined) || mongoose.model<IReview>('Review', ReviewSchema);

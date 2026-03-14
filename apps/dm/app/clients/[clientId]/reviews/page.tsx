@@ -100,10 +100,6 @@ export default async function ClientReviewsPage({ params }: ClientReviewsPagePro
           reviews={reviews}
           onMarkUsed={markReviewUsed}
           onArchive={archiveReview}
-          onCopy={(text) => {
-            // This would typically use the clipboard API
-            console.log('Copying:', text)
-          }}
         />
       </div>
     </DashboardLayout>

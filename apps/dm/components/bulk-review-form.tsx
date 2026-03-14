@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -22,8 +22,13 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
     ratingStyle: "5-star",
   })
 
+  const [isPreviewOnly, setIsPreviewOnly] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isPreviewOnly) {
+      return
+    }
     setIsLoading(true)
     try {
       await onSubmit(formData)
@@ -45,6 +50,18 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
   const handleChange = (field: keyof BulkReviewFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
+
+  const parsedReviews = useMemo(() => {
+    return formData.reviews
+      .split(/\n\s*\n|\n/)
+      .map((text) => text.trim())
+      .filter((text) => text.length > 0)
+      .map((text, index) => ({
+        index: index + 1,
+        text,
+        isTooShort: text.length < 20,
+      }))
+  }, [formData.reviews])
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -112,6 +129,22 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
           Each line or paragraph will be saved as a separate review.
         </p>
       </div>
+      {parsedReviews.length > 0 && (
+        <div className="rounded-md border p-4 space-y-2">
+          <p className="text-sm font-medium">Preview ({parsedReviews.length} reviews)</p>
+          <ul className="max-h-64 overflow-auto space-y-1 text-sm">
+            {parsedReviews.map((item) => (
+              <li key={item.index} className={item.isTooShort ? "text-red-500" : ""}>
+                <span className="font-mono mr-2">#{item.index}</span>
+                <span>{item.text}</span>
+                {item.isTooShort && (
+                  <span className="ml-2 text-xs">(very short – consider expanding)</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="flex justify-end">
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Creating..." : "Create Reviews"}

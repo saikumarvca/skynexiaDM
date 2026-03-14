@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { Client } from "@/types"
 
-async function getClients(search?: string): Promise<Client[]> {
+async function getClients(search?: string, viewId?: string): Promise<Client[]> {
   try {
     const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clients`)
     if (search) url.searchParams.set('search', search)
+    if (viewId) url.searchParams.set('viewId', viewId)
 
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to fetch clients')
@@ -20,12 +21,29 @@ async function getClients(search?: string): Promise<Client[]> {
   }
 }
 
+async function getClientViews() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/client-views`, {
+      cache: 'no-store'
+    })
+    if (!res.ok) throw new Error('Failed to fetch views')
+    return res.json() as Promise<{ _id: string; name: string }[]>
+  } catch (error) {
+    console.error('Error fetching client views:', error)
+    return []
+  }
+}
+
 interface ClientsPageProps {
-  searchParams: { search?: string }
+  searchParams: Promise<{ search?: string; viewId?: string }>
 }
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
-  const clients = await getClients(searchParams.search)
+  const params = await searchParams
+  const [clients, views] = await Promise.all([
+    getClients(params.search, params.viewId),
+    getClientViews(),
+  ])
 
   return (
     <DashboardLayout>
@@ -45,16 +63,32 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           </Link>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center space-x-2">
-          <form className="flex-1 max-w-sm">
-            <Input
-              name="search"
-              placeholder="Search clients..."
-              defaultValue={searchParams.search || ""}
-            />
-          </form>
-        </div>
+        {/* Search & views */}
+        <form method="get" action="/clients" className="flex items-center gap-4">
+          <Input
+            name="search"
+            placeholder="Search clients..."
+            defaultValue={params.search || ""}
+            className="max-w-sm"
+          />
+          {views.length > 0 && (
+            <select
+              name="viewId"
+              defaultValue={params.viewId || ""}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">All clients</option>
+              {views.map((view) => (
+                <option key={view._id} value={view._id}>
+                  {view.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <Button type="submit" variant="secondary">
+            Search
+          </Button>
+        </form>
 
         {/* Clients Grid */}
         {clients.length > 0 ? (

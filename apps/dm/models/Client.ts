@@ -9,32 +9,52 @@ export interface IClient extends Document {
   email: string;
   notes?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  website?: string;
+  industry?: string;
+  location?: string;
+  marketingChannels?: string[];
+  contractStart?: Date;
+  contractEnd?: Date;
+  monthlyBudget?: number;
+  assignedManagerId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ClientSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  businessName: { type: String, required: true },
-  brandName: { type: String, required: true },
-  contactName: { type: String, required: true },
-  phone: { type: String, required: true },
-  email: { type: String, required: true },
-  notes: { type: String },
-  status: {
-    type: String,
-    enum: ['ACTIVE', 'INACTIVE', 'ARCHIVED'],
-    default: 'ACTIVE'
+const ClientSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    businessName: { type: String, required: true },
+    brandName: { type: String, required: true },
+    contactName: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
+    notes: { type: String },
+    status: {
+      type: String,
+      enum: ['ACTIVE', 'INACTIVE', 'ARCHIVED'],
+      default: 'ACTIVE',
+    },
+    website: { type: String },
+    industry: { type: String },
+    location: { type: String },
+    marketingChannels: [{ type: String }],
+    contractStart: { type: Date },
+    contractEnd: { type: Date },
+    monthlyBudget: { type: Number },
+    assignedManagerId: { type: String, default: null },
   },
-}, {
-  timestamps: true,
-});
+  {
+    timestamps: true,
+  }
+);
 
 // Add indexes for better query performance
 ClientSchema.index({ status: 1, createdAt: -1 });
 ClientSchema.index({ email: 1 }, { unique: true });
 ClientSchema.index({ name: 1 });
 ClientSchema.index({ businessName: 1 });
+ClientSchema.index({ status: 1, industry: 1 });
 
 // Prevent model overwrite during hot reload in development
 const Client = (mongoose.models.Client as mongoose.Model<IClient> | undefined) || mongoose.model<IClient>('Client', ClientSchema);

@@ -11,9 +11,11 @@ import { ClientFormData } from "@/types"
 interface ClientFormProps {
   initialData?: Partial<ClientFormData>
   onSubmit: (data: ClientFormData) => Promise<void>
+  /** After submit, redirect here instead of /clients (e.g. for edit mode). */
+  redirectTo?: string
 }
 
-export function ClientForm({ initialData, onSubmit }: ClientFormProps) {
+export function ClientForm({ initialData, onSubmit, redirectTo }: ClientFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<ClientFormData>({
@@ -32,7 +34,7 @@ export function ClientForm({ initialData, onSubmit }: ClientFormProps) {
     setIsLoading(true)
     try {
       await onSubmit(formData)
-      router.push("/clients")
+      router.push(redirectTo ?? "/clients")
     } catch (error) {
       console.error("Error submitting form:", error)
     } finally {

@@ -10,10 +10,14 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId')
     const status = searchParams.get('status')
     const search = searchParams.get('search')
+    const category = searchParams.get('category')
+    const language = searchParams.get('language')
 
     const query: Record<string, unknown> = {}
     if (clientId) query.clientId = clientId
-    if (status) query.status = status
+    if (status && status !== 'ALL') query.status = status
+    if (category) query.category = category
+    if (language) query.language = language
     if (search) {
       query.$or = [
         { shortLabel: { $regex: search, $options: 'i' } },

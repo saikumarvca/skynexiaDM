@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Client from '@/models/Client'
+import ClientView from '@/models/ClientView'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,10 +10,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const limit = parseInt(searchParams.get('limit') || '50')
+    const viewId = searchParams.get('viewId')
 
-    let query = {}
+    let baseQuery: Record<string, unknown> = {}
     if (search) {
-      query = {
+      baseQuery = {
         $or: [
           { name: { $regex: search, $options: 'i' } },
           { businessName: { $regex: search, $options: 'i' } },
@@ -22,6 +24,16 @@ export async function GET(request: NextRequest) {
         ]
       }
     }
+
+    let filters: Record<string, unknown> = {}
+    if (viewId) {
+      const view = await ClientView.findById(viewId)
+      if (view) {
+        filters = view.filters as Record<string, unknown>
+      }
+    }
+
+    const query = { ...filters, ...baseQuery }
 
     const clients = await Client.find(query)
       .sort({ createdAt: -1 })

@@ -1,4 +1,6 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
+
+export const dynamic = "force-dynamic"
 import { StatsCard } from "@/components/stats-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, FileText, CheckCircle, Archive } from "lucide-react"

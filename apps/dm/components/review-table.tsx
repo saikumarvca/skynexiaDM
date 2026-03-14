@@ -14,7 +14,7 @@ interface ReviewTableProps {
   reviews: Review[]
   onMarkUsed: (data: MarkUsedFormData) => Promise<void>
   onArchive: (reviewId: string) => Promise<void>
-  onCopy: (text: string) => void
+  onCopy?: (text: string) => void
 }
 
 export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTableProps) {
@@ -22,6 +22,23 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleCopy = async (review: Review) => {
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(review.reviewText)
+      }
+    } catch (error) {
+      console.error("Failed to copy review text:", error)
+    }
+
+    if (onCopy) {
+      onCopy(review.reviewText)
+    }
+
+    setSelectedReview(review)
+    setIsModalOpen(true)
+  }
 
   const filteredReviews = reviews.filter(review => {
     const matchesSearch = review.shortLabel.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,7 +115,7 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onCopy(review.reviewText)}
+                      onClick={() => handleCopy(review)}
                       title="Copy review text"
                     >
                       <Copy className="h-4 w-4" />
