@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId');
     const status = searchParams.get('status');
     const assignedToUserId = searchParams.get('assignedToUserId');
+    const draftIds = searchParams.get('draftIds');
     const platform = searchParams.get('platform');
     const search = searchParams.get('search');
     const dateFrom = searchParams.get('dateFrom');
@@ -20,6 +21,15 @@ export async function GET(request: NextRequest) {
     if (status && status !== 'ALL') query.allocationStatus = status;
     if (assignedToUserId) query.assignedToUserId = assignedToUserId;
     if (platform) query.platform = platform;
+    if (draftIds) {
+      const ids = draftIds
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (ids.length > 0) {
+        query.draftId = { $in: ids };
+      }
+    }
 
     if (dateFrom || dateTo) {
       query.assignedDate = {};

@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Client } from "@/types";
@@ -107,6 +108,9 @@ export function ReviewDraftForm({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{draft ? "Edit Review Draft" : "Create Review Draft"}</DialogTitle>
+          <DialogDescription>
+            Fill the review draft details. Required fields are marked with *.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

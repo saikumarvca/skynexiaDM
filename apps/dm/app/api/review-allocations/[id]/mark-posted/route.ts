@@ -4,6 +4,8 @@ import ReviewAllocation from '@/models/ReviewAllocation';
 import ReviewDraft from '@/models/ReviewDraft';
 import PostedReview from '@/models/PostedReview';
 import { logActivity } from '@/lib/review-activity';
+import { parseWithSchema, apiError } from '@/lib/api/validation';
+import { markPostedSchema } from '@/lib/api/schemas';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -14,7 +16,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await dbConnect();
 
     const { id } = await params;
-    const body = await request.json();
+    const parsed = await parseWithSchema(request, markPostedSchema);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
     const {
       postedByName,
       platform,
@@ -26,25 +30,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       performedBy = 'system',
     } = body;
 
-    if (!postedByName || !postedByName.trim()) {
-      return NextResponse.json(
-        { error: 'Posted by name (customer name) is required' },
-        { status: 400 }
-      );
-    }
-    if (!platform || !platform.trim()) {
-      return NextResponse.json({ error: 'Platform is required' }, { status: 400 });
-    }
-    if (!reviewLink || !reviewLink.trim()) {
-      return NextResponse.json({ error: 'Review link is required' }, { status: 400 });
-    }
-    if (!postedDate) {
-      return NextResponse.json({ error: 'Posted date is required' }, { status: 400 });
-    }
-
     const existing = await ReviewAllocation.findById(id);
     if (!existing) {
-      return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
+      return apiError(404, 'Allocation not found', 'NOT_FOUND');
     }
 
     const postedReview = new PostedReview({
@@ -100,9 +88,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('Error marking allocation as posted:', error);
-    return NextResponse.json(
-      { error: 'Failed to mark as posted' },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : 'Failed to mark as posted';
+    return apiError(500, msg, 'INTERNAL_ERROR');
   }
 }

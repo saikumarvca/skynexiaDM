@@ -74,20 +74,20 @@ export function ReviewAllocationTable({
 
   return (
     <>
-      <div className="rounded-lg border bg-white shadow-sm dark:bg-gray-950">
+      <div className="rounded-lg border bg-card shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50 hover:bg-slate-50 dark:bg-gray-900/50">
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Subject</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Draft Preview</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Client</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Assigned To</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Customer</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Platform</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Status</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Sent</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Posted</TableHead>
-              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Used</TableHead>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="font-semibold text-foreground">Subject</TableHead>
+              <TableHead className="font-semibold text-foreground">Draft Preview</TableHead>
+              <TableHead className="font-semibold text-foreground">Client</TableHead>
+              <TableHead className="font-semibold text-foreground">Assigned To</TableHead>
+              <TableHead className="font-semibold text-foreground">Customer</TableHead>
+              <TableHead className="font-semibold text-foreground">Platform</TableHead>
+              <TableHead className="font-semibold text-foreground">Status</TableHead>
+              <TableHead className="font-semibold text-foreground">Sent</TableHead>
+              <TableHead className="font-semibold text-foreground">Posted</TableHead>
+              <TableHead className="font-semibold text-foreground">Used</TableHead>
               <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -98,7 +98,7 @@ export function ReviewAllocationTable({
               return (
                 <TableRow
                   key={a._id}
-                  className="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-gray-900/40 transition-colors"
+                  className="cursor-pointer hover:bg-muted/60 transition-colors"
                   onClick={() => setDetailAlloc(a)}
                 >
                   <TableCell className="font-medium text-primary">{subject}</TableCell>

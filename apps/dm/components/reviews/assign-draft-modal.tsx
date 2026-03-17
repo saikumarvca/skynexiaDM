@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { ReviewDraft, AssignDraftFormData } from "@/types/reviews";
@@ -84,9 +85,7 @@ export function AssignDraftModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Assign Draft to Team Member</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {draft.subject}
-          </p>
+          <DialogDescription>{draft.subject}</DialogDescription>
           {isNonReusableUsed && (
             <p className="text-sm text-amber-600 dark:text-amber-400">
               Warning: This draft is not reusable and has already been used.

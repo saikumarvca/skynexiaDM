@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TeamMember from '@/models/TeamMember';
 import TeamRole from '@/models/TeamRole';
+import { parseWithSchema, apiError } from '@/lib/api/validation';
+import { teamMemberCreateSchema } from '@/lib/api/schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,15 +69,9 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
 
-    const body = await request.json();
-    const { name, email, phone, roleId, department, notes } = body;
-
-    if (!name || !email) {
-      return NextResponse.json(
-        { error: 'Name and email are required' },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseWithSchema(request, teamMemberCreateSchema);
+    if (!parsed.ok) return parsed.response;
+    const { name, email, phone, roleId, department, notes } = parsed.data;
 
     let roleName = '';
     if (roleId) {
@@ -102,16 +98,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(populated, { status: 201 });
   } catch (error: unknown) {
     console.error('Error creating team member:', error);
-    const code = error && typeof error === 'object' && 'code' in error ? (error as { code: number | string }).code : null;
-    const msg =
-      code === 11000 || code === '11000'
-        ? 'Email already in use'
-        : error instanceof Error
-          ? error.message
-          : 'Failed to create team member';
-    return NextResponse.json(
-      { error: msg },
-      { status: 500 }
-    );
+    const code =
+      error && typeof error === 'object' && 'code' in error
+        ? (error as { code: number | string }).code
+        : null;
+    if (code === 11000 || code === '11000') {
+      return apiError(409, 'Email already in use', 'DUPLICATE_KEY');
+    }
+    const msg = error instanceof Error ? error.message : 'Failed to create team member';
+    return apiError(500, msg, 'INTERNAL_ERROR');
   }
 }

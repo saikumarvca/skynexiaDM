@@ -3,6 +3,8 @@ import dbConnect from '@/lib/mongodb';
 import ReviewAllocation from '@/models/ReviewAllocation';
 import ReviewDraft from '@/models/ReviewDraft';
 import { logActivity } from '@/lib/review-activity';
+import { parseWithSchema, apiError } from '@/lib/api/validation';
+import { markSharedSchema } from '@/lib/api/schemas';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -13,19 +15,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await dbConnect();
 
     const { id } = await params;
-    const body = await request.json();
-    const { customerName, customerContact, platform, sentDate, performedBy = 'system' } = body;
-
-    if (!customerName || !customerName.trim()) {
-      return NextResponse.json(
-        { error: 'Customer name is required before marking as shared' },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseWithSchema(request, markSharedSchema);
+    if (!parsed.ok) return parsed.response;
+    const { customerName, customerContact, platform, sentDate, performedBy = 'system' } = parsed.data;
 
     const existing = await ReviewAllocation.findById(id);
     if (!existing) {
-      return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
+      return apiError(404, 'Allocation not found', 'NOT_FOUND');
     }
 
     const update: Record<string, unknown> = {
@@ -60,9 +56,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(allocation);
   } catch (error) {
     console.error('Error marking allocation as shared:', error);
-    return NextResponse.json(
-      { error: 'Failed to mark as shared' },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : 'Failed to mark as shared';
+    return apiError(500, msg, 'INTERNAL_ERROR');
   }
 }

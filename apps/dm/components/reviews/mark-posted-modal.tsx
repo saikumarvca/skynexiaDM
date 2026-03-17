@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { MarkPostedFormData } from "@/types/reviews";
@@ -73,8 +74,10 @@ export function MarkPostedModal({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Mark as Posted / Used</DialogTitle>
-          {subject && (
-            <p className="text-sm text-muted-foreground">{subject}</p>
+          {subject ? (
+            <DialogDescription>{subject}</DialogDescription>
+          ) : (
+            <DialogDescription>Enter posting details and the review link.</DialogDescription>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

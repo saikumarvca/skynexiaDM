@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { MarkSharedFormData } from "@/types/reviews";
@@ -59,8 +60,10 @@ export function MarkSharedModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Mark as Shared with Customer</DialogTitle>
-          {subject && (
-            <p className="text-sm text-muted-foreground">{subject}</p>
+          {subject ? (
+            <DialogDescription>{subject}</DialogDescription>
+          ) : (
+            <DialogDescription>Enter the customer details and sent date.</DialogDescription>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

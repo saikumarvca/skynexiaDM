@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface ActivityItem {
@@ -33,6 +34,9 @@ export function ReviewActivityTimeline({
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            Timeline of actions and updates for this item.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {activity.length === 0 ? (

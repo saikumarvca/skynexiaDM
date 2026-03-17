@@ -1,17 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ReviewDraftForm } from "./review-draft-form";
 import { AssignDraftModal } from "./assign-draft-modal";
 import { ReviewActivityTimeline } from "./review-activity-timeline";
@@ -44,6 +36,13 @@ function truncate(s: string, len: number) {
   return s.length <= len ? s : s.slice(0, len) + "…";
 }
 
+type AllocationLite = {
+  _id: string;
+  draftId: string | { _id?: string };
+  assignedToUserName?: string;
+  createdAt?: string;
+};
+
 export function ReviewDraftTable({
   drafts,
   clients,
@@ -64,9 +63,51 @@ export function ReviewDraftTable({
   const [activityDraft, setActivityDraft] = useState<ReviewDraft | null>(null);
   const [activity, setActivity] = useState<{ action: string; performedBy: string; performedAt: string }[]>([]);
   const [importLoading, setImportLoading] = useState(false);
-  const [paneOpen, setPaneOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const paneRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
+  const [allocationsByDraftId, setAllocationsByDraftId] = useState<Record<string, string>>({});
+  const [paneOpen, setPaneOpen] = useState(false);
+  const [paneTop, setPaneTop] = useState<number>(96);
+
+  const draftIds = useMemo(() => drafts.map((d) => d._id), [drafts]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAllocations() {
+      try {
+        if (draftIds.length === 0) {
+          if (!cancelled) setAllocationsByDraftId({});
+          return;
+        }
+        const url = new URL(`${BASE}/api/review-allocations`);
+        url.searchParams.set("draftIds", draftIds.join(","));
+        const res = await fetch(url.toString(), { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load allocations");
+        const list = (await res.json()) as AllocationLite[];
+        const map: Record<string, string> = {};
+        for (const a of list) {
+          const id =
+            typeof a.draftId === "string"
+              ? a.draftId
+              : (a.draftId?._id ?? "");
+          if (!id) continue;
+          // API sorts by createdAt desc, so first hit per draft is latest.
+          if (map[id]) continue;
+          if (a.assignedToUserName) map[id] = a.assignedToUserName;
+        }
+        if (!cancelled) setAllocationsByDraftId(map);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setAllocationsByDraftId({});
+      }
+    }
+    loadAllocations();
+    return () => {
+      cancelled = true;
+    };
+  }, [draftIds]);
 
   const parseCSV = (text: string): { subject: string; reviewText: string; category?: string; language?: string; suggestedRating?: string }[] => {
     const parseRow = (line: string): string[] => {
@@ -184,18 +225,42 @@ export function ReviewDraftTable({
     setActivity(logs);
   };
 
+  const computePaneTop = (draftId: string) => {
+    const el = cardRefs.current[draftId];
+    if (!el) return;
+    const cardRect = el.getBoundingClientRect();
+    const paneHeight = paneRef.current?.getBoundingClientRect().height ?? 520;
+    const minTop = 80; // keep below header
+    const maxTop = Math.max(minTop, window.innerHeight - paneHeight - 24);
+    const desired = cardRect.top;
+    const clamped = Math.max(minTop, Math.min(desired, maxTop));
+    setPaneTop(clamped);
+  };
+
   const handleRowClick = (d: ReviewDraft) => {
     setSelectedDraftId(d._id);
     setPaneOpen(true);
+    requestAnimationFrame(() => computePaneTop(d._id));
   };
+
+  useEffect(() => {
+    if (!paneOpen || !selectedDraftId) return;
+    const onScrollOrResize = () => computePaneTop(selectedDraftId);
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
+  }, [paneOpen, selectedDraftId]);
 
   const handleArchiveClick = (d: ReviewDraft) => {
     if (confirm("Archive this draft?")) wrapRefresh(onArchive)(d._id);
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
-      <div className="flex-1 min-w-0">
+    <div className="flex flex-col gap-4">
+      <div className="min-w-0">
         <div className="mb-4 flex flex-wrap gap-4">
           <Input
             placeholder="Search subject, text, client, category..."
@@ -225,47 +290,68 @@ export function ReviewDraftTable({
           </Button>
         </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Subject</TableHead>
-                <TableHead>Review Text Preview</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Language</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((d) => (
-                <TableRow
-                  key={d._id}
-                  className={cn(
-                    "cursor-pointer transition-colors",
-                    selectedDraftId === d._id
-                      ? "bg-blue-50 dark:bg-blue-950/30"
-                      : "hover:bg-gray-50 dark:hover:bg-muted/50"
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((d) => {
+            const selected = selectedDraftId === d._id;
+            const assignedToName = allocationsByDraftId[d._id];
+            return (
+              <button
+                key={d._id}
+                type="button"
+                onClick={() => handleRowClick(d)}
+                ref={(el) => { cardRefs.current[d._id] = el; }}
+                className={cn(
+                  "group text-left rounded-lg border bg-card text-card-foreground p-4 shadow-md/40 transition-all hover:-translate-y-0.5 hover:shadow-lg/35 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background flex flex-col",
+                  selected && "border-primary/50 ring-2 ring-ring"
+                )}
+                aria-label={`Open details for ${d.subject}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-snug truncate group-hover:text-foreground" title={d.subject}>
+                      {d.subject}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground truncate" title={clientName(d)}>
+                      {clientName(d)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 inline-flex rounded-full border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                    {d.language || "—"}
+                  </span>
+                </div>
+
+                <p className="mt-3 text-sm text-muted-foreground" title={d.reviewText}>
+                  {truncate(d.reviewText, 110)}
+                </p>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                  {d.category ? (
+                    <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                      {d.category}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">No category</span>
                   )}
-                  onClick={() => handleRowClick(d)}
-                >
-                  <TableCell
-                    className={cn(
-                      "font-medium",
-                      selectedDraftId === d._id && "border-l-4 border-l-blue-500"
-                    )}
-                  >
-                    {d.subject}
-                  </TableCell>
-                  <TableCell className="max-w-[240px] truncate" title={d.reviewText}>
-                    {truncate(d.reviewText, 80)}
-                  </TableCell>
-                  <TableCell>{clientName(d)}</TableCell>
-                  <TableCell>{d.category}</TableCell>
-                  <TableCell>{d.language}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  <span className="ml-auto inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+                    {d.status}
+                  </span>
+                </div>
+
+                <div className="mt-4 pt-3 border-t flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Assigned to</span>
+                  {assignedToName ? (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
+                      {assignedToName}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
+                      Unassigned
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         {filtered.length === 0 && (
@@ -273,39 +359,33 @@ export function ReviewDraftTable({
         )}
       </div>
 
-      {/* Details pane - fixed right on desktop, slide-over on mobile */}
-      <aside
+      {/* Floating details pane aligned to selected card */}
+      <div
+        ref={paneRef}
         className={cn(
-          "flex flex-col rounded-lg border bg-background",
-          "lg:w-96 lg:shrink-0 lg:self-stretch",
-          "fixed inset-y-0 right-0 z-40 w-full max-w-md transform transition-transform duration-200 ease-out",
-          "lg:relative lg:transform-none",
-          paneOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0",
-          "lg:min-h-[400px]"
+          "hidden lg:block fixed right-6 z-40 w-[420px] max-w-[calc(100vw-2rem)]",
+          "rounded-lg border bg-background shadow-xl",
+          "transition-transform duration-200 ease-out",
+          paneOpen && selectedDraftId ? "translate-x-0" : "translate-x-[460px]"
         )}
+        style={{ top: paneTop }}
       >
-        <ReviewDraftDetailsPane
-          draft={selectedDraft}
-          clients={clients}
-          users={users}
-          onClose={() => { setPaneOpen(false); setSelectedDraftId(null); }}
-          onEdit={(d) => { setEditDraft(d); setFormOpen(true); }}
-          onDuplicate={(id) => wrapRefresh(onDuplicate)(id)}
-          onCopy={handleCopy}
-          onAssign={(d) => setAssignDraft(d)}
-          onArchive={handleArchiveClick}
-          onViewHistory={openActivity}
-        />
-      </aside>
-
-      {/* Mobile overlay when pane open */}
-      {paneOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-          onClick={() => setPaneOpen(false)}
-          aria-hidden
-        />
-      )}
+        <div className="h-[520px] overflow-hidden">
+          <ReviewDraftDetailsPane
+            draft={selectedDraft}
+            clients={clients}
+            users={users}
+            assignedToName={selectedDraftId ? allocationsByDraftId[selectedDraftId] : undefined}
+            onClose={() => { setPaneOpen(false); setSelectedDraftId(null); }}
+            onEdit={(draft) => { setEditDraft(draft); setFormOpen(true); }}
+            onDuplicate={(id) => wrapRefresh(onDuplicate)(id)}
+            onCopy={handleCopy}
+            onAssign={(draft) => setAssignDraft(draft)}
+            onArchive={handleArchiveClick}
+            onViewHistory={openActivity}
+          />
+        </div>
+      </div>
 
       <ReviewDraftForm
         isOpen={formOpen}

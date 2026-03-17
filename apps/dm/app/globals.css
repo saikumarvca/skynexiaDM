@@ -20,8 +20,8 @@
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214.3 28% 87%;
+    --input: 214.3 28% 87%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
   }
@@ -47,11 +47,37 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
   }
+
+  /* Vivid theme - saturated teal/emerald, mint-tinted background, coral accents */
+  [data-theme="vivid"] {
+    --background: 160 45% 95%;
+    --foreground: 165 35% 12%;
+    --card: 155 40% 98%;
+    --card-foreground: 165 35% 12%;
+    --popover: 155 40% 98%;
+    --popover-foreground: 165 35% 12%;
+    --primary: 168 72% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 15 85% 90%;
+    --secondary-foreground: 15 60% 25%;
+    --muted: 165 35% 91%;
+    --muted-foreground: 165 25% 40%;
+    --accent: 168 55% 85%;
+    --accent-foreground: 168 72% 25%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 165 35% 80%;
+    --input: 165 35% 83%;
+    --ring: 168 72% 38%;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+  html, body {
+    min-height: 100vh;
   }
   body {
     @apply bg-background text-foreground;

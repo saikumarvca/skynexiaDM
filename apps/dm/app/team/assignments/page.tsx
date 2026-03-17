@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SeedButton } from "@/components/seed-button";
 import {
   Table,
   TableBody,
@@ -200,6 +201,9 @@ export default async function TeamAssignmentsPage({ searchParams }: PageProps) {
                     Add Assignment
                   </Button>
                 </Link>
+                <div className="mt-4">
+                  <SeedButton endpoint="/api/team/seed" label="Seed demo assignments" />
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">

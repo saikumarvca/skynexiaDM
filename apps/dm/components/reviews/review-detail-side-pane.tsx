@@ -145,7 +145,7 @@ export function ReviewDetailSidePane({
               )}
             </button>
           </div>
-          <div className="mt-3 text-sm text-muted-foreground overflow-y-auto max-h-28 rounded-lg border bg-slate-50 dark:bg-gray-900 p-3 leading-relaxed">
+          <div className="mt-3 text-sm text-muted-foreground overflow-y-auto max-h-28 rounded-lg border bg-muted/50 p-3 leading-relaxed">
             {description}
           </div>
         </SheetHeader>

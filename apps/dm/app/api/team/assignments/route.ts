@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TeamAssignment from '@/models/TeamAssignment';
+import { parseWithSchema, apiError } from '@/lib/api/validation';
+import { teamAssignmentCreateSchema } from '@/lib/api/schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -70,7 +72,8 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
 
-    const body = await request.json();
+    const parsed = await parseWithSchema(request, teamAssignmentCreateSchema);
+    if (!parsed.ok) return parsed.response;
     const {
       title,
       description,
@@ -85,14 +88,7 @@ export async function POST(request: NextRequest) {
       priority,
       dueDate,
       notes,
-    } = body;
-
-    if (!title || !assignedToUserId || !assignedToUserName || !assignedByUserId || !assignedByUserName) {
-      return NextResponse.json(
-        { error: 'Title, assignedTo, and assignedBy are required' },
-        { status: 400 }
-      );
-    }
+    } = parsed.data;
 
     const assignment = new TeamAssignment({
       title,
@@ -114,9 +110,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
     console.error('Error creating team assignment:', error);
-    return NextResponse.json(
-      { error: 'Failed to create team assignment' },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : 'Failed to create team assignment';
+    return apiError(500, msg, 'INTERNAL_ERROR');
   }
 }

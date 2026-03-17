@@ -87,7 +87,7 @@ export function Sidebar() {
   }, [pathname, isTeamActive])
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white dark:bg-gray-950">
+    <div className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center border-b px-6 gap-2.5">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
           <BarChart3 className="h-4 w-4 text-primary-foreground" />
@@ -111,7 +111,7 @@ export function Sidebar() {
                     "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isParentActive || sectionActive
                       ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-100"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
                   <div className="flex items-center">
@@ -125,7 +125,7 @@ export function Sidebar() {
                   )}
                 </button>
                 {isExpanded && (
-                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-800 pl-3">
+                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-3">
                     {item.children.map((child) => {
                       const isChildActive =
                         pathname === child.href || pathname.startsWith(`${child.href}/`)
@@ -137,7 +137,7 @@ export function Sidebar() {
                             "flex items-center rounded-md px-2 py-1.5 text-sm transition-colors",
                             isChildActive
                               ? "bg-primary/10 text-primary dark:bg-primary/20 font-medium"
-                              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-100"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           )}
                         >
                           <child.icon className="mr-2 h-3.5 w-3.5 shrink-0" />
@@ -160,7 +160,7 @@ export function Sidebar() {
                 "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-100"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <item.icon className="mr-3 h-4 w-4" />

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Task from '@/models/Task';
+import { parseWithSchema, apiError } from '@/lib/api/validation';
+import { taskCreateSchema } from '@/lib/api/schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,18 +40,26 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-    const body = await request.json();
-    const task = new Task(body);
-    if (body.assignedToUserId) task.assignedToUserId = body.assignedToUserId;
-    if (body.assignedToName) task.assignedToName = body.assignedToName;
+    const parsed = await parseWithSchema(request, taskCreateSchema);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
+
+    const task = new Task({
+      clientId: body.clientId,
+      title: body.title,
+      description: body.description,
+      assignedToUserId: body.assignedToUserId,
+      assignedToName: body.assignedToName,
+      priority: body.priority,
+      status: body.status,
+      deadline: body.deadline ? new Date(body.deadline) : undefined,
+    });
     await task.save();
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     console.error('Error creating task:', error);
-    return NextResponse.json(
-      { error: 'Failed to create task' },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : 'Failed to create task';
+    return apiError(500, msg, 'INTERNAL_ERROR');
   }
 }
 
