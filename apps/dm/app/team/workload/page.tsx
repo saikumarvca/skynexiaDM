@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { WorkloadBadge } from "@/components/team/WorkloadBadge";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 async function getPerformance() {
   const res = await fetch(`${BASE}/api/team/performance`, { cache: "no-store" });

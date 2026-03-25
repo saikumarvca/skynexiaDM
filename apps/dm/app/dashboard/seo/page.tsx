@@ -7,7 +7,7 @@ import { Plus, Search, ExternalLink, TrendingUp } from "lucide-react"
 import { Keyword } from "@/types"
 import { Client } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
 
 async function getKeywords(filters: { clientId?: string; search?: string }): Promise<Keyword[]> {
   try {

@@ -5,7 +5,7 @@ import { ClientForm } from "@/components/client-form"
 import { Button } from "@/components/ui/button"
 import { ClientFormData } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
 
 async function getClient(clientId: string) {
   const res = await fetch(`${BASE}/api/clients/${clientId}`, { cache: "no-store" })

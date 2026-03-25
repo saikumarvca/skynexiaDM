@@ -11,7 +11,7 @@ import {
   Shield,
 } from "lucide-react"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
 
 async function getTeamMembers(): Promise<{ _id: string; name: string; email: string; roleName?: string }[]> {
   try {

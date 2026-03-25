@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamMemberForm } from "@/components/team/TeamMemberForm";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 async function getRoles() {
   const res = await fetch(`${BASE}/api/team/roles?limit=100`, { cache: "no-store" });

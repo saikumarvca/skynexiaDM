@@ -13,7 +13,7 @@ import {
 import { MemberActions } from "@/components/team/MemberActions";
 import { Plus } from "lucide-react";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 async function getMembers(params: {
   search?: string;

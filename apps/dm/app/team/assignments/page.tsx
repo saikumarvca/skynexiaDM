@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Plus } from "lucide-react";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 async function getAssignments(params: {
   assignedTo?: string;

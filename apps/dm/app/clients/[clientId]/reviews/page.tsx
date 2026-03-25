@@ -7,7 +7,7 @@ import { Review, MarkUsedFormData } from "@/types"
 
 async function getClientReviews(clientId: string): Promise<Review[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/reviews?clientId=${clientId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews?clientId=${clientId}`, {
       cache: 'no-store'
     })
     if (!res.ok) throw new Error('Failed to fetch reviews')
@@ -21,7 +21,7 @@ async function getClientReviews(clientId: string): Promise<Review[]> {
 async function markReviewUsed(data: MarkUsedFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/reviews/mark-used`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews/mark-used`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ async function markReviewUsed(data: MarkUsedFormData) {
 async function archiveReview(reviewId: string) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/reviews/${reviewId}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews/${reviewId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

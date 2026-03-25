@@ -44,7 +44,7 @@ type ClientAnalytics = {
 
 async function getClient(clientId: string): Promise<Client | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clients/${clientId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients/${clientId}`, {
       cache: 'no-store'
     })
     if (!res.ok) return null
@@ -57,7 +57,7 @@ async function getClient(clientId: string): Promise<Client | null> {
 
 async function getClientStats(clientId: string) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clients/${clientId}/stats`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients/${clientId}/stats`, {
       cache: 'no-store'
     })
     if (!res.ok) throw new Error('Failed to fetch stats')
@@ -75,7 +75,7 @@ async function getClientStats(clientId: string) {
 
 async function getClientUsage(clientId: string): Promise<UsageItem[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/review-usage?clientId=${clientId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/review-usage?clientId=${clientId}`, {
       cache: 'no-store'
     })
     if (!res.ok) {
@@ -90,7 +90,7 @@ async function getClientUsage(clientId: string): Promise<UsageItem[]> {
 
 async function getClientAnalytics(clientId: string): Promise<ClientAnalytics | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clients/${clientId}/analytics`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients/${clientId}/analytics`, {
       cache: 'no-store'
     })
     if (!res.ok) {

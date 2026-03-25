@@ -5,29 +5,43 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { Client } from "@/types"
+import dbConnect from "@/lib/mongodb"
+import ClientModel from "@/models/Client"
+import ClientView from "@/models/ClientView"
 
 async function getClients(search?: string, viewId?: string): Promise<Client[]> {
   try {
-    const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clients`)
-    if (search) url.searchParams.set('search', search)
-    if (viewId) url.searchParams.set('viewId', viewId)
-
-    const res = await fetch(url, { cache: 'no-store' })
-    if (!res.ok) throw new Error('Failed to fetch clients')
-    return res.json()
+    await dbConnect()
+    let baseQuery: Record<string, unknown> = {}
+    if (search) {
+      baseQuery = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { businessName: { $regex: search, $options: 'i' } },
+          { brandName: { $regex: search, $options: 'i' } },
+          { contactName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+        ]
+      }
+    }
+    let filters: Record<string, unknown> = {}
+    if (viewId) {
+      const view = await ClientView.findById(viewId)
+      if (view) filters = view.filters as Record<string, unknown>
+    }
+    const docs = await ClientModel.find({ ...filters, ...baseQuery }).sort({ createdAt: -1 }).limit(50).lean()
+    return docs.map((c) => JSON.parse(JSON.stringify(c)))
   } catch (error) {
     console.error('Error fetching clients:', error)
     return []
   }
 }
 
-async function getClientViews() {
+async function getClientViews(): Promise<{ _id: string; name: string }[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/client-views`, {
-      cache: 'no-store'
-    })
-    if (!res.ok) throw new Error('Failed to fetch views')
-    return res.json() as Promise<{ _id: string; name: string }[]>
+    await dbConnect()
+    const docs = await ClientView.find().sort({ createdAt: -1 }).lean()
+    return docs.map((v) => ({ _id: v._id.toString(), name: v.name }))
   } catch (error) {
     console.error('Error fetching client views:', error)
     return []

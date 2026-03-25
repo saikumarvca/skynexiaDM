@@ -11,7 +11,7 @@ async function getReviews(searchParams: {
   category?: string
   language?: string
 }) {
-  const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/reviews`)
+  const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews`)
   if (searchParams.search) url.searchParams.set('search', searchParams.search)
   if (searchParams.status) url.searchParams.set('status', searchParams.status)
   if (searchParams.category) url.searchParams.set('category', searchParams.category)
@@ -87,7 +87,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           reviews={reviews}
           onMarkUsed={async () => {
             "use server"
-            // Handled by client-specific review pages; here we only provide copy + view.
+            
           }}
           onArchive={async () => {
             "use server"

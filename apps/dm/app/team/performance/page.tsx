@@ -13,7 +13,7 @@ import {
 import { WorkloadBadge } from "@/components/team/WorkloadBadge";
 import { TrendingUp, Users, BarChart3 } from "lucide-react";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 async function getPerformance(params: { memberId?: string; department?: string }) {
   const url = new URL(`${BASE}/api/team/performance`);

@@ -8,7 +8,7 @@ import { ReviewFormData } from "@/types"
 async function createReview(data: ReviewFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/reviews`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

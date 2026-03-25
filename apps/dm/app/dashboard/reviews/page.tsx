@@ -4,8 +4,11 @@ import { ReviewTable } from "@/components/review-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Review, MarkUsedFormData, Client } from "@/types"
+import dbConnect from "@/lib/mongodb"
+import ReviewModel from "@/models/Review"
+import ClientModel from "@/models/Client"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE = `http://localhost:${process.env.PORT || 3152}`
 
 async function getReviews(params: {
   clientId?: string
@@ -14,25 +17,31 @@ async function getReviews(params: {
   category?: string
   language?: string
 }): Promise<Review[]> {
-  const url = new URL(`${BASE}/api/reviews`)
-  if (params.clientId) url.searchParams.set("clientId", params.clientId)
-  if (params.search) url.searchParams.set("search", params.search)
-  if (params.status && params.status !== "ALL") url.searchParams.set("status", params.status)
-  if (params.category) url.searchParams.set("category", params.category)
-  if (params.language) url.searchParams.set("language", params.language)
-
-  const res = await fetch(url.toString(), { cache: "no-store" })
-  if (!res.ok) {
-    throw new Error("Failed to fetch reviews")
+  await dbConnect()
+  const query: Record<string, unknown> = {}
+  if (params.clientId) query.clientId = params.clientId
+  if (params.status && params.status !== "ALL") query.status = params.status
+  if (params.category) query.category = params.category
+  if (params.language) query.language = params.language
+  if (params.search) {
+    query.$or = [
+      { shortLabel: { $regex: params.search, $options: "i" } },
+      { reviewText: { $regex: params.search, $options: "i" } },
+      { category: { $regex: params.search, $options: "i" } },
+    ]
   }
-  return res.json() as Promise<Review[]>
+  return (await ReviewModel.find(query)
+    .populate("clientId", "name businessName")
+    .sort({ createdAt: -1 })
+    .lean()
+  ).map((r) => JSON.parse(JSON.stringify(r)))
 }
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
-    if (!res.ok) throw new Error("Failed to fetch clients")
-    return res.json()
+    await dbConnect()
+    const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean()
+    return docs.map((c) => JSON.parse(JSON.stringify(c)))
   } catch (error) {
     console.error("Error fetching clients:", error)
     return []

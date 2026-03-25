@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamAssignmentForm } from "@/components/team/TeamAssignmentForm";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 async function getMembers() {
   const res = await fetch(`${BASE}/api/team/members?limit=100`, { cache: "no-store" });

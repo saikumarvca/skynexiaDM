@@ -70,7 +70,7 @@ npm install
 Create `.env.local` with:
 ```env
 MONGODB_URI=mongodb://localhost:27017/skynexia-dm
-NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3152
 ```
 
 3. Start MongoDB service
@@ -80,7 +80,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. Open [http://localhost:3152](http://localhost:3152) in your browser
 
 ## API Endpoints
 

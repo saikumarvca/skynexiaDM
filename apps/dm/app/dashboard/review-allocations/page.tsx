@@ -3,8 +3,12 @@ import { ReviewAllocationTable } from "@/components/reviews/review-allocation-ta
 import { Button } from "@/components/ui/button";
 import { Client } from "@/types";
 import type { ReviewAllocation } from "@/types/reviews";
+import dbConnect from "@/lib/mongodb";
+import ReviewAllocationModel from "@/models/ReviewAllocation";
+import ClientModel from "@/models/Client";
+import TeamMember from "@/models/TeamMember";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = `http://localhost:${process.env.PORT || 3152}`;
 
 async function getAllocations(params: {
   clientId?: string;
@@ -14,29 +18,42 @@ async function getAllocations(params: {
   dateFrom?: string;
   dateTo?: string;
 }): Promise<ReviewAllocation[]> {
-  const url = new URL(`${BASE}/api/review-allocations`);
-  if (params.clientId) url.searchParams.set("clientId", params.clientId);
-  if (params.status) url.searchParams.set("status", params.status);
-  if (params.assignedToUserId) url.searchParams.set("assignedToUserId", params.assignedToUserId);
-  if (params.platform) url.searchParams.set("platform", params.platform);
-  if (params.dateFrom) url.searchParams.set("dateFrom", params.dateFrom);
-  if (params.dateTo) url.searchParams.set("dateTo", params.dateTo);
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch allocations");
-  return res.json();
+  await dbConnect();
+  const query: Record<string, unknown> = {};
+  if (params.status) query.allocationStatus = params.status;
+  if (params.assignedToUserId) query.assignedToUserId = params.assignedToUserId;
+  if (params.platform) query.platform = params.platform;
+  if (params.dateFrom || params.dateTo) {
+    query.assignedDate = {};
+    if (params.dateFrom) (query.assignedDate as Record<string, unknown>).$gte = new Date(params.dateFrom);
+    if (params.dateTo) (query.assignedDate as Record<string, unknown>).$lte = new Date(params.dateTo + "T23:59:59.999Z");
+  }
+  let allocations = await ReviewAllocationModel.find(query)
+    .populate("draftId", "subject reviewText clientId clientName")
+    .sort({ createdAt: -1 })
+    .lean();
+  if (params.clientId) {
+    allocations = allocations.filter((a) => {
+      const draft = a.draftId as { clientId?: { toString: () => string } } | null;
+      return draft?.clientId?.toString?.() === params.clientId;
+    });
+  }
+  return allocations.map((a) => JSON.parse(JSON.stringify(a)));
 }
 
 async function getClients(): Promise<Client[]> {
-  const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+  await dbConnect();
+  const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean();
+  return docs.map((c) => JSON.parse(JSON.stringify(c)));
 }
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
-  const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.items ?? [];
+  await dbConnect();
+  const docs = await TeamMember.find({ status: "Active", isDeleted: { $ne: true } })
+    .select("name")
+    .limit(100)
+    .lean();
+  return docs.map((m) => ({ _id: m._id.toString(), name: m.name }));
 }
 
 async function markShared(id: string, data: { customerName: string; customerContact?: string; platform?: string; sentDate: string }) {

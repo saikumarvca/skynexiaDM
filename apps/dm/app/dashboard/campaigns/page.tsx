@@ -7,8 +7,9 @@ import { StatusBadge } from "@/components/status-badge"
 import { Plus, Target, ExternalLink } from "lucide-react"
 import { Campaign, CampaignStatus } from "@/types"
 import { Client } from "@/types"
-
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+import dbConnect from "@/lib/mongodb"
+import CampaignModel from "@/models/Campaign"
+import ClientModel from "@/models/Client"
 
 async function getCampaigns(filters: {
   clientId?: string
@@ -16,13 +17,16 @@ async function getCampaigns(filters: {
   status?: string
 }): Promise<Campaign[]> {
   try {
-    const url = new URL(`${BASE}/api/campaigns`)
-    if (filters.clientId) url.searchParams.set("clientId", filters.clientId)
-    if (filters.platform) url.searchParams.set("platform", filters.platform)
-    if (filters.status) url.searchParams.set("status", filters.status)
-    const res = await fetch(url, { cache: "no-store" })
-    if (!res.ok) throw new Error("Failed to fetch campaigns")
-    return res.json()
+    await dbConnect()
+    const query: Record<string, unknown> = {}
+    if (filters.clientId) query.clientId = filters.clientId
+    if (filters.platform) query.platform = filters.platform
+    if (filters.status) query.status = filters.status
+    const docs = await CampaignModel.find(query)
+      .populate("clientId", "name businessName")
+      .sort({ createdAt: -1 })
+      .lean()
+    return docs.map((c) => JSON.parse(JSON.stringify(c)))
   } catch (e) {
     console.error("Error fetching campaigns:", e)
     return []
@@ -31,9 +35,9 @@ async function getCampaigns(filters: {
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
-    if (!res.ok) throw new Error("Failed to fetch clients")
-    return res.json()
+    await dbConnect()
+    const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean()
+    return docs.map((c) => JSON.parse(JSON.stringify(c)))
   } catch (e) {
     console.error("Error fetching clients:", e)
     return []

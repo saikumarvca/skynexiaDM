@@ -7,7 +7,7 @@ import { Plus, Layers, ExternalLink } from "lucide-react"
 import { ContentItem, ContentCategory, ContentItemStatus } from "@/types"
 import { Client } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
 
 async function getContentItems(filters: {
   clientId?: string

@@ -2,8 +2,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { UsedReviewsTable } from "@/components/reviews/used-reviews-table";
 import { Button } from "@/components/ui/button";
 import type { PostedReview } from "@/types/reviews";
-
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import dbConnect from "@/lib/mongodb";
+import PostedReviewModel from "@/models/PostedReview";
 
 async function getPostedReviews(params: {
   platform?: string;
@@ -11,14 +11,31 @@ async function getPostedReviews(params: {
   dateTo?: string;
   search?: string;
 }): Promise<PostedReview[]> {
-  const url = new URL(`${BASE}/api/posted-reviews`);
-  if (params.platform) url.searchParams.set("platform", params.platform);
-  if (params.dateFrom) url.searchParams.set("dateFrom", params.dateFrom);
-  if (params.dateTo) url.searchParams.set("dateTo", params.dateTo);
-  if (params.search) url.searchParams.set("search", params.search);
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch posted reviews");
-  return res.json();
+  await dbConnect();
+  const query: Record<string, unknown> = {};
+  if (params.platform) query.platform = params.platform;
+  if (params.dateFrom || params.dateTo) {
+    query.postedDate = {};
+    if (params.dateFrom) (query.postedDate as Record<string, unknown>).$gte = new Date(params.dateFrom);
+    if (params.dateTo) (query.postedDate as Record<string, unknown>).$lte = new Date(params.dateTo + "T23:59:59.999Z");
+  }
+  let docs = await PostedReviewModel.find(query)
+    .populate("draftId", "subject reviewText")
+    .populate("allocationId", "assignedToUserName")
+    .sort({ postedDate: -1 })
+    .lean();
+  if (params.search) {
+    const s = params.search.toLowerCase();
+    docs = docs.filter((p) => {
+      const draft = p.draftId as { subject?: string; reviewText?: string } | null;
+      return (
+        (draft?.subject ?? "").toLowerCase().includes(s) ||
+        (draft?.reviewText ?? "").toLowerCase().includes(s) ||
+        (p.postedByName ?? "").toLowerCase().includes(s)
+      );
+    });
+  }
+  return docs.map((p) => JSON.parse(JSON.stringify(p)));
 }
 
 interface PageProps {

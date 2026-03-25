@@ -3,8 +3,12 @@ import { ReviewDraftTable } from "@/components/reviews/review-draft-table";
 import { Button } from "@/components/ui/button";
 import { Client } from "@/types";
 import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/types/reviews";
+import dbConnect from "@/lib/mongodb";
+import ReviewDraftModel from "@/models/ReviewDraft";
+import ClientModel from "@/models/Client";
+import TeamMember from "@/models/TeamMember";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = `http://localhost:${process.env.PORT || 3152}`;
 
 async function getDrafts(params: {
   clientId?: string;
@@ -12,27 +16,32 @@ async function getDrafts(params: {
   category?: string;
   language?: string;
 }): Promise<ReviewDraft[]> {
-  const url = new URL(`${BASE}/api/review-drafts`);
-  if (params.clientId) url.searchParams.set("clientId", params.clientId);
-  if (params.status) url.searchParams.set("status", params.status);
-  if (params.category) url.searchParams.set("category", params.category);
-  if (params.language) url.searchParams.set("language", params.language);
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch drafts");
-  return res.json();
+  await dbConnect();
+  const query: Record<string, unknown> = {};
+  if (params.clientId) query.clientId = params.clientId;
+  if (params.status) query.status = params.status;
+  if (params.category) query.category = params.category;
+  if (params.language) query.language = params.language;
+  const docs = await ReviewDraftModel.find(query)
+    .populate("clientId", "name businessName")
+    .sort({ createdAt: -1 })
+    .lean();
+  return docs.map((d) => JSON.parse(JSON.stringify(d)));
 }
 
 async function getClients(): Promise<Client[]> {
-  const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+  await dbConnect();
+  const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean();
+  return docs.map((c) => JSON.parse(JSON.stringify(c)));
 }
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
-  const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.items ?? [];
+  await dbConnect();
+  const docs = await TeamMember.find({ status: "Active", isDeleted: { $ne: true } })
+    .select("name")
+    .limit(100)
+    .lean();
+  return docs.map((m) => ({ _id: m._id.toString(), name: m.name }));
 }
 
 async function createDraft(data: ReviewDraftFormData & { createdBy?: string }) {

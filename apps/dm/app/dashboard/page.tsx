@@ -9,7 +9,7 @@ import { Client, DashboardStats } from "@/types"
 
 async function getDashboardStats(): Promise<DashboardStats> {
   try {
-    const res = await fetch(`${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/dashboard/stats`, {
+    const res = await fetch(`${process.env.API_URL || `http://localhost:${process.env.PORT || 3152}`}/api/dashboard/stats`, {
       cache: 'no-store'
     })
     if (!res.ok) throw new Error('Failed to fetch stats')
@@ -27,7 +27,7 @@ async function getDashboardStats(): Promise<DashboardStats> {
 
 async function getRecentClients(): Promise<Client[]> {
   try {
-    const res = await fetch(`${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients?limit=5`, {
+    const res = await fetch(`${process.env.API_URL || `http://localhost:${process.env.PORT || 3152}`}/api/clients?limit=5`, {
       cache: 'no-store'
     })
     if (!res.ok) throw new Error('Failed to fetch clients')

@@ -7,7 +7,7 @@ import { Plus, Users, ExternalLink, Mail, Phone } from "lucide-react"
 import { Lead, LeadStatus } from "@/types"
 import { Client } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
 
 async function getLeads(filters: {
   clientId?: string

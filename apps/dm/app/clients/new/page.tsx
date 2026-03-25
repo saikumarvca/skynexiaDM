@@ -5,7 +5,7 @@ import { ClientFormData } from "@/types"
 async function createClient(data: ClientFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/clients`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

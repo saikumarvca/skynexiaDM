@@ -15,7 +15,7 @@ import {
 import { SeedDataButton } from "@/components/team/SeedDataButton";
 import Link from "next/link";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 interface TeamOverviewStats {
   totalMembers: number;

@@ -8,7 +8,7 @@ import { BulkReviewFormData } from "@/types"
 async function createBulkReviews(data: BulkReviewFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/reviews/bulk`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews/bulk`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

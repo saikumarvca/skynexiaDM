@@ -18,7 +18,7 @@ import { ReviewActivityTimeline } from "./review-activity-timeline";
 import { ReviewDetailSidePane } from "./review-detail-side-pane";
 import type { ReviewAllocation } from "@/types/reviews";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 function truncate(s: string, len: number) {
   if (!s) return "—";
