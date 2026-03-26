@@ -11,6 +11,7 @@ import { ReviewDraftDetailsPane } from "./review-draft-details-pane";
 import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/types/reviews";
 import type { Client } from "@/types";
 import { cn } from "@/lib/utils";
+import { LayoutGrid, Rows3 } from "lucide-react";
 
 interface User {
   _id: string;
@@ -55,6 +56,7 @@ export function ReviewDraftTable({
   onArchive,
 }: ReviewDraftTableProps) {
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"row" | "grid">("row");
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const selectedDraft = drafts.find((d) => d._id === selectedDraftId) ?? null;
   const [formOpen, setFormOpen] = useState(false);
@@ -258,6 +260,111 @@ export function ReviewDraftTable({
     if (confirm("Archive this draft?")) wrapRefresh(onArchive)(d._id);
   };
 
+  const renderDraftCard = (d: ReviewDraft, mode: "row" | "grid") => {
+    const selected = selectedDraftId === d._id;
+    const assignedToName = allocationsByDraftId[d._id];
+
+    return (
+      <button
+        key={d._id}
+        type="button"
+        onClick={() => handleRowClick(d)}
+        ref={(el) => {
+          cardRefs.current[d._id] = el;
+        }}
+        className={cn(
+          "group text-left rounded-lg border bg-card text-card-foreground shadow-md/40 transition-all hover:shadow-lg/35 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background",
+          mode === "grid"
+            ? "p-4 hover:-translate-y-0.5 flex flex-col"
+            : "p-4 md:p-5 flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)] md:items-start",
+          selected && "border-primary/50 ring-2 ring-ring"
+        )}
+        aria-label={`Open details for ${d.subject}`}
+      >
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold leading-snug truncate group-hover:text-foreground" title={d.subject}>
+                {d.subject}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground truncate" title={clientName(d)}>
+                {clientName(d)}
+              </p>
+            </div>
+            <span className="shrink-0 inline-flex rounded-full border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {d.language || "—"}
+            </span>
+          </div>
+
+          {mode === "grid" && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+              {d.category ? (
+                <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                  {d.category}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">No category</span>
+              )}
+              <span className="ml-auto inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+                {d.status}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <p
+          className={cn(
+            "text-sm text-muted-foreground",
+            mode === "grid" ? "mt-3" : "md:mt-0"
+          )}
+          title={d.reviewText}
+        >
+          {truncate(d.reviewText, mode === "grid" ? 110 : 220)}
+        </p>
+
+        {mode === "row" && (
+          <div className="flex flex-wrap items-center gap-2 text-xs md:justify-end md:self-center">
+            {d.category ? (
+              <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                {d.category}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">No category</span>
+            )}
+            <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+              {d.status}
+            </span>
+            <span className="text-muted-foreground">Assigned to</span>
+            {assignedToName ? (
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
+                {assignedToName}
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
+                Unassigned
+              </span>
+            )}
+          </div>
+        )}
+
+        {mode === "grid" && (
+          <div className="mt-4 pt-3 border-t flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Assigned to</span>
+            {assignedToName ? (
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
+                {assignedToName}
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
+                Unassigned
+              </span>
+            )}
+          </div>
+        )}
+      </button>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="min-w-0">
@@ -268,6 +375,28 @@ export function ReviewDraftTable({
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"
           />
+          <div className="inline-flex rounded-md border bg-background p-1">
+            <Button
+              type="button"
+              variant={viewMode === "row" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => setViewMode("row")}
+            >
+              <Rows3 className="mr-1 h-4 w-4" />
+              Row
+            </Button>
+            <Button
+              type="button"
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="mr-1 h-4 w-4" />
+              Grid
+            </Button>
+          </div>
           <Button onClick={() => { setEditDraft(null); setFormOpen(true); }}>
             Create Draft
           </Button>
@@ -290,69 +419,15 @@ export function ReviewDraftTable({
           </Button>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((d) => {
-            const selected = selectedDraftId === d._id;
-            const assignedToName = allocationsByDraftId[d._id];
-            return (
-              <button
-                key={d._id}
-                type="button"
-                onClick={() => handleRowClick(d)}
-                ref={(el) => { cardRefs.current[d._id] = el; }}
-                className={cn(
-                  "group text-left rounded-lg border bg-card text-card-foreground p-4 shadow-md/40 transition-all hover:-translate-y-0.5 hover:shadow-lg/35 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background flex flex-col",
-                  selected && "border-primary/50 ring-2 ring-ring"
-                )}
-                aria-label={`Open details for ${d.subject}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold leading-snug truncate group-hover:text-foreground" title={d.subject}>
-                      {d.subject}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground truncate" title={clientName(d)}>
-                      {clientName(d)}
-                    </p>
-                  </div>
-                  <span className="shrink-0 inline-flex rounded-full border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    {d.language || "—"}
-                  </span>
-                </div>
-
-                <p className="mt-3 text-sm text-muted-foreground" title={d.reviewText}>
-                  {truncate(d.reviewText, 110)}
-                </p>
-
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                  {d.category ? (
-                    <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-                      {d.category}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">No category</span>
-                  )}
-                  <span className="ml-auto inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
-                    {d.status}
-                  </span>
-                </div>
-
-                <div className="mt-4 pt-3 border-t flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Assigned to</span>
-                  {assignedToName ? (
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
-                      {assignedToName}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
-                      Unassigned
-                    </span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {viewMode === "grid" ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((d) => renderDraftCard(d, "grid"))}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((d) => renderDraftCard(d, "row"))}
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <p className="py-8 text-center text-muted-foreground">No drafts found.</p>
