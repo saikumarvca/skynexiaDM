@@ -26,7 +26,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('dm-theme');if(t==='vivid')document.documentElement.setAttribute('data-theme','vivid');})();`,
+            __html: `(function(){var t=localStorage.getItem('dm-theme');if(t&&t!=='default')document.documentElement.setAttribute('data-theme',t);})();`,
           }}
         />
       </head>

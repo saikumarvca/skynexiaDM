@@ -70,6 +70,167 @@
     --input: 165 35% 83%;
     --ring: 168 72% 38%;
   }
+
+  /* Dark theme — slate blue, indigo primary, visible card lift */
+  [data-theme="dark"] {
+    --background: 222 28% 11%;
+    --foreground: 215 25% 92%;
+    --card: 222 26% 16%;
+    --card-foreground: 215 25% 92%;
+    --popover: 222 26% 16%;
+    --popover-foreground: 215 25% 92%;
+    --primary: 234 85% 68%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 234 30% 24%;
+    --secondary-foreground: 234 70% 88%;
+    --muted: 222 24% 20%;
+    --muted-foreground: 215 16% 60%;
+    --accent: 262 50% 30%;
+    --accent-foreground: 262 80% 88%;
+    --destructive: 0 68% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 22% 22%;
+    --input: 222 22% 22%;
+    --ring: 234 85% 68%;
+  }
+
+  /* Midnight — rich charcoal, electric blue accent, strong card contrast */
+  [data-theme="midnight"] {
+    --background: 220 20% 9%;
+    --foreground: 210 20% 94%;
+    --card: 220 18% 14%;
+    --card-foreground: 210 20% 94%;
+    --popover: 220 18% 14%;
+    --popover-foreground: 210 20% 94%;
+    --primary: 210 100% 62%;
+    --primary-foreground: 220 20% 9%;
+    --secondary: 210 30% 20%;
+    --secondary-foreground: 210 70% 88%;
+    --muted: 220 16% 18%;
+    --muted-foreground: 210 14% 58%;
+    --accent: 190 70% 22%;
+    --accent-foreground: 190 80% 80%;
+    --destructive: 0 68% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 16% 20%;
+    --input: 220 16% 20%;
+    --ring: 210 100% 62%;
+  }
+
+  /* Dracula — warm dark purple, vivid violet primary, pink accent */
+  [data-theme="dracula"] {
+    --background: 232 18% 12%;
+    --foreground: 240 20% 94%;
+    --card: 232 16% 18%;
+    --card-foreground: 240 20% 94%;
+    --popover: 232 16% 18%;
+    --popover-foreground: 240 20% 94%;
+    --primary: 265 85% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 265 28% 26%;
+    --secondary-foreground: 265 70% 90%;
+    --muted: 232 14% 22%;
+    --muted-foreground: 240 12% 60%;
+    --accent: 320 60% 28%;
+    --accent-foreground: 320 80% 88%;
+    --destructive: 0 68% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 232 14% 24%;
+    --input: 232 14% 24%;
+    --ring: 265 85% 70%;
+  }
+
+  /* Forest — deep teal-green, bright emerald primary, warm card */
+  [data-theme="forest"] {
+    --background: 215 30% 10%;
+    --foreground: 210 20% 93%;
+    --card: 215 28% 15%;
+    --card-foreground: 210 20% 93%;
+    --popover: 215 28% 15%;
+    --popover-foreground: 210 20% 93%;
+    --primary: 172 80% 46%;
+    --primary-foreground: 215 30% 10%;
+    --secondary: 172 30% 20%;
+    --secondary-foreground: 172 65% 85%;
+    --muted: 215 25% 19%;
+    --muted-foreground: 210 14% 58%;
+    --accent: 195 60% 22%;
+    --accent-foreground: 195 75% 82%;
+    --destructive: 0 68% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 22% 22%;
+    --input: 215 22% 22%;
+    --ring: 172 80% 46%;
+  }
+
+  /* Sunset — deep navy with warm coral and gold accents */
+  [data-theme="sunset"] {
+    --background: 240 22% 10%;
+    --foreground: 35 25% 93%;
+    --card: 240 20% 15%;
+    --card-foreground: 35 25% 93%;
+    --popover: 240 20% 15%;
+    --popover-foreground: 35 25% 93%;
+    --primary: 22 100% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 22 35% 22%;
+    --secondary-foreground: 22 80% 88%;
+    --muted: 240 18% 19%;
+    --muted-foreground: 240 12% 58%;
+    --accent: 280 45% 28%;
+    --accent-foreground: 280 75% 88%;
+    --destructive: 0 68% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 16% 22%;
+    --input: 240 16% 22%;
+    --ring: 22 100% 62%;
+  }
+
+  /* Ocean theme - deep blue tones */
+  [data-theme="ocean"] {
+    --background: 204 60% 96%;
+    --foreground: 204 50% 10%;
+    --card: 200 55% 99%;
+    --card-foreground: 204 50% 10%;
+    --popover: 200 55% 99%;
+    --popover-foreground: 204 50% 10%;
+    --primary: 199 89% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 199 60% 88%;
+    --secondary-foreground: 199 50% 20%;
+    --muted: 204 40% 91%;
+    --muted-foreground: 204 25% 42%;
+    --accent: 217 70% 88%;
+    --accent-foreground: 217 55% 25%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 204 35% 82%;
+    --input: 204 35% 85%;
+    --ring: 199 89% 42%;
+  }
+
+  /* Rose theme - warm pink/rose tones */
+  [data-theme="rose"] {
+    --background: 340 50% 97%;
+    --foreground: 340 40% 10%;
+    --card: 340 45% 99%;
+    --card-foreground: 340 40% 10%;
+    --popover: 340 45% 99%;
+    --popover-foreground: 340 40% 10%;
+    --primary: 340 82% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 340 60% 90%;
+    --secondary-foreground: 340 50% 22%;
+    --muted: 340 35% 92%;
+    --muted-foreground: 340 20% 44%;
+    --accent: 20 80% 88%;
+    --accent-foreground: 20 60% 22%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 340 30% 84%;
+    --input: 340 30% 86%;
+    --ring: 340 82% 52%;
+  }
 }
 
 @layer base {
