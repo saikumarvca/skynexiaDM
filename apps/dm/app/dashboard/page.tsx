@@ -6,36 +6,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, FileText, CheckCircle, Archive } from "lucide-react"
 import Link from "next/link"
 import { Client, DashboardStats } from "@/types"
+import dbConnect from "@/lib/mongodb"
+import ClientModel from "@/models/Client"
+import Review from "@/models/Review"
 
 async function getDashboardStats(): Promise<DashboardStats> {
-  try {
-    const res = await fetch(`${process.env.API_URL || `http://localhost:${process.env.PORT || 3152}`}/api/dashboard/stats`, {
-      cache: 'no-store'
-    })
-    if (!res.ok) throw new Error('Failed to fetch stats')
-    return res.json()
-  } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
-    return {
-      totalClients: 0,
-      totalReviews: 0,
-      unusedReviews: 0,
-      usedReviews: 0,
-    }
-  }
+  await dbConnect()
+  const [totalClients, totalReviews, unusedReviews, usedReviews] = await Promise.all([
+    ClientModel.countDocuments({ status: { $ne: 'ARCHIVED' } }),
+    Review.countDocuments({ status: { $ne: 'ARCHIVED' } }),
+    Review.countDocuments({ status: 'UNUSED' }),
+    Review.countDocuments({ status: 'USED' }),
+  ])
+  return { totalClients, totalReviews, unusedReviews, usedReviews }
 }
 
 async function getRecentClients(): Promise<Client[]> {
-  try {
-    const res = await fetch(`${process.env.API_URL || `http://localhost:${process.env.PORT || 3152}`}/api/clients?limit=5`, {
-      cache: 'no-store'
-    })
-    if (!res.ok) throw new Error('Failed to fetch clients')
-    return res.json() as Promise<Client[]>
-  } catch (error) {
-    console.error('Error fetching recent clients:', error)
-    return []
-  }
+  await dbConnect()
+  return ClientModel.find({ status: { $ne: 'ARCHIVED' } })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean() as unknown as Client[]
 }
 
 export default async function DashboardPage() {
