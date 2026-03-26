@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface IClientView extends Document {
+export interface IClientView extends mongoose.Document {
   name: string;
   ownerId?: string | null;
   filters: Record<string, unknown>;
@@ -8,10 +8,10 @@ export interface IClientView extends Document {
   updatedAt: Date;
 }
 
-const ClientViewSchema: Schema = new Schema({
+const ClientViewSchema: mongoose.Schema = new mongoose.Schema({
   name: { type: String, required: true },
   ownerId: { type: String, default: null },
-  filters: { type: Schema.Types.Mixed, required: true },
+  filters: { type: mongoose.Schema.Types.Mixed, required: true },
 }, {
   timestamps: true,
 });

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type CampaignStatus =
   | 'PLANNED'
@@ -17,7 +17,7 @@ export interface ICampaignMetrics {
   conversionRate?: number;
 }
 
-export interface ICampaign extends Document {
+export interface ICampaign extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   campaignName: string;
   platform: string;
@@ -32,9 +32,9 @@ export interface ICampaign extends Document {
   updatedAt: Date;
 }
 
-const CampaignSchema: Schema = new Schema(
+const CampaignSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     campaignName: { type: String, required: true },
     platform: { type: String, required: true },
     objective: { type: String },

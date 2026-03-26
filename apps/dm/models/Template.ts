@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface ITemplate extends Document {
+export interface ITemplate extends mongoose.Document {
   name: string;
   description?: string;
   industry?: string;
@@ -11,7 +11,7 @@ export interface ITemplate extends Document {
   suggestedRatingStyle?: string;
 }
 
-const TemplateSchema: Schema = new Schema({
+const TemplateSchema: mongoose.Schema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   industry: { type: String },
@@ -27,7 +27,9 @@ const TemplateSchema: Schema = new Schema({
 TemplateSchema.index({ name: 1 });
 TemplateSchema.index({ industry: 1, platform: 1 });
 
-const Template = (mongoose.models.Template as mongoose.Model<ITemplate> | undefined) || mongoose.model<ITemplate>('Template', TemplateSchema);
+const Template =
+  (mongoose.models.Template as mongoose.Model<ITemplate> | undefined) ||
+  mongoose.model<ITemplate>("Template", TemplateSchema);
 
 export default Template;
 

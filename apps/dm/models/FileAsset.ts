@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type FileCategory =
   | 'LOGO'
@@ -9,7 +9,7 @@ export type FileCategory =
   | 'DOC'
   | 'OTHER';
 
-export interface IFileAsset extends Document {
+export interface IFileAsset extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   fileName: string;
   fileType: string;
@@ -23,9 +23,9 @@ export interface IFileAsset extends Document {
   updatedAt: Date;
 }
 
-const FileAssetSchema: Schema = new Schema(
+const FileAssetSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     fileName: { type: String, required: true },
     fileType: { type: String, required: true },
     url: { type: String, required: true },
@@ -36,7 +36,7 @@ const FileAssetSchema: Schema = new Schema(
       default: 'OTHER',
     },
     tags: [{ type: String }],
-    uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     uploadedAt: { type: Date, default: Date.now },
   },
   {

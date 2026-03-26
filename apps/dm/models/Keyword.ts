@@ -1,11 +1,11 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export interface IKeywordHistoryEntry {
   date: Date;
   rank: number;
 }
 
-export interface IKeyword extends Document {
+export interface IKeyword extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   keyword: string;
   searchVolume?: number;
@@ -19,9 +19,9 @@ export interface IKeyword extends Document {
   updatedAt: Date;
 }
 
-const KeywordSchema: Schema = new Schema(
+const KeywordSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     keyword: { type: String, required: true },
     searchVolume: { type: Number },
     difficulty: { type: Number },

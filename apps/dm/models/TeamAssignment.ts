@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type AssignmentType =
   | 'review'
@@ -23,7 +23,7 @@ export type AssignmentStatus =
 
 export type AssignmentPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
-export interface ITeamAssignment extends Document {
+export interface ITeamAssignment extends mongoose.Document {
   title: string;
   description?: string;
   assignmentType: AssignmentType;
@@ -44,7 +44,7 @@ export interface ITeamAssignment extends Document {
   updatedAt: Date;
 }
 
-const TeamAssignmentSchema: Schema = new Schema(
+const TeamAssignmentSchema: mongoose.Schema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String },

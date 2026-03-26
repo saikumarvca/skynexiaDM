@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface IClient extends Document {
+export interface IClient extends mongoose.Document {
   name: string;
   businessName: string;
   brandName: string;
@@ -21,7 +21,7 @@ export interface IClient extends Document {
   updatedAt: Date;
 }
 
-const ClientSchema: Schema = new Schema(
+const ClientSchema: mongoose.Schema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     businessName: { type: String, required: true },

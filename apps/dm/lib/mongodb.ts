@@ -6,6 +6,7 @@ type MongooseCache = {
 };
 
 declare global {
+  // eslint-disable-next-line no-var
   var mongoose: MongooseCache | undefined;
 }
 
@@ -14,10 +15,11 @@ declare global {
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
-let cached = global.mongoose;
+const globalForMongoose = globalThis as typeof globalThis & { mongoose?: MongooseCache };
+let cached = globalForMongoose.mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = globalForMongoose.mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect(): Promise<typeof mongoose> {

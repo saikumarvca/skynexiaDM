@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type AllocationStatus =
   | 'Unassigned'
@@ -8,7 +8,7 @@ export type AllocationStatus =
   | 'Used'
   | 'Cancelled';
 
-export interface IReviewAllocation extends Document {
+export interface IReviewAllocation extends mongoose.Document {
   draftId: mongoose.Types.ObjectId;
   assignedToUserId: string;
   assignedToUserName: string;
@@ -27,9 +27,9 @@ export interface IReviewAllocation extends Document {
   updatedAt: Date;
 }
 
-const ReviewAllocationSchema: Schema = new Schema(
+const ReviewAllocationSchema: mongoose.Schema = new mongoose.Schema(
   {
-    draftId: { type: Schema.Types.ObjectId, ref: 'ReviewDraft', required: true },
+    draftId: { type: mongoose.Schema.Types.ObjectId, ref: 'ReviewDraft', required: true },
     assignedToUserId: { type: String, required: true },
     assignedToUserName: { type: String, required: true },
     assignedByUserId: { type: String, required: true },

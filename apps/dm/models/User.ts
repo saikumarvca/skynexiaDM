@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type UserRole =
   | 'ADMIN'
@@ -7,7 +7,7 @@ export type UserRole =
   | 'DESIGNER'
   | 'ANALYST';
 
-export interface IUser extends Document {
+export interface IUser extends mongoose.Document {
   email: string;
   name: string;
   role: UserRole;
@@ -17,7 +17,7 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema(
+const UserSchema: mongoose.Schema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true },
     name: { type: String, required: true },

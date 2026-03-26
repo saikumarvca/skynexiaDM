@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface ITeamActivityLog extends Document {
+export interface ITeamActivityLog extends mongoose.Document {
   userId: string;
   userName: string;
   action: string;
@@ -12,7 +12,7 @@ export interface ITeamActivityLog extends Document {
   createdAt: Date;
 }
 
-const TeamActivityLogSchema: Schema = new Schema(
+const TeamActivityLogSchema: mongoose.Schema = new mongoose.Schema(
   {
     userId: { type: String, required: true },
     userName: { type: String, required: true },
@@ -21,7 +21,7 @@ const TeamActivityLogSchema: Schema = new Schema(
     entityType: { type: String, required: true },
     entityId: { type: String, required: true },
     targetName: { type: String },
-    details: { type: Schema.Types.Mixed },
+    details: { type: mongoose.Schema.Types.Mixed },
   },
   { timestamps: true }
 );

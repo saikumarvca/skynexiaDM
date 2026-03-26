@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type ScheduledPostStatus =
   | 'SCHEDULED'
@@ -6,7 +6,7 @@ export type ScheduledPostStatus =
   | 'FAILED'
   | 'CANCELLED';
 
-export interface IScheduledPost extends Document {
+export interface IScheduledPost extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   contentId?: mongoose.Types.ObjectId | null;
   content: string;
@@ -19,10 +19,10 @@ export interface IScheduledPost extends Document {
   updatedAt: Date;
 }
 
-const ScheduledPostSchema: Schema = new Schema(
+const ScheduledPostSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
-    contentId: { type: Schema.Types.ObjectId, ref: 'ContentItem', default: null },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    contentId: { type: mongoose.Schema.Types.ObjectId, ref: 'ContentItem', default: null },
     content: { type: String, required: true },
     platform: { type: String, required: true },
     publishDate: { type: Date, required: true },
@@ -32,7 +32,7 @@ const ScheduledPostSchema: Schema = new Schema(
       enum: ['SCHEDULED', 'PUBLISHED', 'FAILED', 'CANCELLED'],
       default: 'SCHEDULED',
     },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   {
     timestamps: true,

@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface IPostedReview extends Document {
+export interface IPostedReview extends mongoose.Document {
   allocationId: mongoose.Types.ObjectId;
   draftId: mongoose.Types.ObjectId;
   postedByName: string;
@@ -14,10 +14,10 @@ export interface IPostedReview extends Document {
   updatedAt: Date;
 }
 
-const PostedReviewSchema: Schema = new Schema(
+const PostedReviewSchema: mongoose.Schema = new mongoose.Schema(
   {
-    allocationId: { type: Schema.Types.ObjectId, ref: 'ReviewAllocation', required: true },
-    draftId: { type: Schema.Types.ObjectId, ref: 'ReviewDraft', required: true },
+    allocationId: { type: mongoose.Schema.Types.ObjectId, ref: 'ReviewAllocation', required: true },
+    draftId: { type: mongoose.Schema.Types.ObjectId, ref: 'ReviewDraft', required: true },
     postedByName: { type: String, required: true },
     platform: { type: String, required: true },
     reviewLink: { type: String },

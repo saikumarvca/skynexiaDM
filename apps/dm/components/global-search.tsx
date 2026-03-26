@@ -150,8 +150,9 @@ export function GlobalSearch() {
     : ALL_ITEMS;
 
   const groupedResults = filtered.reduce<Record<string, SearchItem[]>>((acc, item) => {
-    if (!acc[item.group]) acc[item.group] = [];
-    acc[item.group].push(item);
+    const group = item.group ?? "Other";
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(item);
     return acc;
   }, {});
 

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type LeadStatus =
   | 'NEW'
@@ -7,7 +7,7 @@ export type LeadStatus =
   | 'CLOSED_WON'
   | 'CLOSED_LOST';
 
-export interface ILead extends Document {
+export interface ILead extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   name: string;
   email?: string;
@@ -20,14 +20,14 @@ export interface ILead extends Document {
   updatedAt: Date;
 }
 
-const LeadSchema: Schema = new Schema(
+const LeadSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     name: { type: String, required: true },
     email: { type: String },
     phone: { type: String },
     source: { type: String },
-    campaignId: { type: Schema.Types.ObjectId, ref: 'Campaign', default: null },
+    campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', default: null },
     status: {
       type: String,
       enum: ['NEW', 'CONTACTED', 'QUALIFIED', 'CLOSED_WON', 'CLOSED_LOST'],

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type ContentCategory =
   | 'CAPTION'
@@ -8,7 +8,7 @@ export type ContentCategory =
   | 'HOOK'
   | 'OTHER';
 
-export interface IContentItem extends Document {
+export interface IContentItem extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   title: string;
   content: string;
@@ -22,9 +22,9 @@ export interface IContentItem extends Document {
   updatedAt: Date;
 }
 
-const ContentItemSchema: Schema = new Schema(
+const ContentItemSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     title: { type: String, required: true },
     content: { type: String, required: true },
     platform: { type: String },
@@ -34,7 +34,7 @@ const ContentItemSchema: Schema = new Schema(
       required: true,
     },
     tags: [{ type: String }],
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     status: {
       type: String,
       enum: ['DRAFT', 'APPROVED', 'ARCHIVED'],

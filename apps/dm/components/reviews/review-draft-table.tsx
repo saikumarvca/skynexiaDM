@@ -417,6 +417,28 @@ export function ReviewDraftTable({
           >
             {importLoading ? "Importing…" : "Import"}
           </Button>
+          <details className="relative">
+            <summary className="inline-flex h-10 cursor-pointer items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+              Import format
+            </summary>
+            <div
+              role="tooltip"
+              aria-label="CSV import format help"
+              className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-[340px] max-w-[calc(100vw-2rem)] rounded-md border bg-popover p-3 text-sm text-popover-foreground shadow-md"
+            >
+              <p className="font-medium">CSV format</p>
+              <p className="mt-2">
+                Required: <code>subject</code>, <code>reviewText</code> (or <code>review text</code>)
+              </p>
+              <p className="mt-1">
+                Optional: <code>category</code>, <code>language</code>, <code>suggestedRating</code> (or <code>rating</code>, <code>suggested rating</code>)
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">Example header:</p>
+              <p className="mt-1 text-xs text-muted-foreground break-words">
+                subject,reviewText,category,language,suggestedRating
+              </p>
+            </div>
+          </details>
         </div>
 
         {viewMode === "grid" ? (

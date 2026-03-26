@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface ITeamRole extends Document {
+export interface ITeamRole extends mongoose.Document {
   roleName: string;
   description?: string;
   permissions: string[];
@@ -10,7 +10,7 @@ export interface ITeamRole extends Document {
   updatedAt: Date;
 }
 
-const TeamRoleSchema: Schema = new Schema(
+const TeamRoleSchema: mongoose.Schema = new mongoose.Schema(
   {
     roleName: { type: String, required: true },
     description: { type: String },

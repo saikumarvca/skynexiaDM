@@ -1,8 +1,8 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type TeamMemberStatus = 'Active' | 'Inactive';
 
-export interface ITeamMember extends Document {
+export interface ITeamMember extends mongoose.Document {
   name: string;
   email: string;
   phone?: string;
@@ -22,18 +22,18 @@ export interface ITeamMember extends Document {
   updatedAt: Date;
 }
 
-const TeamMemberSchema: Schema = new Schema(
+const TeamMemberSchema: mongoose.Schema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String },
-    roleId: { type: Schema.Types.ObjectId, ref: 'TeamRole' },
+    roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamRole' },
     roleName: { type: String },
     department: { type: String },
     avatarUrl: { type: String },
     userId: { type: String },
     assignedClientIds: {
-      type: [{ type: Schema.Types.ObjectId, ref: 'Client' }],
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Client' }],
       default: [],
     },
     assignedClientNamesSnapshot: [{ type: String }],

@@ -1,8 +1,8 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type ExternalReviewPlatform = 'GOOGLE' | 'FACEBOOK' | 'INSTAGRAM' | 'OTHER';
 
-export interface IExternalReview extends Document {
+export interface IExternalReview extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   platform: ExternalReviewPlatform | string;
   authorName?: string;
@@ -17,9 +17,9 @@ export interface IExternalReview extends Document {
   updatedAt: Date;
 }
 
-const ExternalReviewSchema: Schema = new Schema(
+const ExternalReviewSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     platform: { type: String, required: true },
     authorName: { type: String },
     rating: { type: Number, required: true },

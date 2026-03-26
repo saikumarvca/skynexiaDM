@@ -1,10 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export interface ITask extends Document {
+export interface ITask extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   title: string;
   description?: string;
@@ -19,12 +19,12 @@ export interface ITask extends Document {
   updatedAt: Date;
 }
 
-const TaskSchema: Schema = new Schema(
+const TaskSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     title: { type: String, required: true },
     description: { type: String },
-    assignedTo: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     assignedToUserId: { type: String },
     assignedToName: { type: String },
     priority: {
@@ -38,7 +38,7 @@ const TaskSchema: Schema = new Schema(
       enum: ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'],
       default: 'TODO',
     },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   {
     timestamps: true,

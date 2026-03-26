@@ -71,6 +71,7 @@ Create `.env.local` with:
 ```env
 MONGODB_URI=mongodb://localhost:27017/skynexia-dm
 NEXT_PUBLIC_API_URL=http://localhost:3152
+AUTH_SECRET=change-me-to-a-random-long-secret
 ```
 
 3. Start MongoDB service

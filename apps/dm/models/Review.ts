@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import * as mongoose from "mongoose";
 
-export interface IReview extends Document {
+export interface IReview extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   shortLabel: string;
   reviewText: string;
@@ -16,9 +16,9 @@ export interface IReview extends Document {
   updatedAt: Date;
 }
 
-const ReviewSchema: Schema = new Schema(
+const ReviewSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     shortLabel: { type: String, required: true },
     reviewText: { type: String, required: true },
     category: { type: String, required: true },
