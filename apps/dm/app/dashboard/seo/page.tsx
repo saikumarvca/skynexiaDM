@@ -1,5 +1,7 @@
 import Link from "next/link"
+import { Suspense } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { QueryToast } from "@/components/query-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -58,6 +60,9 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
 
   return (
     <DashboardLayout>
+      <Suspense fallback={null}>
+        <QueryToast message="Keyword created" />
+      </Suspense>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

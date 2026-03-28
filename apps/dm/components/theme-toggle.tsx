@@ -72,7 +72,7 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="flex h-8 items-center gap-2 rounded-full border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        className="flex h-10 min-h-10 items-center gap-2 rounded-full border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors sm:h-8 sm:min-h-0"
         aria-label="Change theme"
       >
         <Palette className="h-3.5 w-3.5" />

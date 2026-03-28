@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TeamMember from '@/models/TeamMember';
 import TeamRole from '@/models/TeamRole';
+import { syncLoginUserFromTeamMember } from '@/lib/team-member-user-sync';
 
 export async function GET(
   _request: NextRequest,
@@ -38,6 +39,15 @@ export async function PATCH(
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
+    const rawPassword = typeof body.password === 'string' ? body.password : '';
+    const password =
+      rawPassword.trim().length > 0 ? rawPassword : undefined;
+    if (password && password.length < 8) {
+      return NextResponse.json(
+        { error: 'Password must be at least 8 characters' },
+        { status: 400 }
+      );
+    }
 
     const member = await TeamMember.findOne({
       _id: id,
@@ -65,6 +75,25 @@ export async function PATCH(
       if (role) member.roleName = role.roleName;
     }
     await member.save();
+
+    try {
+      await syncLoginUserFromTeamMember(
+        member,
+        password ? { password } : {}
+      );
+    } catch (syncErr: unknown) {
+      const code =
+        syncErr && typeof syncErr === 'object' && 'code' in syncErr
+          ? (syncErr as { code: number | string }).code
+          : null;
+      if (code === 11000 || code === '11000') {
+        return NextResponse.json(
+          { error: 'A login account already exists for this email' },
+          { status: 409 }
+        );
+      }
+      throw syncErr;
+    }
 
     const populated = await TeamMember.findById(member._id)
       .populate('roleId', 'roleName permissions')

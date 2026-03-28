@@ -1,27 +1,30 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ClientForm } from "@/components/client-form"
 import { ClientFormData } from "@/types"
-import { serverFetch } from "@/lib/server-fetch"
+import { errorMessageFromResponse, serverFetch } from "@/lib/server-fetch"
+import { getActiveTeamManagers } from "@/lib/team-managers"
 
 async function createClient(data: ClientFormData) {
-  'use server'
+  "use server"
 
-  const res = await serverFetch('/api/clients', {
-    method: 'POST',
+  const res = await serverFetch("/api/clients", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   })
 
   if (!res.ok) {
-    throw new Error('Failed to create client')
+    throw new Error(await errorMessageFromResponse(res, "Failed to create client"))
   }
 
   return res.json()
 }
 
-export default function NewClientPage() {
+export default async function NewClientPage() {
+  const managers = await getActiveTeamManagers()
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -32,8 +35,8 @@ export default function NewClientPage() {
           </p>
         </div>
 
-        <div className="max-w-2xl">
-          <ClientForm onSubmit={createClient} />
+        <div className="max-w-4xl">
+          <ClientForm onSubmit={createClient} managers={managers} />
         </div>
       </div>
     </DashboardLayout>

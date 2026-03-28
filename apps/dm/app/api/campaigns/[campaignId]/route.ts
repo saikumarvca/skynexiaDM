@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import mongoose from "mongoose"
+import { requireSessionApi } from "@/lib/require-session-api"
 import dbConnect from "@/lib/mongodb"
 import Campaign from "@/models/Campaign"
 import type { CampaignStatus } from "@/models/Campaign"
@@ -44,6 +45,9 @@ export async function PATCH(
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
   try {
+    const denied = await requireSessionApi(request)
+    if (denied) return denied
+
     const { campaignId } = await params
     if (!mongoose.Types.ObjectId.isValid(campaignId)) {
       return NextResponse.json({ error: "Invalid campaign id" }, { status: 400 })

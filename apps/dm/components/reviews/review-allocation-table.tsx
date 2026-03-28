@@ -73,8 +73,8 @@ export function ReviewAllocationTable({
 
   return (
     <>
-      <div className="rounded-lg border bg-card shadow-sm">
-        <Table>
+      <div className="max-w-full overflow-x-auto rounded-lg border bg-card shadow-sm">
+        <Table className="min-w-[920px]">
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
               <TableHead className="font-semibold text-foreground">Subject</TableHead>
@@ -87,7 +87,7 @@ export function ReviewAllocationTable({
               <TableHead className="font-semibold text-foreground">Sent</TableHead>
               <TableHead className="font-semibold text-foreground">Posted</TableHead>
               <TableHead className="font-semibold text-foreground">Used</TableHead>
-              <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+              <TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

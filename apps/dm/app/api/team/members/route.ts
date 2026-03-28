@@ -4,6 +4,7 @@ import TeamMember from '@/models/TeamMember';
 import TeamRole from '@/models/TeamRole';
 import { parseWithSchema, apiError } from '@/lib/api/validation';
 import { teamMemberCreateSchema } from '@/lib/api/schemas';
+import { syncLoginUserFromTeamMember } from '@/lib/team-member-user-sync';
 
 export async function GET(request: NextRequest) {
   try {
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     const parsed = await parseWithSchema(request, teamMemberCreateSchema);
     if (!parsed.ok) return parsed.response;
-    const { name, email, phone, roleId, department, notes } = parsed.data;
+    const { name, email, phone, roleId, department, notes, password } = parsed.data;
 
     let roleName = '';
     if (roleId) {
@@ -91,6 +92,19 @@ export async function POST(request: NextRequest) {
       status: 'Active',
     });
     await member.save();
+
+    try {
+      await syncLoginUserFromTeamMember(member, password ? { password } : {});
+    } catch (syncErr: unknown) {
+      const code =
+        syncErr && typeof syncErr === 'object' && 'code' in syncErr
+          ? (syncErr as { code: number | string }).code
+          : null;
+      if (code === 11000 || code === '11000') {
+        return apiError(409, 'A login account already exists for this email', 'DUPLICATE_KEY');
+      }
+      throw syncErr;
+    }
 
     const populated = await TeamMember.findById(member._id)
       .populate('roleId', 'roleName permissions')

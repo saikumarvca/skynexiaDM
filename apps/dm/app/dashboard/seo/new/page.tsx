@@ -56,7 +56,7 @@ export default async function NewKeywordPage({
       const err = await res.json().catch(() => ({}))
       throw new Error(err.error || "Failed to add keyword")
     }
-    redirect("/dashboard/seo")
+    redirect("/dashboard/seo?created=1")
   }
 
   return (

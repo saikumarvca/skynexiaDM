@@ -4,8 +4,17 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { ClientForm } from "@/components/client-form"
 import { Button } from "@/components/ui/button"
 import { ClientFormData } from "@/types"
+import { getActiveTeamManagers } from "@/lib/team-managers"
 
 import { serverFetch } from "@/lib/server-fetch"
+
+function toIsoDay(v: unknown): string | undefined {
+  if (v == null) return undefined
+  if (typeof v === "string") return v.slice(0, 10)
+  const d = new Date(v as string | number | Date)
+  if (Number.isNaN(d.getTime())) return undefined
+  return d.toISOString().slice(0, 10)
+}
 
 async function getClient(clientId: string) {
   const res = await serverFetch(`/api/clients/${clientId}`)
@@ -31,7 +40,7 @@ export default async function ClientEditPage({
   params: Promise<{ clientId: string }>
 }) {
   const { clientId } = await params
-  const client = await getClient(clientId)
+  const [client, managers] = await Promise.all([getClient(clientId), getActiveTeamManagers()])
   if (!client) notFound()
 
   const initialData: ClientFormData = {
@@ -43,6 +52,14 @@ export default async function ClientEditPage({
     email: client.email,
     notes: client.notes ?? "",
     status: client.status,
+    website: client.website,
+    industry: client.industry,
+    location: client.location,
+    marketingChannels: client.marketingChannels ?? [],
+    contractStart: toIsoDay(client.contractStart),
+    contractEnd: toIsoDay(client.contractEnd),
+    monthlyBudget: client.monthlyBudget ?? null,
+    assignedManagerId: client.assignedManagerId ?? null,
   }
 
   return (
@@ -60,9 +77,10 @@ export default async function ClientEditPage({
           </Link>
         </div>
 
-        <div className="max-w-2xl">
+        <div className="max-w-4xl">
           <ClientForm
             initialData={initialData}
+            managers={managers}
             onSubmit={updateClient.bind(null, clientId)}
             redirectTo={`/clients/${clientId}`}
           />

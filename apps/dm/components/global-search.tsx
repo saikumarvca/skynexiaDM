@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search, Home, Users, Users2, Target, Layers, ClipboardList,
   FileText, ClipboardCheck, UserPlus, UserCheck, CheckCircle,
   BarChart3, Settings, Activity, TrendingUp, Loader2, X, ArrowLeft,
-  ArrowRight, Hash,
+  ArrowRight, Hash, CalendarClock, LayoutTemplate, Shield,
 } from "lucide-react";
 
 interface SearchItem {
@@ -15,6 +15,8 @@ interface SearchItem {
   group: string;
   icon: React.ElementType;
   keywords?: string;
+  /** Hidden from search unless user is admin */
+  adminOnly?: boolean;
 }
 
 interface Group {
@@ -58,6 +60,8 @@ const ALL_ITEMS: SearchItem[] = [
   // Content
   { name: "Content Bank",    href: "/dashboard/content",         group: "Content",   icon: Layers },
   { name: "New Content",     href: "/dashboard/content/new",     group: "Content",   icon: Layers,        keywords: "create content" },
+  { name: "Scheduled posts", href: "/dashboard/scheduled-posts", group: "Content",   icon: CalendarClock, keywords: "calendar publish" },
+  { name: "New scheduled post", href: "/dashboard/scheduled-posts/new", group: "Content", icon: CalendarClock },
   { name: "SEO / Keywords",  href: "/dashboard/seo",             group: "Content",   icon: Search,        keywords: "seo keywords" },
   { name: "New Keyword",     href: "/dashboard/seo/new",         group: "Content",   icon: Search,        keywords: "add keyword" },
 
@@ -72,6 +76,7 @@ const ALL_ITEMS: SearchItem[] = [
   { name: "My Assigned Reviews", href: "/dashboard/my-assigned-reviews", group: "Reviews", icon: UserCheck },
   { name: "Used Reviews",        href: "/dashboard/used-reviews",        group: "Reviews", icon: CheckCircle,    keywords: "posted reviews" },
   { name: "Review Analytics",    href: "/dashboard/review-analytics",    group: "Reviews", icon: BarChart3 },
+  { name: "Review templates",     href: "/dashboard/review-templates",    group: "Reviews", icon: LayoutTemplate, keywords: "prefill review" },
 
   // Analytics
   { name: "Dashboard Analytics", href: "/dashboard/analytics",           group: "Analytics", icon: BarChart3 },
@@ -91,11 +96,12 @@ const ALL_ITEMS: SearchItem[] = [
   { name: "Review Assignments", href: "/team/review-assignments",    group: "Team", icon: ClipboardCheck },
 
   // Settings
+  { name: "Admin users",     href: "/dashboard/admin/users",     group: "Settings", icon: Shield,       keywords: "accounts rbac", adminOnly: true },
   { name: "Settings",        href: "/dashboard/settings",        group: "Settings", icon: Settings },
   { name: "Notifications",   href: "/dashboard/notifications",   group: "Settings", icon: Activity },
 ];
 
-export function GlobalSearch() {
+export function GlobalSearch({ showAdminLinks = false }: { showAdminLinks?: boolean }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -103,6 +109,11 @@ export function GlobalSearch() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const visibleItems = useMemo(
+    () => (showAdminLinks ? ALL_ITEMS : ALL_ITEMS.filter((i) => !i.adminOnly)),
+    [showAdminLinks]
+  );
 
   const closeModal = () => {
     setOpen(false);
@@ -139,7 +150,7 @@ export function GlobalSearch() {
   }, [open]);
 
   const filtered = query.trim()
-    ? ALL_ITEMS.filter((item) => {
+    ? visibleItems.filter((item) => {
         const q = query.toLowerCase();
         return (
           item.name.toLowerCase().includes(q) ||
@@ -147,7 +158,7 @@ export function GlobalSearch() {
           item.keywords?.toLowerCase().includes(q)
         );
       })
-    : ALL_ITEMS;
+    : visibleItems;
 
   const groupedResults = filtered.reduce<Record<string, SearchItem[]>>((acc, item) => {
     const group = item.group ?? "Other";
@@ -159,7 +170,7 @@ export function GlobalSearch() {
   const flatFiltered = Object.values(groupedResults).flat();
 
   const subItems = selectedGroup
-    ? ALL_ITEMS.filter((item) => item.group === selectedGroup)
+    ? visibleItems.filter((item) => item.group === selectedGroup)
     : [];
 
   const activeGroup = GROUPS.find((g) => g.name === selectedGroup);
@@ -193,7 +204,7 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="group flex h-9 w-full items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 text-sm text-muted-foreground hover:bg-muted hover:border-border/80 hover:text-foreground transition-all duration-150"
+        className="group flex h-10 w-full min-h-10 items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 text-sm text-muted-foreground hover:bg-muted hover:border-border/80 hover:text-foreground transition-all duration-150 sm:h-9 sm:min-h-0"
       >
         <Search className="h-3.5 w-3.5 shrink-0" />
         <span className="flex-1 text-left truncate">Search pages, features…</span>
@@ -350,7 +361,7 @@ export function GlobalSearch() {
                   <p className="mb-3 text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Browse by section</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                     {GROUPS.map((group) => {
-                      const count = ALL_ITEMS.filter((i) => i.group === group.name).length;
+                      const count = visibleItems.filter((i) => i.group === group.name).length;
                       return (
                         <button
                           key={group.name}
@@ -401,7 +412,7 @@ export function GlobalSearch() {
                 )}
               </div>
               <span className="ml-auto text-[10px] text-muted-foreground/40">
-                {ALL_ITEMS.length} pages indexed
+                {visibleItems.length} pages indexed
               </span>
             </div>
           </div>

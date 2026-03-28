@@ -42,8 +42,11 @@ function LoginForm() {
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-1">
-          <label className="text-sm font-medium text-muted-foreground">Email</label>
+          <label htmlFor="login-email" className="text-sm font-medium text-muted-foreground">
+            Email
+          </label>
           <Input
+            id="login-email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
@@ -53,8 +56,11 @@ function LoginForm() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-muted-foreground">Password</label>
+          <label htmlFor="login-password" className="text-sm font-medium text-muted-foreground">
+            Password
+          </label>
           <Input
+            id="login-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"

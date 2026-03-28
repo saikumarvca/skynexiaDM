@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireSessionApi } from '@/lib/require-session-api'
 import dbConnect from '@/lib/mongodb'
 import Template from '@/models/Template'
+import { templateUpsertSchema } from '@/lib/api/schemas'
 
 export async function GET() {
   try {
@@ -18,9 +20,19 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request)
+    if (denied) return denied
+
     await dbConnect()
     const body = await request.json()
-    const template = new Template(body)
+    const parsed = templateUpsertSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid template', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const template = new Template(parsed.data)
     await template.save()
     return NextResponse.json(template, { status: 201 })
   } catch (error) {

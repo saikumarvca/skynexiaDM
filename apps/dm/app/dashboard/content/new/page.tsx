@@ -56,7 +56,7 @@ export default async function NewContentPage({
       const err = await res.json().catch(() => ({}))
       throw new Error(err.error || "Failed to create content")
     }
-    redirect("/dashboard/content")
+    redirect("/dashboard/content?created=1")
   }
 
   return (

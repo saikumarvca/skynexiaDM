@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireSessionApi } from '@/lib/require-session-api';
 import dbConnect from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
 
@@ -38,6 +39,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
     const body = await request.json();
     const campaign = new Campaign(body);

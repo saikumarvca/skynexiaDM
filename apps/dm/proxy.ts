@@ -2,15 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSessionCookieName, verifySessionTokenEdge } from "@/lib/session-edge";
 
-const PUBLIC_PATH_PREFIXES = [
-  "/login",
-  "/api/auth/",
-  "/_next/",
-  "/favicon.ico",
-];
-
 function isPublicPath(pathname: string) {
-  return PUBLIC_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
+  if (pathname === "/login" || pathname === "/favicon.ico") return true;
+  if (pathname.startsWith("/_next/")) return true;
+  if (pathname === "/api/auth/login" || pathname === "/api/auth/logout") return true;
+  return false;
 }
 
 export async function proxy(req: NextRequest) {

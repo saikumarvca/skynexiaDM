@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/components/status-badge"
 import { ArchiveClientButton } from "@/components/archive-client-button"
+import { UnarchiveClientButton } from "@/components/unarchive-client-button"
 import { Client } from "@/types"
 
 interface ClientCardProps {
@@ -23,8 +24,12 @@ export function ClientCard({ client }: ClientCardProps) {
           </Link>
           <div className="flex shrink-0 items-center gap-1.5">
             <StatusBadge status={client.status} />
-            {canArchive && (
-              <ArchiveClientButton clientId={client._id} clientName={client.name} />
+            {client.status === "ARCHIVED" ? (
+              <UnarchiveClientButton clientId={client._id} clientName={client.name} />
+            ) : (
+              canArchive && (
+                <ArchiveClientButton clientId={client._id} clientName={client.name} />
+              )
             )}
           </div>
         </div>

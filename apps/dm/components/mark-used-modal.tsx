@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -31,6 +32,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
     setIsLoading(true)
     try {
       await onSubmit(formData)
+      toast.success("Review marked as used")
       onClose()
       // Reset form
       setFormData({
@@ -43,6 +45,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
       })
     } catch (error) {
       console.error("Error submitting form:", error)
+      toast.error(error instanceof Error ? error.message : "Could not mark review as used")
     } finally {
       setIsLoading(false)
     }
@@ -63,7 +66,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="sourceName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="sourceName" className="block text-sm font-medium text-muted-foreground">
               Source Platform
             </label>
             <Select value={formData.sourceName} onValueChange={(value) => handleChange("sourceName", value)}>
@@ -83,7 +86,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             </Select>
           </div>
           <div>
-            <label htmlFor="usedBy" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="usedBy" className="block text-sm font-medium text-muted-foreground">
               Used By (Team Member)
             </label>
             <Input
@@ -95,7 +98,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             />
           </div>
           <div>
-            <label htmlFor="profileName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="profileName" className="block text-sm font-medium text-muted-foreground">
               Profile/Account Name
             </label>
             <Input
@@ -107,7 +110,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             />
           </div>
           <div>
-            <label htmlFor="usedAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="usedAt" className="block text-sm font-medium text-muted-foreground">
               Used Date
             </label>
             <Input
@@ -119,7 +122,7 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             />
           </div>
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="notes" className="block text-sm font-medium text-muted-foreground">
               Notes (Optional)
             </label>
             <Textarea

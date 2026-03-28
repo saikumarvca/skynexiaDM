@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TeamMember from '@/models/TeamMember';
+import { syncLoginUserFromTeamMember } from '@/lib/team-member-user-sync';
 
 export async function PATCH(
   _request: NextRequest,
@@ -17,6 +18,7 @@ export async function PATCH(
 
     member.status = 'Active';
     await member.save();
+    await syncLoginUserFromTeamMember(member, {});
 
     return NextResponse.json(member);
   } catch (error) {

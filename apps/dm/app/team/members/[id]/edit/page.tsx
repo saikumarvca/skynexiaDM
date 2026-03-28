@@ -4,6 +4,7 @@ import { TeamMemberForm } from "@/components/team/TeamMemberForm";
 import dbConnect from "@/lib/mongodb";
 import TeamMember from "@/models/TeamMember";
 import TeamRole from "@/models/TeamRole";
+import User from "@/models/User";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,13 @@ export default async function EditMemberPage({ params }: PageProps) {
     return <DashboardLayout><div className="space-y-6"><h1 className="text-3xl font-bold">Member Not Found</h1><p className="text-muted-foreground">The requested member could not be found.</p></div></DashboardLayout>;
   }
 
+  const loginUser = await User.findOne({
+    email: String(member.email).trim().toLowerCase(),
+  })
+    .select("passwordHash")
+    .lean();
+  const hasLogin = Boolean(loginUser && loginUser.passwordHash);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -33,7 +41,7 @@ export default async function EditMemberPage({ params }: PageProps) {
         <Card>
           <CardHeader><CardTitle>Member Details</CardTitle></CardHeader>
           <CardContent>
-            <TeamMemberForm memberId={id} initialData={{ name: member.name, email: member.email, phone: member.phone, roleId: member.roleId?._id ?? member.roleId ?? "", department: member.department, notes: member.notes }} roles={rolesList} />
+            <TeamMemberForm memberId={id} hasLogin={hasLogin} initialData={{ name: member.name, email: member.email, phone: member.phone, roleId: member.roleId?._id ?? member.roleId ?? "", department: member.department, notes: member.notes }} roles={rolesList} />
           </CardContent>
         </Card>
       </div>

@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import dbConnect from "@/lib/mongodb";
 import TeamMember from "@/models/TeamMember";
 import TeamRole from "@/models/TeamRole";
+import User from "@/models/User";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,34 @@ async function getMembers(params: { search?: string; roleId?: string; status?: s
     TeamMember.find(query).sort({ name: 1 }).skip((page - 1) * limit).limit(limit).lean(),
     TeamMember.countDocuments(query),
   ]);
-  return { items: items.map((i) => JSON.parse(JSON.stringify(i))), total, page, limit, totalPages: Math.ceil(total / limit) };
+  type MemberRow = {
+    _id: string;
+    name: string;
+    email: string;
+    roleName?: string;
+    department?: string;
+    status: string;
+    joinedAt?: string;
+    assignedClientIds?: unknown[];
+    hasLogin?: boolean;
+  };
+  const serialized = items.map((i) => JSON.parse(JSON.stringify(i))) as MemberRow[];
+  const emails = [...new Set(serialized.map((m) => String(m.email).trim().toLowerCase()))];
+  const usersWithPassword =
+    emails.length > 0
+      ? await User.find({
+          email: { $in: emails },
+          passwordHash: { $exists: true, $nin: [null, ""] },
+        })
+          .select("email")
+          .lean()
+      : [];
+  const loginByEmail = new Set(usersWithPassword.map((u) => String(u.email).toLowerCase()));
+  const itemsWithLogin = serialized.map((m) => ({
+    ...m,
+    hasLogin: loginByEmail.has(String(m.email).trim().toLowerCase()),
+  }));
+  return { items: itemsWithLogin, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 async function getRoles() {
@@ -111,17 +139,24 @@ export default async function TeamMembersPage({ searchParams }: PageProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Role</TableHead>
-                      <TableHead>Department</TableHead><TableHead>Assigned Clients</TableHead>
+                      <TableHead>Department</TableHead><TableHead>Login</TableHead><TableHead>Assigned Clients</TableHead>
                       <TableHead>Status</TableHead><TableHead>Joined</TableHead><TableHead className="w-[140px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {members.map((m: { _id: string; name: string; email: string; roleName?: string; department?: string; status: string; joinedAt?: string; assignedClientIds?: unknown[] }) => (
+                    {members.map((m) => (
                       <TableRow key={m._id}>
                         <TableCell className="font-medium">{m.name}</TableCell>
                         <TableCell>{m.email}</TableCell>
                         <TableCell>{m.roleName ?? "—"}</TableCell>
                         <TableCell>{m.department ?? "—"}</TableCell>
+                        <TableCell>
+                          {m.hasLogin ? (
+                            <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">Enabled</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
                         <TableCell>{assignedCount(m)}</TableCell>
                         <TableCell>
                           <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${m.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{m.status}</span>

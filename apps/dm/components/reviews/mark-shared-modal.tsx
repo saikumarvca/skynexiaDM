@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -45,11 +46,14 @@ export function MarkSharedModal({
         platform: platform || undefined,
         sentDate,
       });
+      toast.success("Marked as shared with customer");
       onClose();
       setCustomerName("");
       setCustomerContact("");
       setPlatform("");
       setSentDate(new Date().toISOString().slice(0, 10));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update allocation");
     } finally {
       setIsLoading(false);
     }

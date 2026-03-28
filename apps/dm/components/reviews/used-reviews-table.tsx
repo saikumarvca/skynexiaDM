@@ -58,8 +58,8 @@ export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
+      <div className="max-w-full overflow-x-auto rounded-md border">
+        <Table className="min-w-[880px]">
           <TableHeader>
             <TableRow>
               <TableHead>Subject</TableHead>

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireSessionApi } from '@/lib/require-session-api'
 import dbConnect from '@/lib/mongodb'
 import Client from '@/models/Client'
 import ClientView from '@/models/ClientView'
+import { clientUpsertSchema, mongoFieldsFromClientUpsert } from '@/lib/api/schemas'
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,15 +53,36 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request)
+    if (denied) return denied
+
     await dbConnect()
 
     const body = await request.json()
-    const client = new Client(body)
+    const parsed = clientUpsertSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid client data', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const fields = mongoFieldsFromClientUpsert(parsed.data)
+    const client = new Client(fields)
     await client.save()
 
     return NextResponse.json(client, { status: 201 })
   } catch (error) {
     console.error('Error creating client:', error)
+    const code =
+      error && typeof error === 'object' && 'code' in error
+        ? (error as { code: unknown }).code
+        : undefined
+    if (code === 11000) {
+      return NextResponse.json(
+        { error: 'A client with this email already exists' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to create client' },
       { status: 500 }

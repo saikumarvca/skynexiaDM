@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface TeamMemberFormProps {
   memberId?: string;
+  /** Whether this member’s email already has a dashboard login (password set). */
+  hasLogin?: boolean;
   initialData?: {
     name: string;
     email: string;
@@ -21,6 +23,7 @@ interface TeamMemberFormProps {
 
 export function TeamMemberForm({
   memberId,
+  hasLogin = false,
   initialData,
   roles,
 }: TeamMemberFormProps) {
@@ -31,12 +34,30 @@ export function TeamMemberForm({
   const [roleId, setRoleId] = useState(initialData?.roleId ?? "");
   const [department, setDepartment] = useState(initialData?.department ?? "");
   const [notes, setNotes] = useState(initialData?.notes ?? "");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const pw = password.trim();
+    const pw2 = passwordConfirm.trim();
+    if (pw || pw2) {
+      if (!pw) {
+        setError("Enter a password, or clear both password fields.");
+        return;
+      }
+      if (pw.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return;
+      }
+      if (pw !== pw2) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
     setLoading(true);
     try {
       const url = memberId
@@ -51,6 +72,7 @@ export function TeamMemberForm({
         department: department || undefined,
         notes: notes || undefined,
       };
+      if (pw) body.password = pw;
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -134,6 +156,44 @@ export function TeamMemberForm({
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
         />
+      </div>
+      <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+        <div>
+          <p className="text-sm font-medium text-foreground">Dashboard login</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {memberId
+              ? hasLogin
+                ? "This member can sign in. Enter a new password below to change it."
+                : "No password yet — set one so they can sign in at the login page with this email."
+              : "Optional: set a password so this member can sign in with their email."}
+          </p>
+        </div>
+        <div>
+          <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-muted-foreground">
+            {memberId ? "New password" : "Password"}
+          </label>
+          <Input
+            id="login-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={memberId ? "Leave blank to keep current" : "Min. 8 characters if enabling login"}
+          />
+        </div>
+        <div>
+          <label htmlFor="login-password-confirm" className="mb-1 block text-sm font-medium text-muted-foreground">
+            Confirm password
+          </label>
+          <Input
+            id="login-password-confirm"
+            type="password"
+            autoComplete="new-password"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            placeholder="Repeat password"
+          />
+        </div>
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={loading}>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -57,23 +58,27 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
   }
 
   const handleArchive = async (reviewId: string) => {
-    if (confirm("Are you sure you want to archive this review?")) {
+    if (!confirm("Are you sure you want to archive this review?")) return
+    try {
       await onArchive(reviewId)
+      toast.success("Review archived")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to archive review")
     }
   }
 
   return (
     <>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 gap-4">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4">
           <Input
             placeholder="Search reviews..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="min-w-0 max-w-full flex-1 basis-[min(100%,20rem)] sm:max-w-sm sm:flex-initial sm:basis-auto"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full min-w-[10rem] max-w-[10rem] sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -86,8 +91,8 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="max-w-full overflow-x-auto rounded-md border">
+        <Table className="min-w-[720px]">
           <TableHeader>
             <TableRow>
               <TableHead>Label</TableHead>

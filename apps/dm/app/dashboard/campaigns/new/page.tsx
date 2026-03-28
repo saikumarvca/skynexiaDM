@@ -58,7 +58,7 @@ export default async function NewCampaignPage({
       const err = await res.json().catch(() => ({}))
       throw new Error(err.error || "Failed to create campaign")
     }
-    redirect("/dashboard/campaigns")
+    redirect("/dashboard/campaigns?created=1")
   }
 
   return (

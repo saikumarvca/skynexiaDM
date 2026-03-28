@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 import Link from "next/link"
 import { Campaign, CampaignStatus, Client } from "@/types"
 import { StatusBadge } from "@/components/status-badge"
@@ -84,6 +85,7 @@ export function CampaignsListWithSheet({ campaigns, clients }: CampaignsListWith
   async function updateCampaign(formData: FormData) {
     if (!selected) return
     setError(null)
+    const prevStatus = selected.status
     const body = buildUpdatePayload(formData)
     const res = await fetch(`/api/campaigns/${selected._id}`, {
       method: "PATCH",
@@ -93,8 +95,15 @@ export function CampaignsListWithSheet({ campaigns, clients }: CampaignsListWith
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      setError(typeof err.error === "string" ? err.error : "Failed to save campaign")
+      const msg = typeof err.error === "string" ? err.error : "Failed to save campaign"
+      setError(msg)
+      toast.error(msg)
       return
+    }
+    if (body.status === "COMPLETED" && prevStatus !== "COMPLETED") {
+      toast.success("Campaign marked complete")
+    } else {
+      toast.success("Changes saved")
     }
     router.refresh()
     setSelected(null)

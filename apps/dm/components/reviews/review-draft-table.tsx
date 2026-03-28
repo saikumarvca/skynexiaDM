@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReviewDraftForm } from "./review-draft-form";
@@ -12,6 +13,8 @@ import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/ty
 import type { Client } from "@/types";
 import { cn } from "@/lib/utils";
 import { Archive, LayoutGrid, Rows3 } from "lucide-react";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface User {
   _id: string;
@@ -71,6 +74,7 @@ export function ReviewDraftTable({
   const [allocationsByDraftId, setAllocationsByDraftId] = useState<Record<string, string>>({});
   const [paneOpen, setPaneOpen] = useState(false);
   const [paneTop, setPaneTop] = useState<number>(96);
+  const isLg = useMediaQuery("(min-width: 1024px)");
 
   const draftIds = useMemo(() => drafts.map((d) => d._id), [drafts]);
 
@@ -159,7 +163,9 @@ export function ReviewDraftTable({
         const text = String(reader.result ?? "");
         const parsed = parseCSV(text);
         if (parsed.length === 0) {
-          alert("No valid rows found. CSV should have columns: subject, reviewText (or review text), and optionally category, language, suggestedRating.");
+          toast.error(
+            "No valid rows found. CSV needs subject and reviewText (or review text), plus optional columns."
+          );
           return;
         }
         const res = await fetch(`/api/review-drafts/import`, {
@@ -173,21 +179,21 @@ export function ReviewDraftTable({
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Import failed");
+        toast.success("Drafts imported");
         router.refresh();
         e.target.value = "";
       } catch (err) {
         console.error(err);
-        alert("Import failed. Ensure CSV has subject and reviewText columns, and at least one active client exists.");
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "Import failed. Check CSV columns and that at least one client exists."
+        );
       } finally {
         setImportLoading(false);
       }
     };
     reader.readAsText(file);
-  };
-
-  const wrapRefresh = <T,>(fn: (...args: T[]) => Promise<unknown>) => async (...args: T[]) => {
-    await fn(...args);
-    router.refresh();
   };
 
   const filtered = drafts.filter((d) => {
@@ -239,14 +245,23 @@ export function ReviewDraftTable({
     setPaneTop(clamped);
   };
 
+  const closeDetailsPane = () => {
+    setPaneOpen(false);
+    setSelectedDraftId(null);
+  };
+
   const handleRowClick = (d: ReviewDraft) => {
     setSelectedDraftId(d._id);
     setPaneOpen(true);
-    requestAnimationFrame(() => computePaneTop(d._id));
+    requestAnimationFrame(() => {
+      if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+        computePaneTop(d._id);
+      }
+    });
   };
 
   useEffect(() => {
-    if (!paneOpen || !selectedDraftId) return;
+    if (!isLg || !paneOpen || !selectedDraftId) return;
     const onScrollOrResize = () => computePaneTop(selectedDraftId);
     window.addEventListener("scroll", onScrollOrResize, { passive: true });
     window.addEventListener("resize", onScrollOrResize);
@@ -254,11 +269,45 @@ export function ReviewDraftTable({
       window.removeEventListener("scroll", onScrollOrResize);
       window.removeEventListener("resize", onScrollOrResize);
     };
-  }, [paneOpen, selectedDraftId]);
+  }, [isLg, paneOpen, selectedDraftId]);
 
-  const handleArchiveClick = (d: ReviewDraft) => {
-    if (confirm("Archive this draft?")) wrapRefresh(onArchive)(d._id);
+  const handleArchiveClick = async (d: ReviewDraft) => {
+    if (!confirm("Archive this draft?")) return;
+    try {
+      await onArchive(d._id);
+      toast.success("Draft archived");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to archive draft");
+    }
   };
+
+  const renderDraftDetailsPane = () => (
+    <ReviewDraftDetailsPane
+      draft={selectedDraft}
+      clients={clients}
+      users={users}
+      assignedToName={selectedDraftId ? allocationsByDraftId[selectedDraftId] : undefined}
+      onClose={closeDetailsPane}
+      onEdit={(draft) => {
+        setEditDraft(draft);
+        setFormOpen(true);
+      }}
+      onDuplicate={async (id) => {
+        try {
+          await onDuplicate(id);
+          toast.success("Draft duplicated");
+          router.refresh();
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Failed to duplicate draft");
+        }
+      }}
+      onCopy={handleCopy}
+      onAssign={(draft) => setAssignDraft(draft)}
+      onArchive={handleArchiveClick}
+      onViewHistory={openActivity}
+    />
+  );
 
   const renderDraftCard = (d: ReviewDraft, mode: "row" | "grid") => {
     const selected = selectedDraftId === d._id;
@@ -495,7 +544,25 @@ export function ReviewDraftTable({
         )}
       </div>
 
-      {/* Floating details pane aligned to selected card */}
+      <Sheet
+        open={!isLg && paneOpen && !!selectedDraftId}
+        onOpenChange={(open) => {
+          if (!open) closeDetailsPane();
+        }}
+      >
+        <SheetContent
+          side="right"
+          showCloseButton={false}
+          className="flex w-full flex-col gap-0 border-l p-0 sm:max-w-lg"
+        >
+          <SheetTitle className="sr-only">Review draft details</SheetTitle>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {renderDraftDetailsPane()}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Floating details pane aligned to selected card (large viewports only) */}
       <div
         ref={paneRef}
         className={cn(
@@ -506,27 +573,27 @@ export function ReviewDraftTable({
         )}
         style={{ top: paneTop }}
       >
-        <div className="h-[520px] overflow-hidden">
-          <ReviewDraftDetailsPane
-            draft={selectedDraft}
-            clients={clients}
-            users={users}
-            assignedToName={selectedDraftId ? allocationsByDraftId[selectedDraftId] : undefined}
-            onClose={() => { setPaneOpen(false); setSelectedDraftId(null); }}
-            onEdit={(draft) => { setEditDraft(draft); setFormOpen(true); }}
-            onDuplicate={(id) => wrapRefresh(onDuplicate)(id)}
-            onCopy={handleCopy}
-            onAssign={(draft) => setAssignDraft(draft)}
-            onArchive={handleArchiveClick}
-            onViewHistory={openActivity}
-          />
-        </div>
+        <div className="h-[520px] overflow-hidden">{renderDraftDetailsPane()}</div>
       </div>
 
       <ReviewDraftForm
         isOpen={formOpen}
         onClose={() => { setFormOpen(false); setEditDraft(null); }}
-        onSubmit={wrapRefresh(editDraft ? (d) => onUpdate(editDraft._id, d) : onCreate)}
+        onSubmit={async (data) => {
+          try {
+            if (editDraft) {
+              await onUpdate(editDraft._id, data);
+              toast.success("Changes saved");
+            } else {
+              await onCreate(data);
+              toast.success("Draft created");
+            }
+            router.refresh();
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Could not save draft");
+            throw e;
+          }
+        }}
         clients={clients}
         draft={editDraft}
       />
@@ -534,9 +601,17 @@ export function ReviewDraftTable({
       <AssignDraftModal
         isOpen={!!assignDraft}
         onClose={() => setAssignDraft(null)}
-        onSubmit={wrapRefresh(async (data) => {
-          if (assignDraft) await onAssign(assignDraft._id, data);
-        })}
+        onSubmit={async (data) => {
+          if (!assignDraft) return;
+          try {
+            await onAssign(assignDraft._id, data);
+            toast.success("Draft assigned");
+            router.refresh();
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Could not assign draft");
+            throw e;
+          }
+        }}
         draft={assignDraft}
         users={users}
         assignedByUserId={users[0]?._id ?? ""}

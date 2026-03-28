@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +57,7 @@ export function MarkPostedModal({
         markedUsedBy: markedUsedBy.trim() || "system",
         remarks: remarks || undefined,
       });
+      toast.success("Review marked complete");
       onClose();
       setPostedByName("");
       setPlatform("Google");
@@ -64,6 +66,8 @@ export function MarkPostedModal({
       setPostedDate(new Date().toISOString().slice(0, 10));
       setMarkedUsedBy("");
       setRemarks("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save posting details");
     } finally {
       setIsLoading(false);
     }

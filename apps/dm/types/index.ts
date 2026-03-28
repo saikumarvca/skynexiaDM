@@ -8,6 +8,14 @@ export interface Client {
   email: string;
   notes?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  website?: string;
+  industry?: string;
+  location?: string;
+  marketingChannels?: string[];
+  contractStart?: string;
+  contractEnd?: string;
+  monthlyBudget?: number;
+  assignedManagerId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,6 +61,15 @@ export interface ClientFormData {
   email: string;
   notes?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  website?: string;
+  industry?: string;
+  location?: string;
+  marketingChannels?: string[];
+  /** ISO yyyy-mm-dd; null clears stored date */
+  contractStart?: string | null;
+  contractEnd?: string | null;
+  monthlyBudget?: number | null;
+  assignedManagerId?: string | null;
 }
 
 export interface ReviewFormData {
@@ -135,6 +152,39 @@ export interface ContentItem {
   tags?: string[];
   status: ContentItemStatus;
   source: ContentItemSource;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewTemplate {
+  _id: string;
+  name: string;
+  description?: string;
+  industry?: string;
+  tone?: string;
+  platform?: string;
+  suggestedCategory?: string;
+  suggestedLanguage?: string;
+  suggestedRatingStyle?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type ScheduledPostStatus =
+  | 'SCHEDULED'
+  | 'PUBLISHED'
+  | 'FAILED'
+  | 'CANCELLED';
+
+export interface ScheduledPost {
+  _id: string;
+  clientId: string | { _id: string; name?: string; businessName?: string };
+  contentId?: string | { _id: string } | null;
+  content: string;
+  platform: string;
+  publishDate: string;
+  timeZone?: string;
+  status: ScheduledPostStatus;
   createdAt: string;
   updatedAt: string;
 }

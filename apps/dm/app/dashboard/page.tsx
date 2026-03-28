@@ -45,8 +45,8 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your digital marketing review management system.
+          <p className="text-muted-foreground max-w-2xl text-pretty">
+            Clients, campaigns, reviews, and team activity in one calm workspace.
           </p>
         </div>
 

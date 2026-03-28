@@ -61,7 +61,7 @@ export default async function NewTaskPage({
       const err = await res.json().catch(() => ({}))
       throw new Error(err.error || "Failed to add task")
     }
-    redirect("/dashboard/tasks")
+    redirect("/dashboard/tasks?created=1")
   }
 
   return (
