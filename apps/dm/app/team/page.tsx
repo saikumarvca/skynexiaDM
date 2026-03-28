@@ -37,7 +37,7 @@ export default async function TeamOverviewPage() {
   const recentlyActive = recentActivity.filter((a) => { if (seenUsers.has(a.userId)) return false; seenUsers.add(a.userId); return true; }).slice(0, 5).map((a) => ({ memberName: a.userName, userId: a.userId }));
 
   const quickLinks = [
-    { href: "/team/members", label: "Members", icon: Users },
+    { href: "/team/members", label: "Users", icon: Users },
     { href: "/team/roles", label: "Roles", icon: Users2 },
     { href: "/team/assignments", label: "Assignments", icon: ClipboardList },
     { href: "/team/performance", label: "Performance", icon: Activity },

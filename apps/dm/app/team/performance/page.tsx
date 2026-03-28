@@ -27,7 +27,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
           <p className="text-muted-foreground">Track productivity and contribution per team member.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
-          <StatsCard title="Members" value={items.length} icon={Users} description="In scope" />
+          <StatsCard title="Users" value={items.length} icon={Users} description="In scope" />
           <StatsCard title="Avg Completion Rate" value={`${avgCompletion}%`} icon={BarChart3} description="Across team" />
           <StatsCard title="Top Performers" value={topPerformers.length} icon={TrendingUp} description="With completed work" />
         </div>

@@ -93,13 +93,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     await dbConnect()
     const { templateId } = await params
-    const doc = await Template.findByIdAndDelete(templateId).lean()
+    const doc = await Template.findByIdAndUpdate(
+      templateId,
+      { $set: { isArchived: true } },
+      { new: true }
+    ).lean()
     if (!doc) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 })
     }
-    return NextResponse.json({ message: "Deleted" })
+    return NextResponse.json(doc)
   } catch (error) {
-    console.error("Error deleting template:", error)
-    return NextResponse.json({ error: "Failed to delete template" }, { status: 500 })
+    console.error("Error archiving template:", error)
+    return NextResponse.json({ error: "Failed to archive template" }, { status: 500 })
   }
 }

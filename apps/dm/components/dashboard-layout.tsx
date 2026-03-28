@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { requireUser } from "@/lib/auth"
+import { getCachedUser } from "@/lib/auth"
 import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
 
@@ -8,9 +8,9 @@ interface DashboardLayoutProps {
 }
 
 export async function DashboardLayout({ children }: DashboardLayoutProps) {
-  let user: Awaited<ReturnType<typeof requireUser>>
+  let user: Awaited<ReturnType<typeof getCachedUser>>
   try {
-    user = await requireUser()
+    user = await getCachedUser()
   } catch {
     redirect("/login")
   }
@@ -27,11 +27,11 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
         Skip to main content
       </a>
       <Sidebar isAdmin={isAdmin} />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header sessionUser={sessionUser} showAdminLinks={isAdmin} isAdmin={isAdmin} />
         <main
           id="main-content"
-          className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-mt-4 outline-none focus:outline-none"
+          className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 scroll-mt-4 outline-none focus:outline-none"
           tabIndex={-1}
         >
           {children}

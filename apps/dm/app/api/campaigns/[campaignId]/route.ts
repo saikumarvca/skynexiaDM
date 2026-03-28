@@ -4,6 +4,7 @@ import { requireSessionApi } from "@/lib/require-session-api"
 import dbConnect from "@/lib/mongodb"
 import Campaign from "@/models/Campaign"
 import type { CampaignStatus } from "@/models/Campaign"
+import { triggerWebhook } from "@/lib/webhooks"
 
 const STATUSES: CampaignStatus[] = [
   "PLANNED",
@@ -11,6 +12,7 @@ const STATUSES: CampaignStatus[] = [
   "PAUSED",
   "COMPLETED",
   "CANCELLED",
+  "ARCHIVED",
 ]
 
 function isStatus(s: unknown): s is CampaignStatus {
@@ -142,9 +144,28 @@ export async function PATCH(
       .populate("clientId", "name businessName")
       .lean()
 
+    if (updated) {
+      const upd = updated as Record<string, unknown>
+      triggerWebhook('campaign.updated', {
+        campaignId,
+        campaignName: upd.campaignName,
+        clientId: upd.clientId ? (typeof upd.clientId === 'object' && '_id' in (upd.clientId as object) ? (upd.clientId as { _id: unknown })._id?.toString() : String(upd.clientId)) : undefined,
+      }).catch(() => {})
+    }
+
     return NextResponse.json(JSON.parse(JSON.stringify(updated)))
   } catch (error) {
     console.error("Error updating campaign:", error)
     return NextResponse.json({ error: "Failed to update campaign" }, { status: 500 })
   }
+}
+
+export async function DELETE() {
+  return NextResponse.json(
+    {
+      error:
+        "Campaigns cannot be deleted. Set status to ARCHIVED via PATCH or bulk update instead.",
+    },
+    { status: 405 }
+  )
 }

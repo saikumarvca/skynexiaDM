@@ -9,10 +9,47 @@ export async function DELETE(
   try {
     await dbConnect();
     const { fileId } = await params;
-    await FileAsset.findByIdAndDelete(fileId);
-    return NextResponse.json({ success: true });
+    const updated = await FileAsset.findByIdAndUpdate(
+      fileId,
+      { $set: { isArchived: true } },
+      { new: true }
+    );
+    if (!updated) {
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+    }
+    return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error deleting file:', error);
-    return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 });
+    console.error('Error archiving file:', error);
+    return NextResponse.json({ error: 'Failed to archive file' }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ fileId: string }> }
+) {
+  try {
+    await dbConnect();
+    const { fileId } = await params;
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const set: Record<string, unknown> = {};
+    if (typeof body.isArchived === 'boolean') {
+      set.isArchived = body.isArchived;
+    }
+    if (Object.keys(set).length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    }
+    const updated = await FileAsset.findByIdAndUpdate(
+      fileId,
+      { $set: set },
+      { new: true }
+    );
+    if (!updated) {
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+    }
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error('Error updating file:', error);
+    return NextResponse.json({ error: 'Failed to update file' }, { status: 500 });
   }
 }

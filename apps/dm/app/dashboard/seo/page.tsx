@@ -5,9 +5,10 @@ import { QueryToast } from "@/components/query-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, ExternalLink, TrendingUp } from "lucide-react"
+import { Plus, Search } from "lucide-react"
 import { Keyword } from "@/types"
 import { Client } from "@/types"
+import { SeoKeywordsTable } from "@/components/seo/seo-keywords-table"
 
 import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
 
@@ -49,14 +50,6 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
     }),
     getClients(),
   ])
-
-  const clientName = (k: Keyword) => {
-    const id = typeof k.clientId === "object" ? k.clientId : null
-    if (id && "businessName" in id) return (id as { businessName?: string }).businessName ?? (id as { name?: string }).name ?? "—"
-    return "—"
-  }
-  const clientId = (k: Keyword) =>
-    typeof k.clientId === "object" ? (k.clientId as { _id: string })._id : (k.clientId as string)
 
   return (
     <DashboardLayout>
@@ -136,84 +129,7 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
                 </Link>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-3 font-medium">Keyword</th>
-                      <th className="pb-3 font-medium">Client</th>
-                      <th className="pb-3 font-medium">Rank</th>
-                      <th className="pb-3 font-medium">Search vol.</th>
-                      <th className="pb-3 font-medium">Difficulty</th>
-                      <th className="pb-3 font-medium">Target URL</th>
-                      <th className="pb-3 font-medium">Last updated</th>
-                      <th className="pb-3 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {keywords.map((k) => (
-                      <tr key={k._id} className="border-b last:border-0">
-                        <td className="py-3 font-medium">{k.keyword}</td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(k)}`}
-                            className="text-primary hover:underline"
-                          >
-                            {clientName(k)}
-                          </Link>
-                        </td>
-                        <td className="py-3">
-                          {k.rank != null ? (
-                            <span className="inline-flex items-center gap-1">
-                              <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                              {k.rank}
-                            </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="py-3">
-                          {k.searchVolume != null ? k.searchVolume.toLocaleString() : "—"}
-                        </td>
-                        <td className="py-3">
-                          {k.difficulty != null ? (
-                            <span
-                              className={
-                                k.difficulty >= 70
-                                  ? "text-red-600"
-                                  : k.difficulty >= 40
-                                    ? "text-amber-600"
-                                    : "text-green-600"
-                              }
-                            >
-                              {k.difficulty}
-                            </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="max-w-[180px] truncate py-3 text-muted-foreground" title={k.targetUrl}>
-                          {k.targetUrl ?? "—"}
-                        </td>
-                        <td className="py-3 text-muted-foreground">
-                          {k.lastUpdated
-                            ? new Date(k.lastUpdated).toLocaleDateString()
-                            : "—"}
-                        </td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(k)}`}
-                            className="text-muted-foreground hover:text-foreground"
-                            title="Open client"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <SeoKeywordsTable keywords={keywords} />
             )}
           </CardContent>
         </Card>

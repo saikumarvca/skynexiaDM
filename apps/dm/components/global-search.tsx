@@ -9,6 +9,52 @@ import {
   ArrowRight, Hash, CalendarClock, LayoutTemplate, Shield,
 } from "lucide-react";
 
+interface LiveClient {
+  _id: string;
+  name: string;
+  businessName: string;
+  status: string;
+}
+interface LiveCampaign {
+  _id: string;
+  campaignName: string;
+  platform: string;
+  status: string;
+  clientId?: { businessName?: string };
+}
+interface LiveLead {
+  _id: string;
+  name: string;
+  email?: string;
+  status: string;
+  clientId?: { businessName?: string };
+}
+interface LiveTask {
+  _id: string;
+  title: string;
+  status: string;
+  priority: string;
+}
+interface LiveReview {
+  _id: string;
+  shortLabel: string;
+  status: string;
+}
+interface LiveContent {
+  _id: string;
+  title: string;
+  category: string;
+  platform?: string;
+}
+interface LiveResults {
+  clients: LiveClient[];
+  campaigns: LiveCampaign[];
+  leads: LiveLead[];
+  tasks: LiveTask[];
+  reviews: LiveReview[];
+  content: LiveContent[];
+}
+
 interface SearchItem {
   name: string;
   href: string;
@@ -28,7 +74,7 @@ interface Group {
 const GROUPS: Group[] = [
   { name: "Main",      icon: Home,         description: "Dashboard, Analytics, Settings" },
   { name: "Reviews",   icon: FileText,     description: "Drafts, Allocations, Analytics" },
-  { name: "Team",      icon: Users2,       description: "Members, Roles, Workload" },
+  { name: "Team",      icon: Users2,       description: "Users, Roles, Workload" },
   { name: "Clients",   icon: Users,        description: "Client list, Add client" },
   { name: "Campaigns", icon: Target,       description: "All campaigns, New campaign" },
   { name: "Content",   icon: Layers,       description: "Content bank, SEO, Keywords" },
@@ -85,7 +131,7 @@ const ALL_ITEMS: SearchItem[] = [
 
   // Team
   { name: "Team Overview",      href: "/team",                       group: "Team", icon: Users2 },
-  { name: "Team Members",       href: "/team/members",               group: "Team", icon: Users,         keywords: "employees staff" },
+  { name: "Users",              href: "/team/members",               group: "Team", icon: Users,         keywords: "employees staff team members" },
   { name: "Add Team Member",    href: "/team/members/new",           group: "Team", icon: Users,         keywords: "create employee" },
   { name: "Team Roles",         href: "/team/roles",                 group: "Team", icon: UserCheck,     keywords: "permissions" },
   { name: "New Role",           href: "/team/roles/new",             group: "Team", icon: UserCheck },
@@ -109,6 +155,10 @@ export function GlobalSearch({ showAdminLinks = false }: { showAdminLinks?: bool
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const [liveResults, setLiveResults] = useState<LiveResults | null>(null);
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState(false);
 
   const visibleItems = useMemo(
     () => (showAdminLinks ? ALL_ITEMS : ALL_ITEMS.filter((i) => !i.adminOnly)),
@@ -146,8 +196,36 @@ export function GlobalSearch({ showAdminLinks = false }: { showAdminLinks?: bool
       setQuery("");
       setSelectedGroup(null);
       setActiveIndex(0);
+      setLiveResults(null);
+      setLiveError(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (query.length < 2) {
+      setLiveResults(null);
+      setLiveLoading(false);
+      return;
+    }
+    setLiveLoading(true);
+    setLiveError(false);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Search failed");
+        const data: LiveResults = await res.json();
+        setLiveResults(data);
+      } catch {
+        setLiveError(true);
+        setLiveResults(null);
+      } finally {
+        setLiveLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const filtered = query.trim()
     ? visibleItems.filter((item) => {
@@ -273,6 +351,202 @@ export function GlobalSearch({ showAdminLinks = false }: { showAdminLinks?: bool
               {/* ── SEARCH RESULTS ── */}
               {query.trim() ? (
                 <div className="py-2">
+                  {/* ── LIVE RECORD RESULTS ── */}
+                  {liveLoading && (
+                    <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Searching records…
+                    </div>
+                  )}
+                  {!liveLoading && liveError && (
+                    <div className="px-4 py-2 text-xs text-muted-foreground/60">
+                      Could not load record results.
+                    </div>
+                  )}
+                  {!liveLoading && !liveError && liveResults && (() => {
+                    const hasClients   = liveResults.clients.length > 0;
+                    const hasCampaigns = liveResults.campaigns.length > 0;
+                    const hasLeads     = liveResults.leads.length > 0;
+                    const hasTasks     = liveResults.tasks.length > 0;
+                    const hasReviews   = liveResults.reviews.length > 0;
+                    const hasContent   = liveResults.content.length > 0;
+                    const hasAny = hasClients || hasCampaigns || hasLeads || hasTasks || hasReviews || hasContent;
+
+                    if (!hasAny) {
+                      return (
+                        <div className="px-4 py-2 text-xs text-muted-foreground/60">
+                          No records found for &ldquo;{query}&rdquo;
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="mb-1">
+                        {/* Records section header */}
+                        <div className="flex items-center gap-2 px-4 py-1.5">
+                          <div className="h-4 w-4 rounded-md bg-primary/20 flex items-center justify-center">
+                            <Search className="h-2.5 w-2.5 text-primary" />
+                          </div>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                            Records
+                          </p>
+                          <div className="flex-1 h-px bg-border/50" />
+                        </div>
+
+                        {hasClients && (
+                          <div>
+                            <div className="flex items-center gap-1.5 px-4 py-1">
+                              <Users className="h-3 w-3 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-muted-foreground/50">Clients</span>
+                            </div>
+                            {liveResults.clients.map((c) => (
+                              <button
+                                key={c._id}
+                                onClick={() => navigate(`/clients/${c._id}`)}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
+                              >
+                                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
+                                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-left font-medium truncate">{c.businessName}</span>
+                                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                  c.status === "ACTIVE" ? "bg-green-100 text-green-700" :
+                                  c.status === "INACTIVE" ? "bg-amber-100 text-amber-700" :
+                                  "bg-gray-100 text-gray-600"
+                                }`}>{c.status}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {hasCampaigns && (
+                          <div>
+                            <div className="flex items-center gap-1.5 px-4 py-1">
+                              <Target className="h-3 w-3 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-muted-foreground/50">Campaigns</span>
+                            </div>
+                            {liveResults.campaigns.map((c) => (
+                              <button
+                                key={c._id}
+                                onClick={() => navigate(`/dashboard/campaigns`)}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
+                              >
+                                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
+                                  <Target className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-left font-medium truncate">{c.campaignName}</span>
+                                <span className="shrink-0 text-[10px] text-muted-foreground/60 hidden sm:block">
+                                  {c.platform}{c.clientId?.businessName ? ` · ${c.clientId.businessName}` : ""}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {hasLeads && (
+                          <div>
+                            <div className="flex items-center gap-1.5 px-4 py-1">
+                              <TrendingUp className="h-3 w-3 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-muted-foreground/50">Leads</span>
+                            </div>
+                            {liveResults.leads.map((l) => (
+                              <button
+                                key={l._id}
+                                onClick={() => navigate(`/dashboard/leads`)}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
+                              >
+                                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
+                                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-left font-medium truncate">{l.name}</span>
+                                <span className="shrink-0 text-[10px] text-muted-foreground/60 hidden sm:block">
+                                  {l.email ? `${l.email} · ` : ""}{l.status}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {hasTasks && (
+                          <div>
+                            <div className="flex items-center gap-1.5 px-4 py-1">
+                              <ClipboardList className="h-3 w-3 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-muted-foreground/50">Tasks</span>
+                            </div>
+                            {liveResults.tasks.map((t) => (
+                              <button
+                                key={t._id}
+                                onClick={() => navigate(`/dashboard/tasks`)}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
+                              >
+                                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
+                                  <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-left font-medium truncate">{t.title}</span>
+                                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                  t.priority === "CRITICAL" ? "bg-red-100 text-red-700" :
+                                  t.priority === "HIGH" ? "bg-amber-100 text-amber-700" :
+                                  t.priority === "MEDIUM" ? "bg-blue-100 text-blue-700" :
+                                  "bg-gray-100 text-gray-600"
+                                }`}>{t.priority}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {hasReviews && (
+                          <div>
+                            <div className="flex items-center gap-1.5 px-4 py-1">
+                              <FileText className="h-3 w-3 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-muted-foreground/50">Reviews</span>
+                            </div>
+                            {liveResults.reviews.map((r) => (
+                              <button
+                                key={r._id}
+                                onClick={() => navigate(`/dashboard/reviews`)}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
+                              >
+                                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
+                                  <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-left font-medium truncate">{r.shortLabel}</span>
+                                <span className="shrink-0 text-[10px] text-muted-foreground/60">{r.status}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {hasContent && (
+                          <div>
+                            <div className="flex items-center gap-1.5 px-4 py-1">
+                              <Layers className="h-3 w-3 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-muted-foreground/50">Content</span>
+                            </div>
+                            {liveResults.content.map((ci) => (
+                              <button
+                                key={ci._id}
+                                onClick={() => navigate(`/dashboard/content`)}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
+                              >
+                                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
+                                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-left font-medium truncate">{ci.title}</span>
+                                <span className="shrink-0 text-[10px] text-muted-foreground/60">
+                                  {ci.category}{ci.platform ? ` · ${ci.platform}` : ""}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Divider between live results and page results */}
+                        <div className="mx-4 my-1 h-px bg-border/50" />
+                      </div>
+                    );
+                  })()}
+                  {/* ── END LIVE RECORD RESULTS ── */}
+
                   {flatFiltered.length === 0 ? (
                     <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
                       <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center">

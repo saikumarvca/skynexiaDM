@@ -73,13 +73,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     await dbConnect()
     const { postId } = await params
-    const post = await ScheduledPost.findByIdAndDelete(postId).lean()
+    const post = await ScheduledPost.findByIdAndUpdate(
+      postId,
+      { $set: { status: "CANCELLED" } },
+      { new: true }
+    )
+      .populate("clientId", "businessName name")
+      .lean()
     if (!post) {
       return NextResponse.json({ error: "Scheduled post not found" }, { status: 404 })
     }
-    return NextResponse.json({ message: "Deleted" })
+    return NextResponse.json(post)
   } catch (error) {
-    console.error("Error deleting scheduled post:", error)
-    return NextResponse.json({ error: "Failed to delete scheduled post" }, { status: 500 })
+    console.error("Error cancelling scheduled post:", error)
+    return NextResponse.json({ error: "Failed to cancel scheduled post" }, { status: 500 })
   }
 }

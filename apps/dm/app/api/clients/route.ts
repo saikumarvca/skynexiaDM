@@ -7,6 +7,9 @@ import { clientUpsertSchema, mongoFieldsFromClientUpsert } from '@/lib/api/schem
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request)
+    if (denied) return denied
+
     await dbConnect()
 
     const { searchParams } = new URL(request.url)
@@ -67,6 +70,33 @@ export async function POST(request: NextRequest) {
       )
     }
     const fields = mongoFieldsFromClientUpsert(parsed.data)
+
+    // Duplicate detection before save
+    if (typeof fields.email === "string" && fields.email) {
+      const emailEsc = fields.email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      const emailDup = await Client.findOne({
+        email: { $regex: new RegExp(`^${emailEsc}$`, "i") },
+      })
+      if (emailDup) {
+        return NextResponse.json(
+          { error: 'A client with this email already exists', field: 'email' },
+          { status: 409 }
+        )
+      }
+    }
+    if (typeof fields.businessName === "string" && fields.businessName) {
+      const bizEsc = fields.businessName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      const bizDup = await Client.findOne({
+        businessName: { $regex: new RegExp(`^${bizEsc}$`, "i") },
+      })
+      if (bizDup) {
+        return NextResponse.json(
+          { error: 'A client with this business name already exists', field: 'businessName' },
+          { status: 409 }
+        )
+      }
+    }
+
     const client = new Client(fields)
     await client.save()
 

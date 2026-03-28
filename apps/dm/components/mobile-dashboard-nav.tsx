@@ -5,6 +5,7 @@ import { Menu } from "lucide-react"
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -34,6 +35,9 @@ export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
       >
         <SheetHeader className="space-y-0 border-b px-4 py-4 text-left">
           <SheetTitle className="text-base font-semibold">DM Dashboard</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation for the dashboard. Choose a section to open it.
+          </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto py-4 scrollbar-thin">
           <DashboardNavLinks

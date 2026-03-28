@@ -9,6 +9,7 @@ export interface ITemplate extends mongoose.Document {
   suggestedCategory?: string;
   suggestedLanguage?: string;
   suggestedRatingStyle?: string;
+  isArchived: boolean;
 }
 
 const TemplateSchema: mongoose.Schema = new mongoose.Schema({
@@ -20,6 +21,7 @@ const TemplateSchema: mongoose.Schema = new mongoose.Schema({
   suggestedCategory: { type: String },
   suggestedLanguage: { type: String },
   suggestedRatingStyle: { type: String },
+  isArchived: { type: Boolean, default: false },
 }, {
   timestamps: true,
 });

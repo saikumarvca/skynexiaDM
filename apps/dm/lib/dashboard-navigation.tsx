@@ -20,6 +20,9 @@ import {
   CalendarClock,
   LayoutTemplate,
   Shield,
+  ScrollText,
+  Webhook,
+  Mail,
 } from "lucide-react"
 
 export type DashboardNavChild = {
@@ -62,6 +65,7 @@ const baseNavigation: DashboardNavItem[] = [
       { name: "Used Reviews", href: "/dashboard/used-reviews", icon: CheckCircle },
       { name: "Review Analytics", href: "/dashboard/review-analytics", icon: BarChart3 },
       { name: "Review templates", href: "/dashboard/review-templates", icon: LayoutTemplate },
+      { name: "Review Requests", href: "/dashboard/review-requests", icon: Mail },
     ],
   },
   {
@@ -70,7 +74,7 @@ const baseNavigation: DashboardNavItem[] = [
     icon: Users2,
     children: [
       { name: "Overview", href: "/team", icon: Users2 },
-      { name: "Members", href: "/team/members", icon: Users },
+      { name: "Users", href: "/team/members", icon: Users },
       { name: "Roles", href: "/team/roles", icon: UserCheck },
       { name: "Assignments", href: "/team/assignments", icon: ClipboardList },
       { name: "Performance", href: "/team/performance", icon: TrendingUp },
@@ -89,9 +93,14 @@ export function buildDashboardNavItems(isAdmin: boolean): DashboardNavItem[] {
   if (idx === -1) return baseNavigation
   const next = [...baseNavigation]
   next.splice(idx, 0, {
-    name: "Admin users",
+    name: "Admin",
     href: "/dashboard/admin/users",
     icon: Shield,
+    children: [
+      { name: "Users", href: "/dashboard/admin/users", icon: Shield },
+      { name: "Audit Log", href: "/dashboard/admin/audit-log", icon: ScrollText },
+      { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: Webhook },
+    ],
   })
   return next
 }

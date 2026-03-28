@@ -10,12 +10,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     await dbConnect()
     const { id } = await params
-    await ClientView.findByIdAndDelete(id)
-    return NextResponse.json({ success: true })
+    const updated = await ClientView.findByIdAndUpdate(
+      id,
+      { $set: { isArchived: true } },
+      { new: true }
+    )
+    if (!updated) {
+      return NextResponse.json({ error: 'Client view not found' }, { status: 404 })
+    }
+    return NextResponse.json(updated)
   } catch (error) {
-    console.error('Error deleting client view:', error)
+    console.error('Error archiving client view:', error)
     return NextResponse.json(
-      { error: 'Failed to delete client view' },
+      { error: 'Failed to archive client view' },
       { status: 500 }
     )
   }

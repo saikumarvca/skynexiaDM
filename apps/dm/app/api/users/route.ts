@@ -1,17 +1,26 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import bcrypt from "bcryptjs";
-import { assertAdmin, requireUserFromCookieHeader } from "@/lib/auth";
+import { assertAdmin, requireUserFromCookieHeader, requireUserFromRequest } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const user = await requireUserFromRequest(request);
+    assertAdmin(user);
+
     await dbConnect();
     const users = await User.find({ isActive: true })
       .select('_id name email role')
       .sort({ name: 1 });
     return NextResponse.json(users);
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "UNAUTHENTICATED")
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (error.message === "FORBIDDEN")
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     console.error('Error fetching users:', error);
     return NextResponse.json(
       { error: 'Failed to fetch users' },

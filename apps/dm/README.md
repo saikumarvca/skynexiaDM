@@ -83,6 +83,67 @@ npm run dev
 
 5. Open [http://localhost:3152](http://localhost:3152) in your browser
 
+## Social media publishing (environment variables)
+
+Optional variables enable outbound publishing from the dashboard. They are read only on the server in [`lib/social-publishing.ts`](lib/social-publishing.ts).
+
+### Flow
+
+```mermaid
+flowchart LR
+  Env[Env / .env.local]
+  Lib[social-publishing.ts]
+  StatusAPI["GET /api/social/status"]
+  PublishAPI["POST /api/scheduled-posts/publish"]
+  Settings[Settings Social card]
+  Banner[Scheduled posts banner]
+  PublishBtn[Publish Now]
+
+  Env --> Lib
+  Lib --> StatusAPI
+  Lib --> PublishAPI
+  StatusAPI --> Settings
+  StatusAPI --> Banner
+  PublishAPI --> PublishBtn
+```
+
+### Variables
+
+| Platform | Variables |
+|----------|-----------|
+| Facebook | `FACEBOOK_ACCESS_TOKEN`, `FACEBOOK_PAGE_ID` |
+| Instagram | `FACEBOOK_ACCESS_TOKEN`, `INSTAGRAM_BUSINESS_ACCOUNT_ID` (post **content**: line 1 = public image URL, following lines = caption) |
+| LinkedIn | `LINKEDIN_ACCESS_TOKEN` |
+| Twitter / X | `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_TOKEN_SECRET` |
+
+### Where this appears in the app
+
+| Area | Route | Role |
+|------|-------|------|
+| Settings | `/dashboard/settings` | **Social Media** card shows configured vs not via `/api/social/status`. |
+| Scheduled posts | `/dashboard/scheduled-posts` | Banner warns if platforms are missing; **Publish Now** calls `/api/scheduled-posts/publish`. |
+| New / edit post | `/dashboard/scheduled-posts/new`, `/dashboard/scheduled-posts/[postId]/edit` | **Platform** field (free text; matched lowercase: `facebook`, `instagram`, `linkedin`, `twitter`, `x`). |
+
+**Automated publishing**: set `CRON_SECRET` and deploy with [`vercel.json`](vercel.json) (or call `GET /api/cron/scheduled-posts` on a schedule with header `Authorization: Bearer <CRON_SECRET>`). Vercel Cron invokes this route every 15 minutes when configured. You can still use **Publish Now** manually.
+
+Dashboard stats and review “mark posted” flows do **not** call the social publishing layer.
+
+### Implementation notes
+
+- **Facebook** and **LinkedIn**: Graph / REST HTTP calls when configured.
+- **Instagram**: Graph API `media` + `media_publish` when token and `INSTAGRAM_BUSINESS_ACCOUNT_ID` are set (image URL required on first line of post content).
+- **Twitter/X**: tweets via `twitter-api-v2` using OAuth 1.0a user tokens (all four Twitter env vars required).
+
+### API authentication
+
+[`proxy.ts`](proxy.ts) runs on the Edge and enforces a valid `dm_session` cookie for all `/api/*` routes except `/api/auth/login`, `/api/auth/logout`, and `/api/cron/*`. Invalid or missing sessions receive `401` JSON for API calls. Page routes outside `/portal/*` redirect to `/login` when unauthenticated. Individual route handlers may still call `requireSessionApi` / `requireUserFromRequest` for extra checks (for example admin-only actions).
+
+### Email (`EMAIL_PROVIDER`)
+
+- **resend**: `RESEND_API_KEY`, `EMAIL_FROM` (optional)
+- **smtp**: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (uses [nodemailer](https://nodemailer.com/))
+- **none** (default): logs to the server console
+
 ## API Endpoints
 
 ### Clients
@@ -104,6 +165,11 @@ npm run dev
 ### Analytics
 - `GET /api/dashboard/stats` - Dashboard statistics
 - `GET /api/review-usage` - Usage history
+
+### Social / scheduled posts
+- `GET /api/social/status` - Which social platforms have required env vars set
+- `POST /api/scheduled-posts/publish` - Publish a scheduled post now (`{ postId }`); uses `lib/social-publishing.ts`
+- `GET /api/cron/scheduled-posts` - Publish due `SCHEDULED` posts (requires `Authorization: Bearer CRON_SECRET`)
 
 ## Database Schema
 

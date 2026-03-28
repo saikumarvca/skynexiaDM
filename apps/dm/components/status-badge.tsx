@@ -2,7 +2,13 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 type ClientReviewStatus = 'UNUSED' | 'USED' | 'ARCHIVED' | 'ACTIVE' | 'INACTIVE'
-type CampaignStatus = 'PLANNED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED'
+type CampaignStatus =
+  | 'PLANNED'
+  | 'ACTIVE'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'ARCHIVED'
 type DraftStatus = 'Available' | 'Allocated' | 'Shared' | 'Used' | 'Archived'
 type AllocationStatus =
   | 'Unassigned'

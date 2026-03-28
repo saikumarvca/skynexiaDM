@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -145,9 +146,9 @@ export function ReviewDetailSidePane({
               )}
             </button>
           </div>
-          <div className="mt-3 text-sm text-muted-foreground overflow-y-auto max-h-28 rounded-lg border bg-muted/50 p-3 leading-relaxed">
+          <SheetDescription className="mt-3 max-h-28 overflow-y-auto rounded-lg border bg-muted/50 p-3 text-sm leading-relaxed text-muted-foreground">
             {description}
-          </div>
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto py-5 space-y-5 pr-1 scrollbar-thin">

@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Client } from "@/types"
 import { ContentCategory, ContentItemStatus, ContentItemSource } from "@/types"
+import { AIGenerateButton } from "@/components/content/ai-generate-button"
 
 interface ContentFormProps {
   clients: Client[]
@@ -18,6 +20,17 @@ const STATUSES: ContentItemStatus[] = ["DRAFT", "APPROVED", "ARCHIVED"]
 const SOURCES: ContentItemSource[] = ["MANUAL", "AI", "IMPORT"]
 
 export function ContentForm({ clients, action, defaultClientId }: ContentFormProps) {
+  const [contentValue, setContentValue] = useState("")
+  const [categoryValue, setCategoryValue] = useState("")
+  const [selectedClientId, setSelectedClientId] = useState(defaultClientId ?? "")
+
+  function handleAIUse(generated: string, type: ContentCategory) {
+    setContentValue(generated)
+    if (type !== "OTHER") {
+      setCategoryValue(type)
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -34,7 +47,8 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
                 id="clientId"
                 name="clientId"
                 required
-                defaultValue={defaultClientId}
+                value={selectedClientId}
+                onChange={(e) => setSelectedClientId(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="">Select client</option>
@@ -53,6 +67,8 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
                 id="category"
                 name="category"
                 required
+                value={categoryValue}
+                onChange={(e) => setCategoryValue(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="">Select category</option>
@@ -78,9 +94,15 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="content" className="block text-sm font-medium">
-              Content *
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="content" className="block text-sm font-medium">
+                Content *
+              </label>
+            </div>
+            <AIGenerateButton
+              clientId={selectedClientId || undefined}
+              onUse={handleAIUse}
+            />
             <Textarea
               id="content"
               name="content"
@@ -88,6 +110,8 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
               rows={6}
               className="resize-none"
               required
+              value={contentValue}
+              onChange={(e) => setContentValue(e.target.value)}
             />
           </div>
 
@@ -153,7 +177,15 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
 
           <div className="flex gap-3">
             <Button type="submit">Add content</Button>
-            <Button type="reset" variant="outline">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setContentValue("")
+                setCategoryValue("")
+                setSelectedClientId(defaultClientId ?? "")
+              }}
+            >
               Reset
             </Button>
           </div>

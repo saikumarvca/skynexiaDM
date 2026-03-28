@@ -19,6 +19,7 @@ export interface IFileAsset extends mongoose.Document {
   tags?: string[];
   uploadedBy?: mongoose.Types.ObjectId | null;
   uploadedAt: Date;
+  isArchived: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +39,7 @@ const FileAssetSchema: mongoose.Schema = new mongoose.Schema(
     tags: [{ type: String }],
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     uploadedAt: { type: Date, default: Date.now },
+    isArchived: { type: Boolean, default: false },
   },
   {
     timestamps: true,

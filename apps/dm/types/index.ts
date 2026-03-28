@@ -103,7 +103,8 @@ export type CampaignStatus =
   | 'ACTIVE'
   | 'PAUSED'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'ARCHIVED';
 
 export interface CampaignMetrics {
   impressions?: number;
@@ -166,6 +167,7 @@ export interface ReviewTemplate {
   suggestedCategory?: string;
   suggestedLanguage?: string;
   suggestedRatingStyle?: string;
+  isArchived?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -193,6 +195,7 @@ export interface Keyword {
   _id: string;
   clientId: string | { _id: string; name?: string; businessName?: string };
   keyword: string;
+  status: 'ACTIVE' | 'ARCHIVED';
   searchVolume?: number;
   difficulty?: number;
   rank?: number;
@@ -224,7 +227,7 @@ export interface Lead {
   updatedAt: string;
 }
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE';
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'ARCHIVED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface Task {

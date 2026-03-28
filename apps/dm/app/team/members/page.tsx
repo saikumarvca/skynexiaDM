@@ -87,10 +87,10 @@ export default async function TeamMembersPage({ searchParams }: PageProps) {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Team Members</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
             <p className="text-muted-foreground">Manage internal team users and their assignments.</p>
           </div>
-          <Link href="/team/members/new"><Button><Plus className="mr-2 h-4 w-4" />Add Member</Button></Link>
+          <Link href="/team/members/new"><Button><Plus className="mr-2 h-4 w-4" />Add user</Button></Link>
         </div>
 
         <Card>
@@ -126,12 +126,12 @@ export default async function TeamMembersPage({ searchParams }: PageProps) {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Members ({membersData.total ?? 0})</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Users ({membersData.total ?? 0})</CardTitle></CardHeader>
           <CardContent>
             {members.length === 0 ? (
               <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                <p>No members found.</p>
-                <Link href="/team/members/new"><Button className="mt-4" variant="outline"><Plus className="mr-2 h-4 w-4" />Add your first member</Button></Link>
+                <p>No users found.</p>
+                <Link href="/team/members/new"><Button className="mt-4" variant="outline"><Plus className="mr-2 h-4 w-4" />Add your first user</Button></Link>
               </div>
             ) : (
               <div className="overflow-x-auto">

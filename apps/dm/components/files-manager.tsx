@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Upload, Trash2, ExternalLink, FileText, Image, Video,
+  Upload, Archive, ExternalLink, FileText, Image, Video,
   File, Search, X, Plus,
 } from "lucide-react";
 
@@ -133,10 +133,16 @@ export function FilesManager({ clientId, initialFiles }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this file?")) return;
-    await fetch(`/api/files/${id}`, { method: "DELETE" });
-    setFiles((p) => p.filter((f) => f._id !== id));
-    if (preview?._id === id) setPreview(null);
+    if (!confirm("Archive this file?")) return;
+    const res = await fetch(`/api/files/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isArchived: true }),
+    });
+    if (res.ok) {
+      setFiles((p) => p.filter((f) => f._id !== id));
+      if (preview?._id === id) setPreview(null);
+    }
   };
 
   return (
@@ -308,9 +314,10 @@ export function FilesManager({ clientId, initialFiles }: Props) {
                   </a>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(file._id); }}
-                    className="rounded-full bg-white/20 p-2 hover:bg-red-500/80 transition-colors"
+                    className="rounded-full bg-white/20 p-2 hover:bg-amber-500/80 transition-colors"
+                    title="Archive file"
                   >
-                    <Trash2 className="h-4 w-4 text-white" />
+                    <Archive className="h-4 w-4 text-white" />
                   </button>
                 </div>
               </div>
@@ -415,11 +422,11 @@ export function FilesManager({ clientId, initialFiles }: Props) {
                   </Button>
                 </a>
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   onClick={() => handleDelete(preview._id)}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archive
                 </Button>
               </div>
             </div>

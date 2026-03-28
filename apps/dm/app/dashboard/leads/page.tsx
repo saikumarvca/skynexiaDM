@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Users, ExternalLink, Mail, Phone } from "lucide-react"
 import { Lead, LeadStatus } from "@/types"
 import { Client } from "@/types"
+import { LeadsPageClient } from "@/components/leads/leads-page-client"
+import { ExportButton } from "@/components/export-button"
+import { PdfExportButton } from "@/components/pdf-export-button"
 
 import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
 
@@ -96,12 +99,32 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
               View and manage incoming leads from your campaigns.
             </p>
           </div>
-          <Link href="/dashboard/leads/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add lead
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ExportButton
+              href={`/api/export/leads${
+                params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+              }${
+                params.status && params.status !== "ALL"
+                  ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
+                  : ""
+              }`}
+            />
+            <PdfExportButton
+              href={`/api/export/leads/pdf${
+                params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+              }${
+                params.status && params.status !== "ALL"
+                  ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
+                  : ""
+              }`}
+            />
+            <Link href="/dashboard/leads/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add lead
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <Card>
@@ -157,97 +180,103 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="h-5 w-5" />
-              Lead pipeline ({leads.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {leads.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                <p>No leads match your filters.</p>
-                <Link href="/dashboard/leads/new">
-                  <Button className="mt-4" variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add your first lead
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-3 font-medium">Name</th>
-                      <th className="pb-3 font-medium">Contact</th>
-                      <th className="pb-3 font-medium">Client</th>
-                      <th className="pb-3 font-medium">Source</th>
-                      <th className="pb-3 font-medium">Campaign</th>
-                      <th className="pb-3 font-medium">Status</th>
-                      <th className="pb-3 font-medium">Created</th>
-                      <th className="pb-3 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leads.map((lead) => (
-                      <tr key={lead._id} className="border-b last:border-0">
-                        <td className="py-3 font-medium">{lead.name}</td>
-                        <td className="py-3">
-                          <div className="flex flex-col gap-0.5">
-                            {lead.email && (
-                              <span className="flex items-center gap-1 text-muted-foreground">
-                                <Mail className="h-3.5 w-3.5" />
-                                {lead.email}
+        <LeadsPageClient
+          leads={leads}
+          clients={clients}
+          tableContent={
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5" />
+                  Lead pipeline ({leads.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {leads.length === 0 ? (
+                  <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                    <p>No leads match your filters.</p>
+                    <Link href="/dashboard/leads/new">
+                      <Button className="mt-4" variant="outline">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add your first lead
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-left">
+                          <th className="pb-3 font-medium">Name</th>
+                          <th className="pb-3 font-medium">Contact</th>
+                          <th className="pb-3 font-medium">Client</th>
+                          <th className="pb-3 font-medium">Source</th>
+                          <th className="pb-3 font-medium">Campaign</th>
+                          <th className="pb-3 font-medium">Status</th>
+                          <th className="pb-3 font-medium">Created</th>
+                          <th className="pb-3 font-medium"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leads.map((lead) => (
+                          <tr key={lead._id} className="border-b last:border-0">
+                            <td className="py-3 font-medium">{lead.name}</td>
+                            <td className="py-3">
+                              <div className="flex flex-col gap-0.5">
+                                {lead.email && (
+                                  <span className="flex items-center gap-1 text-muted-foreground">
+                                    <Mail className="h-3.5 w-3.5" />
+                                    {lead.email}
+                                  </span>
+                                )}
+                                {lead.phone && (
+                                  <span className="flex items-center gap-1 text-muted-foreground">
+                                    <Phone className="h-3.5 w-3.5" />
+                                    {lead.phone}
+                                  </span>
+                                )}
+                                {!lead.email && !lead.phone && "—"}
+                              </div>
+                            </td>
+                            <td className="py-3">
+                              <Link
+                                href={`/clients/${clientId(lead)}`}
+                                className="text-primary hover:underline"
+                              >
+                                {clientName(lead)}
+                              </Link>
+                            </td>
+                            <td className="py-3">{lead.source ?? "—"}</td>
+                            <td className="py-3">{campaignName(lead)}</td>
+                            <td className="py-3">
+                              <span
+                                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(lead.status)}`}
+                              >
+                                {lead.status}
                               </span>
-                            )}
-                            {lead.phone && (
-                              <span className="flex items-center gap-1 text-muted-foreground">
-                                <Phone className="h-3.5 w-3.5" />
-                                {lead.phone}
-                              </span>
-                            )}
-                            {!lead.email && !lead.phone && "—"}
-                          </div>
-                        </td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(lead)}`}
-                            className="text-primary hover:underline"
-                          >
-                            {clientName(lead)}
-                          </Link>
-                        </td>
-                        <td className="py-3">{lead.source ?? "—"}</td>
-                        <td className="py-3">{campaignName(lead)}</td>
-                        <td className="py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(lead.status)}`}
-                          >
-                            {lead.status}
-                          </span>
-                        </td>
-                        <td className="py-3 text-muted-foreground">
-                          {new Date(lead.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(lead)}`}
-                            className="text-muted-foreground hover:text-foreground"
-                            title="Open client"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                            </td>
+                            <td className="py-3 text-muted-foreground">
+                              {new Date(lead.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3">
+                              <Link
+                                href={`/clients/${clientId(lead)}`}
+                                className="text-muted-foreground hover:text-foreground"
+                                title="Open client"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          }
+        />
       </div>
     </DashboardLayout>
   )

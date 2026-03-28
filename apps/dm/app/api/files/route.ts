@@ -10,9 +10,14 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId');
     const category = searchParams.get('category');
 
+    const includeArchived = searchParams.get('includeArchived') === 'true';
+
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
     if (category) query.category = category;
+    if (!includeArchived) {
+      query.isArchived = { $ne: true };
+    }
 
     const files = await FileAsset.find(query).sort({ uploadedAt: -1 });
     return NextResponse.json(files);

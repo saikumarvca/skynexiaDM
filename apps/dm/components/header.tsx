@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Bell, LogOut, Settings } from "lucide-react"
+import { LogOut, Settings } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { GlobalSearch } from "@/components/global-search"
 import { MobileDashboardNav } from "@/components/mobile-dashboard-nav"
+import { NotificationBell } from "@/components/notification-bell"
 
 function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -65,11 +66,7 @@ export function Header({
         >
           <LogOut className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" asChild>
-          <Link href="/dashboard/notifications" aria-label="Notifications">
-            <Bell className="h-4 w-4" />
-          </Link>
-        </Button>
+        <NotificationBell />
         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" asChild>
           <Link href="/dashboard/settings" aria-label="Settings">
             <Settings className="h-4 w-4" />

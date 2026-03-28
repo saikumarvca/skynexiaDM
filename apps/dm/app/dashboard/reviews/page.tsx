@@ -7,6 +7,8 @@ import { Review, MarkUsedFormData, Client } from "@/types"
 import dbConnect from "@/lib/mongodb"
 import ReviewModel from "@/models/Review"
 import ClientModel from "@/models/Client"
+import { ExportButton } from "@/components/export-button"
+import { PdfExportButton } from "@/components/pdf-export-button"
 
 import { serverFetch } from "@/lib/server-fetch"
 
@@ -118,9 +120,29 @@ export default async function DashboardReviewsPage({ searchParams }: PageProps) 
                 View and manage actual review records across all clients. For the draft bank and allocation workflow, use the modules below.
               </p>
             </div>
-            <Link href="/clients">
-              <Button variant="outline">Go to clients</Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <ExportButton
+                href={`/api/export/reviews${
+                  params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+                }${
+                  params.status && params.status !== "ALL"
+                    ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
+                    : ""
+                }`}
+              />
+              <PdfExportButton
+                href={`/api/export/reviews/pdf${
+                  params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+                }${
+                  params.status && params.status !== "ALL"
+                    ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
+                    : ""
+                }`}
+              />
+              <Link href="/clients">
+                <Button variant="outline">Go to clients</Button>
+              </Link>
+            </div>
           </div>
           <div className="rounded-lg border bg-muted/50 p-4">
             <h2 className="font-medium mb-2">Draft &amp; Allocation Workflow</h2>

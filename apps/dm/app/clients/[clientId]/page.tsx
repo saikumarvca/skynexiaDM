@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Client } from "@/types"
-import { FileText, CheckCircle, Archive, Edit, Plus, Target, ListChecks, FileStack, LineChart, Layers, Search } from "lucide-react"
+import { FileText, CheckCircle, Archive, Edit, Plus, Target, ListChecks, FileStack, LineChart, Layers, Search, Download } from "lucide-react"
 import Link from "next/link"
 import { CollapsibleClientInfo } from "@/components/collapsible-client-info"
 import { serverFetch } from "@/lib/server-fetch"
+import { GeneratePortalLinkButton } from "@/components/generate-portal-link-button"
 
 type UsageItem = {
   _id: string
@@ -128,19 +129,26 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <Link
               href="/clients"
               className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
             >
               ← Back to clients
             </Link>
-            <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{client.name}</h1>
             <p className="text-muted-foreground">{client.businessName}</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <StatusBadge status={client.status} />
+            <GeneratePortalLinkButton clientId={String(client._id)} />
+            <Link href={`/api/export/client-data?clientId=${client._id}`}>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Export Data
+              </Button>
+            </Link>
             <Link href={`/clients/${client._id}/edit`}>
               <Button variant="outline">
                 <Edit className="mr-2 h-4 w-4" />
@@ -181,7 +189,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
         <CollapsibleClientInfo client={client} />
 
         {/* Tabs */}
-        <Tabs defaultValue="reviews" className="space-y-4">
+        <Tabs defaultValue="reviews" className="min-w-0 space-y-4">
           <TabsList>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="usage">Usage History</TabsTrigger>
@@ -196,9 +204,9 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           </TabsList>
 
           <TabsContent value="reviews" className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold">Reviews</h2>
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Link href={`/clients/${client._id}/reviews/new`}>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
@@ -422,7 +430,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             <p className="text-muted-foreground mb-4">
               Manage campaigns for this client.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/dashboard/campaigns?clientId=${client._id}`}>
                 <Button variant="outline">
                   <Target className="mr-2 h-4 w-4" />
@@ -443,7 +451,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             <p className="text-muted-foreground mb-4">
               Manage content assets for this client.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/dashboard/content?clientId=${client._id}`}>
                 <Button variant="outline">
                   <Layers className="mr-2 h-4 w-4" />
@@ -464,7 +472,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             <p className="text-muted-foreground mb-4">
               Track keywords and SEO for this client.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/dashboard/seo?clientId=${client._id}`}>
                 <Button variant="outline">
                   <Search className="mr-2 h-4 w-4" />
@@ -485,7 +493,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             <p className="text-muted-foreground mb-4">
               View and manage leads generated for this client.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/dashboard/leads?clientId=${client._id}`}>
                 <Button variant="outline">
                   <LineChart className="mr-2 h-4 w-4" />
@@ -506,7 +514,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             <p className="text-muted-foreground mb-4">
               Track work items related to this client.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/dashboard/tasks?clientId=${client._id}`}>
                 <Button variant="outline">
                   <ListChecks className="mr-2 h-4 w-4" />

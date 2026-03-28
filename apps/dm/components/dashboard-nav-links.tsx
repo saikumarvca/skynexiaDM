@@ -25,11 +25,14 @@ export function DashboardNavLinks({
     pathname === "/dashboard/reviews" ||
     pathname.startsWith("/dashboard/review-") ||
     pathname === "/dashboard/my-assigned-reviews" ||
-    pathname === "/dashboard/used-reviews"
+    pathname === "/dashboard/used-reviews" ||
+    pathname.startsWith("/dashboard/review-requests")
   const isTeamActive = pathname.startsWith("/team")
+  const isAdminActive = pathname.startsWith("/dashboard/admin")
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     Reviews: isReviewActive,
     Team: isTeamActive,
+    Admin: isAdminActive,
   })
 
   useEffect(() => {
@@ -38,6 +41,9 @@ export function DashboardNavLinks({
   useEffect(() => {
     if (isTeamActive) setExpandedSections((p) => ({ ...p, Team: true }))
   }, [pathname, isTeamActive])
+  useEffect(() => {
+    if (isAdminActive) setExpandedSections((p) => ({ ...p, Admin: true }))
+  }, [pathname, isAdminActive])
 
   const linkAfterNav = () => {
     onLinkClick?.()
@@ -58,7 +64,9 @@ export function DashboardNavLinks({
               ? isReviewActive
               : item.name === "Team"
                 ? isTeamActive
-                : false
+                : item.name === "Admin"
+                  ? isAdminActive
+                  : false
           const isExpanded = sectionActive || !!expandedSections[item.name]
           const isParentActive = pathname === item.href
 

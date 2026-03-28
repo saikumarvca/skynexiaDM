@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -22,11 +22,40 @@ interface ClientFormProps {
   redirectTo?: string
   /** Optional team members for assigned manager select */
   managers?: { _id: string; name: string }[]
+  /** If editing an existing client, pass its id to exclude from duplicate checks */
+  editingId?: string
 }
 
-export function ClientForm({ initialData, onSubmit, redirectTo, managers }: ClientFormProps) {
+export function ClientForm({ initialData, onSubmit, redirectTo, managers, editingId }: ClientFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [dupWarnings, setDupWarnings] = useState<{ email?: boolean; businessName?: boolean }>({})
+  const dupAbortRef = useRef<AbortController | null>(null)
+
+  const checkDuplicate = useCallback(
+    async (field: "email" | "businessName", value: string) => {
+      if (!value.trim()) {
+        setDupWarnings((w) => ({ ...w, [field]: false }))
+        return
+      }
+      try {
+        if (dupAbortRef.current) dupAbortRef.current.abort()
+        dupAbortRef.current = new AbortController()
+        const res = await fetch("/api/clients/check-duplicate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [field]: value.trim(), excludeId: editingId }),
+          signal: dupAbortRef.current.signal,
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as { email?: boolean; businessName?: boolean }
+        setDupWarnings((w) => ({ ...w, [field]: data[field] ?? false }))
+      } catch {
+        // ignore abort or network errors silently
+      }
+    },
+    [editingId]
+  )
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     businessName: initialData?.businessName || "",
@@ -125,8 +154,14 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers }: Clie
             id="businessName"
             value={formData.businessName}
             onChange={(e) => handleChange("businessName", e.target.value)}
+            onBlur={(e) => checkDuplicate("businessName", e.target.value)}
             required
           />
+          {dupWarnings.businessName && (
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              Another client has this business name
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="brandName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -171,8 +206,14 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers }: Clie
             type="email"
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
+            onBlur={(e) => checkDuplicate("email", e.target.value)}
             required
           />
+          {dupWarnings.email && (
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              Another client has this email
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">

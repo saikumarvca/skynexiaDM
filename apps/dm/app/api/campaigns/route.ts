@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireSessionApi } from '@/lib/require-session-api';
 import dbConnect from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
+import { triggerWebhook } from '@/lib/webhooks';
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
@@ -46,6 +50,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const campaign = new Campaign(body);
     await campaign.save();
+    triggerWebhook('campaign.created', {
+      campaignId: campaign._id.toString(),
+      campaignName: campaign.campaignName,
+      clientId: campaign.clientId?.toString(),
+    }).catch(() => {});
     return NextResponse.json(campaign, { status: 201 });
   } catch (error) {
     console.error('Error creating campaign:', error);

@@ -150,7 +150,9 @@ export const templateUpsertSchema = z
   })
   .strict();
 
-export const templatePatchSchema = templateUpsertSchema.partial();
+export const templatePatchSchema = templateUpsertSchema
+  .partial()
+  .extend({ isArchived: z.boolean().optional() });
 
 const optionalLoginPassword = z.preprocess(
   (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
@@ -195,7 +197,7 @@ export const taskCreateSchema = z
     assignedToUserId: z.string().trim().min(1).optional(),
     assignedToName: z.string().trim().min(1).optional(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
-    status: z.enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]).optional(),
+    status: z.enum(["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]).optional(),
     deadline: z.string().trim().min(1).optional(),
   })
   .strict();

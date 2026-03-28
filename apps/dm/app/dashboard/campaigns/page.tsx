@@ -12,6 +12,8 @@ import dbConnect from "@/lib/mongodb"
 import CampaignModel from "@/models/Campaign"
 import ClientModel from "@/models/Client"
 import { CampaignsListWithSheet } from "@/components/campaigns/campaigns-list-with-sheet"
+import { ExportButton } from "@/components/export-button"
+import { PdfExportButton } from "@/components/pdf-export-button"
 
 async function getCampaigns(filters: {
   clientId?: string
@@ -74,12 +76,32 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
               Plan, launch, and monitor your marketing campaigns.
             </p>
           </div>
-          <Link href="/dashboard/campaigns/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New campaign
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ExportButton
+              href={`/api/export/campaigns${
+                params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+              }${
+                params.status && params.status !== "ALL"
+                  ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
+                  : ""
+              }`}
+            />
+            <PdfExportButton
+              href={`/api/export/campaigns/pdf${
+                params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+              }${
+                params.status && params.status !== "ALL"
+                  ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
+                  : ""
+              }`}
+            />
+            <Link href="/dashboard/campaigns/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                New campaign
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <Card>
@@ -119,7 +141,16 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                 >
                   <option value="ALL">All statuses</option>
-                  {(["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"] as CampaignStatus[]).map((s) => (
+                  {(
+                    [
+                      "PLANNED",
+                      "ACTIVE",
+                      "PAUSED",
+                      "COMPLETED",
+                      "CANCELLED",
+                      "ARCHIVED",
+                    ] as CampaignStatus[]
+                  ).map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>

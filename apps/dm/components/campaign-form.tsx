@@ -22,7 +22,14 @@ interface CampaignFormProps {
   showMetrics?: boolean
 }
 
-const STATUS_OPTIONS = ["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"] as const
+const STATUS_OPTIONS = [
+  "PLANNED",
+  "ACTIVE",
+  "PAUSED",
+  "COMPLETED",
+  "CANCELLED",
+  "ARCHIVED",
+] as const
 
 function isoStartToDdMmYyyy(iso?: string): string | undefined {
   if (!iso) return undefined

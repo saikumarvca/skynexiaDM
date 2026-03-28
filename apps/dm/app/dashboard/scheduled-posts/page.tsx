@@ -10,6 +10,9 @@ import { ScheduledPost } from "@/types"
 import { serverFetch } from "@/lib/server-fetch"
 import { Client } from "@/types"
 import { DeleteScheduledPostButton } from "@/components/scheduled-posts/delete-scheduled-post-button"
+import { ScheduledPostsPageClient } from "@/components/scheduled-posts/scheduled-posts-page-client"
+import { PublishNowButton } from "@/components/scheduled-posts/publish-now-button"
+import { SocialPlatformBanner } from "@/components/scheduled-posts/social-platform-banner"
 import { format } from "date-fns"
 
 async function getClients(): Promise<Client[]> {
@@ -35,7 +38,7 @@ async function getPosts(search: {
 function clientLabel(p: ScheduledPost): string {
   const c = p.clientId
   if (c && typeof c === "object") {
-    return (c as { businessName?: string; name?: string }).businessName ?? (c as { name?: string }).name ?? "—"
+    return (c as { businessName?: string }).businessName ?? (c as { name?: string }).name ?? "—"
   }
   return "—"
 }
@@ -55,12 +58,82 @@ export default async function ScheduledPostsPage({ searchParams }: PageProps) {
     getClients(),
   ])
 
+  const listContent = (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <CalendarClock className="h-5 w-5" />
+          Posts ({posts.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {posts.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <p>No scheduled posts match your filters.</p>
+            <Link href="/dashboard/scheduled-posts/new">
+              <Button className="mt-4" variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Schedule a post
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40 text-left">
+                  <th className="p-3 font-medium">When</th>
+                  <th className="p-3 font-medium">Client</th>
+                  <th className="p-3 font-medium">Platform</th>
+                  <th className="p-3 font-medium">Status</th>
+                  <th className="p-3 font-medium">Preview</th>
+                  <th className="w-24 p-3 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {posts.map((p) => {
+                  const when = p.publishDate ? format(new Date(p.publishDate), "dd MMM yyyy, HH:mm") : "—"
+                  const preview =
+                    p.content.length > 80 ? `${p.content.slice(0, 80)}…` : p.content
+                  return (
+                    <tr key={p._id} className="border-b last:border-0">
+                      <td className="p-3 whitespace-nowrap">{when}</td>
+                      <td className="p-3">{clientLabel(p)}</td>
+                      <td className="p-3">{p.platform}</td>
+                      <td className="p-3">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{p.status}</span>
+                      </td>
+                      <td className="max-w-xs p-3 text-muted-foreground">{preview}</td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {p.status === "SCHEDULED" && (
+                            <PublishNowButton postId={p._id} />
+                          )}
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/scheduled-posts/${p._id}/edit`}>Edit</Link>
+                          </Button>
+                          <DeleteScheduledPostButton postId={p._id} />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+
   return (
     <DashboardLayout>
       <Suspense fallback={null}>
         <QueryToast message="Scheduled post created" />
       </Suspense>
       <div className="space-y-6">
+        <SocialPlatformBanner />
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Scheduled posts</h1>
@@ -122,68 +195,7 @@ export default async function ScheduledPostsPage({ searchParams }: PageProps) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CalendarClock className="h-5 w-5" />
-              Posts ({posts.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {posts.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>No scheduled posts match your filters.</p>
-                <Link href="/dashboard/scheduled-posts/new">
-                  <Button className="mt-4" variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Schedule a post
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40 text-left">
-                      <th className="p-3 font-medium">When</th>
-                      <th className="p-3 font-medium">Client</th>
-                      <th className="p-3 font-medium">Platform</th>
-                      <th className="p-3 font-medium">Status</th>
-                      <th className="p-3 font-medium">Preview</th>
-                      <th className="w-24 p-3 font-medium text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {posts.map((p) => {
-                      const when = p.publishDate ? format(new Date(p.publishDate), "dd MMM yyyy, HH:mm") : "—"
-                      const preview =
-                        p.content.length > 80 ? `${p.content.slice(0, 80)}…` : p.content
-                      return (
-                        <tr key={p._id} className="border-b last:border-0">
-                          <td className="p-3 whitespace-nowrap">{when}</td>
-                          <td className="p-3">{clientLabel(p)}</td>
-                          <td className="p-3">{p.platform}</td>
-                          <td className="p-3">
-                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{p.status}</span>
-                          </td>
-                          <td className="max-w-xs p-3 text-muted-foreground">{preview}</td>
-                          <td className="p-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link href={`/dashboard/scheduled-posts/${p._id}/edit`}>Edit</Link>
-                              </Button>
-                              <DeleteScheduledPostButton postId={p._id} />
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ScheduledPostsPageClient posts={posts} clients={clients} listContent={listContent} />
       </div>
     </DashboardLayout>
   )

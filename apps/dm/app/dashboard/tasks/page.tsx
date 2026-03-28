@@ -3,13 +3,12 @@ import { Suspense } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { QueryToast } from "@/components/query-toast"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, ClipboardList, ExternalLink, Calendar, User } from "lucide-react"
-import { Task, TaskStatus, TaskPriority } from "@/types"
-import { Client } from "@/types"
+import { Plus, ClipboardList } from "lucide-react"
+import { Task, TaskStatus, TaskPriority, Client } from "@/types"
 
 import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
+import { TasksListClient } from "@/components/tasks/tasks-list-client"
 
 async function getTasks(filters: {
   clientId?: string
@@ -43,7 +42,7 @@ async function getClients(): Promise<Client[]> {
   }
 }
 
-const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
+const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
 const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 interface PageProps {
@@ -60,40 +59,6 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
     }),
     getClients(),
   ])
-
-  const clientName = (task: Task) => {
-    const id = typeof task.clientId === "object" ? task.clientId : null
-    if (id && "businessName" in id) return (id as { businessName?: string }).businessName ?? (id as { name?: string }).name ?? "—"
-    return "—"
-  }
-  const clientId = (task: Task) =>
-    typeof task.clientId === "object" ? (task.clientId as { _id: string })._id : (task.clientId as string)
-  const assigneeName = (task: Task & { assignedToName?: string }) => {
-    if (task.assignedToName) return task.assignedToName
-    if (!task.assignedTo) return "—"
-    const a = task.assignedTo
-    if (typeof a === "object" && a && "name" in a) return (a as { name?: string }).name ?? (a as { email?: string }).email ?? "—"
-    return "—"
-  }
-
-  const statusColor = (status: TaskStatus) => {
-    switch (status) {
-      case "TODO": return "bg-slate-100 text-slate-800"
-      case "IN_PROGRESS": return "bg-blue-100 text-blue-800"
-      case "BLOCKED": return "bg-red-100 text-red-800"
-      case "DONE": return "bg-green-100 text-green-800"
-      default: return "bg-gray-100 text-gray-800"
-    }
-  }
-  const priorityColor = (priority: TaskPriority) => {
-    switch (priority) {
-      case "CRITICAL": return "text-red-600 font-medium"
-      case "HIGH": return "text-amber-600"
-      case "MEDIUM": return "text-slate-600"
-      case "LOW": return "text-muted-foreground"
-      default: return ""
-    }
-  }
 
   return (
     <DashboardLayout>
@@ -184,92 +149,7 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {tasks.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                <p>No tasks match your filters.</p>
-                <Link href="/dashboard/tasks/new">
-                  <Button className="mt-4" variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add your first task
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-3 font-medium">Task</th>
-                      <th className="pb-3 font-medium">Client</th>
-                      <th className="pb-3 font-medium">Assigned to</th>
-                      <th className="pb-3 font-medium">Priority</th>
-                      <th className="pb-3 font-medium">Status</th>
-                      <th className="pb-3 font-medium">Deadline</th>
-                      <th className="pb-3 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tasks.map((task) => (
-                      <tr key={task._id} className="border-b last:border-0">
-                        <td className="py-3">
-                          <div>
-                            <span className="font-medium">{task.title}</span>
-                            {task.description && (
-                              <p className="mt-0.5 max-w-[200px] truncate text-muted-foreground">
-                                {task.description}
-                              </p>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(task)}`}
-                            className="text-primary hover:underline"
-                          >
-                            {clientName(task)}
-                          </Link>
-                        </td>
-                        <td className="py-3">
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <User className="h-3.5 w-3.5" />
-                            {assigneeName(task)}
-                          </span>
-                        </td>
-                        <td className={`py-3 ${priorityColor(task.priority)}`}>
-                          {task.priority}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(task.status)}`}
-                          >
-                            {task.status.replace("_", " ")}
-                          </span>
-                        </td>
-                        <td className="py-3 text-muted-foreground">
-                          {task.deadline ? (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              {new Date(task.deadline).toLocaleDateString()}
-                            </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(task)}`}
-                            className="text-muted-foreground hover:text-foreground"
-                            title="Open client"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <TasksListClient tasks={tasks} clients={clients} />
           </CardContent>
         </Card>
       </div>

@@ -9,11 +9,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
     const search = searchParams.get('search');
+    const includeArchived = searchParams.get('includeArchived') === 'true';
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
     if (search) {
       query.keyword = { $regex: search, $options: 'i' };
+    }
+    if (!includeArchived) {
+      query.status = { $ne: 'ARCHIVED' };
     }
 
     const keywords = await Keyword.find(query)

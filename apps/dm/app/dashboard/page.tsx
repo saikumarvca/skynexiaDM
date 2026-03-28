@@ -1,38 +1,45 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
-
-export const dynamic = "force-dynamic"
 import { StatsCard } from "@/components/stats-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, FileText, CheckCircle, Archive } from "lucide-react"
 import { DashboardRecentClients } from "@/components/dashboard-recent-clients"
-import Link from "next/link"
+import { DashboardHero } from "@/components/dashboard/dashboard-hero"
+import { ReviewBalanceBar } from "@/components/dashboard/review-balance-bar"
+import { DashboardExplore } from "@/components/dashboard/dashboard-explore"
 import { Client, DashboardStats } from "@/types"
 import dbConnect from "@/lib/mongodb"
 import ClientModel from "@/models/Client"
 import Review from "@/models/Review"
+import { getCachedUser } from "@/lib/auth"
+
+export const dynamic = "force-dynamic"
 
 async function getDashboardStats(): Promise<DashboardStats> {
   await dbConnect()
   const [totalClients, totalReviews, unusedReviews, usedReviews] = await Promise.all([
-    ClientModel.countDocuments({ status: { $ne: 'ARCHIVED' } }),
-    Review.countDocuments({ status: { $ne: 'ARCHIVED' } }),
-    Review.countDocuments({ status: 'UNUSED' }),
-    Review.countDocuments({ status: 'USED' }),
+    ClientModel.countDocuments({ status: { $ne: "ARCHIVED" } }),
+    Review.countDocuments({ status: { $ne: "ARCHIVED" } }),
+    Review.countDocuments({ status: "UNUSED" }),
+    Review.countDocuments({ status: "USED" }),
   ])
   return { totalClients, totalReviews, unusedReviews, usedReviews }
 }
 
 async function getRecentClients(): Promise<Client[]> {
   await dbConnect()
-  return ClientModel.find({ status: { $ne: 'ARCHIVED' } })
+  return ClientModel.find({ status: { $ne: "ARCHIVED" } })
     .sort({ createdAt: -1 })
     .limit(5)
     .lean() as unknown as Client[]
 }
 
 export default async function DashboardPage() {
-  const stats = await getDashboardStats()
-  const recentClients = await getRecentClients()
+  const [user, stats, recentClients] = await Promise.all([
+    getCachedUser(),
+    getDashboardStats(),
+    getRecentClients(),
+  ])
+
   const recentForUi = recentClients.map((c) => ({
     _id: String(c._id),
     name: c.name,
@@ -42,81 +49,64 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground max-w-2xl text-pretty">
-            Clients, campaigns, reviews, and team activity in one calm workspace.
-          </p>
-        </div>
+      <div className="space-y-8">
+        <DashboardHero userName={user.name} />
 
-        {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
-            title="Total Clients"
+            title="Total clients"
             value={stats.totalClients}
             icon={Users}
             description="Active client accounts"
+            accent="primary"
+            className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
           />
           <StatsCard
-            title="Total Reviews"
+            title="Total reviews"
             value={stats.totalReviews}
             icon={FileText}
-            description="All reviews in system"
+            description="All reviews in the system"
+            accent="sky"
+            className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:60ms]"
           />
           <StatsCard
-            title="Unused Reviews"
+            title="Unused reviews"
             value={stats.unusedReviews}
             icon={CheckCircle}
-            description="Available for use"
+            description="Ready to assign or publish"
+            accent="emerald"
+            className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:120ms]"
           />
           <StatsCard
-            title="Used Reviews"
+            title="Used reviews"
             value={stats.usedReviews}
             icon={Archive}
-            description="Already utilized"
+            description="Already in the wild"
+            accent="violet"
+            className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:180ms]"
           />
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Clients</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DashboardRecentClients clients={recentForUi} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Link
-                  href="/clients/new"
-                  className="block w-full rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                  Add New Client
-                </Link>
-                <Link
-                  href="/clients"
-                  className="block w-full rounded-md border px-4 py-2 text-center text-sm hover:bg-accent"
-                >
-                  View All Clients
-                </Link>
-                <Link
-                  href="/clients?archived=1"
-                  className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-4 py-2 text-center text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-                >
-                  <Archive className="h-4 w-4" />
-                  Archived clients
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <DashboardExplore />
+          </div>
+          <div className="space-y-6">
+            <ReviewBalanceBar
+              unused={stats.unusedReviews}
+              used={stats.usedReviews}
+              total={stats.totalReviews}
+            />
+            <Card className="border-border/80 overflow-hidden">
+              <CardHeader className="border-b border-border/60 bg-muted/30 pb-4">
+                <CardTitle className="text-base">Latest clients</CardTitle>
+                <p className="text-sm font-normal text-muted-foreground">Recently added to your roster</p>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <DashboardRecentClients clients={recentForUi} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </DashboardLayout>

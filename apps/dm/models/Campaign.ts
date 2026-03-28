@@ -5,7 +5,8 @@ export type CampaignStatus =
   | 'ACTIVE'
   | 'PAUSED'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'ARCHIVED';
 
 export interface ICampaignMetrics {
   impressions?: number;
@@ -43,7 +44,7 @@ const CampaignSchema: mongoose.Schema = new mongoose.Schema(
     endDate: { type: Date },
     status: {
       type: String,
-      enum: ['PLANNED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'],
+      enum: ['PLANNED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED', 'ARCHIVED'],
       default: 'PLANNED',
     },
     metrics: {

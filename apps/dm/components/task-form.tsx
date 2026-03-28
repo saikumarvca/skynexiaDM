@@ -20,7 +20,7 @@ interface TaskFormProps {
   defaultClientId?: string
 }
 
-const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
+const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
 const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 export function TaskForm({ clients, users, action, defaultClientId }: TaskFormProps) {

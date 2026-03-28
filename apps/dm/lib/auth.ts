@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { cache } from "react";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import dbConnect from "@/lib/mongodb";
@@ -147,6 +148,9 @@ export async function requireUser(): Promise<SessionUser> {
     role: user.role,
   };
 }
+
+/** One user fetch per request when layout + pages both need the session. */
+export const getCachedUser = cache(requireUser);
 
 export function assertAdmin(user: SessionUser) {
   if (user.role !== "ADMIN") throw new Error("FORBIDDEN");

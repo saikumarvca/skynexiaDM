@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireSessionApi } from '@/lib/require-session-api';
 import dbConnect from '@/lib/mongodb';
 import Lead from '@/models/Lead';
+import { triggerWebhook } from '@/lib/webhooks';
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
@@ -38,6 +43,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const lead = new Lead(body);
     await lead.save();
+    triggerWebhook('lead.created', {
+      leadId: lead._id.toString(),
+      name: lead.name,
+      clientId: lead.clientId?.toString(),
+    }).catch(() => {});
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {
     console.error('Error creating lead:', error);

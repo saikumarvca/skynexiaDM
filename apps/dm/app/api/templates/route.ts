@@ -4,10 +4,16 @@ import dbConnect from '@/lib/mongodb'
 import Template from '@/models/Template'
 import { templateUpsertSchema } from '@/lib/api/schemas'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect()
-    const templates = await Template.find().sort({ name: 1 })
+    const { searchParams } = new URL(request.url)
+    const includeArchived = searchParams.get('includeArchived') === 'true'
+    const query: Record<string, unknown> = {}
+    if (!includeArchived) {
+      query.isArchived = { $ne: true }
+    }
+    const templates = await Template.find(query).sort({ name: 1 })
     return NextResponse.json(templates)
   } catch (error) {
     console.error('Error fetching templates:', error)

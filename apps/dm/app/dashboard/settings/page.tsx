@@ -8,10 +8,15 @@ import {
   Bell,
   Plug,
   Mail,
-  Shield,
+  Download,
 } from "lucide-react"
 import dbConnect from "@/lib/mongodb"
 import TeamMember from "@/models/TeamMember"
+import { requireUser } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import { SettingsClient } from "@/components/settings/settings-client"
+import { EmailConfigCard } from "@/components/settings/email-config-card"
+import { SocialPlatformsCard } from "@/components/settings/social-platforms-card"
 
 async function getTeamMembers(): Promise<{ _id: string; name: string; email: string; roleName?: string }[]> {
   try {
@@ -34,6 +39,13 @@ async function getTeamMembers(): Promise<{ _id: string; name: string; email: str
 }
 
 export default async function DashboardSettingsPage() {
+  let sessionUser
+  try {
+    sessionUser = await requireUser()
+  } catch {
+    redirect("/login")
+  }
+
   const teamMembers = await getTeamMembers()
 
   return (
@@ -47,6 +59,13 @@ export default async function DashboardSettingsPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
+          {/* Profile + Change Password – interactive client component */}
+          <SettingsClient
+            initialName={sessionUser.name}
+            email={sessionUser.email}
+            role={sessionUser.role}
+          />
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -57,7 +76,7 @@ export default async function DashboardSettingsPage() {
             <CardContent>
               {teamMembers.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No team members yet. Add members from Team → Members.
+                  No team members yet. Add members from Team → Users.
                 </p>
               ) : (
                 <ul className="space-y-3">
@@ -138,22 +157,33 @@ export default async function DashboardSettingsPage() {
               </p>
             </CardContent>
           </Card>
-        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Security & access
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Password policies and role-based access controls will appear here
-              when authentication is fully configured.
-            </p>
-          </CardContent>
-        </Card>
+          <EmailConfigCard isAdmin={sessionUser.role === "ADMIN"} />
+
+          <SocialPlatformsCard />
+
+          {sessionUser.role === "ADMIN" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Data Export
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Export all client data as JSON for backup or compliance purposes.
+                </p>
+                <a href="/api/export/all-data" download="all-data-export.json">
+                  <button className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                    <Download className="h-4 w-4" />
+                    Export all data
+                  </button>
+                </a>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   )

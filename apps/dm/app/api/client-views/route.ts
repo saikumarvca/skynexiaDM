@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import ClientView from '@/models/ClientView'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect()
-    const views = await ClientView.find().sort({ createdAt: -1 })
+    const { searchParams } = new URL(request.url)
+    const includeArchived = searchParams.get('includeArchived') === 'true'
+    const query: Record<string, unknown> = {}
+    if (!includeArchived) {
+      query.isArchived = { $ne: true }
+    }
+    const views = await ClientView.find(query).sort({ createdAt: -1 })
     return NextResponse.json(views)
   } catch (error) {
     console.error('Error fetching client views:', error)

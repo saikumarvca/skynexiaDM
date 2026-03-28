@@ -13,7 +13,7 @@ import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/ty
 import type { Client } from "@/types";
 import { cn } from "@/lib/utils";
 import { Archive, LayoutGrid, Rows3 } from "lucide-react";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface User {
@@ -556,6 +556,9 @@ export function ReviewDraftTable({
           className="flex w-full flex-col gap-0 border-l p-0 sm:max-w-lg"
         >
           <SheetTitle className="sr-only">Review draft details</SheetTitle>
+          <SheetDescription className="sr-only">
+            Subject, review text, and actions for this draft.
+          </SheetDescription>
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {renderDraftDetailsPane()}
           </div>

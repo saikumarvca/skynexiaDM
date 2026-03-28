@@ -1,11 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const ip =
+      req.headers.get("x-forwarded-for") ||
+      req.headers.get("x-real-ip") ||
+      "127.0.0.1";
+    const { allowed, retryAfter } = checkRateLimit(ip);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(retryAfter) },
+        }
+      );
+    }
+
     const body = (await req.json()) as { email?: string; password?: string };
     const email = (body.email ?? "").trim().toLowerCase();
     const password = body.password ?? "";

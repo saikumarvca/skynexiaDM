@@ -1,6 +1,6 @@
 import * as mongoose from "mongoose";
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE';
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'ARCHIVED';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
@@ -35,7 +35,7 @@ const TaskSchema: mongoose.Schema = new mongoose.Schema(
     deadline: { type: Date },
     status: {
       type: String,
-      enum: ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'],
+      enum: ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE', 'ARCHIVED'],
       default: 'TODO',
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

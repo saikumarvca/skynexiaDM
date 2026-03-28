@@ -149,7 +149,7 @@ export function ReviewDraftForm({
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium mb-1">Category *</label>
               <Input
@@ -169,7 +169,7 @@ export function ReviewDraftForm({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium mb-1">Suggested Rating</label>
               <select
