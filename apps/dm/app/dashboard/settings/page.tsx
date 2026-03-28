@@ -20,7 +20,13 @@ async function getTeamMembers(): Promise<{ _id: string; name: string; email: str
       .select("_id name email roleName")
       .limit(100)
       .lean()
-    return items as { _id: string; name: string; email: string; roleName?: string }[]
+    const plain = JSON.parse(JSON.stringify(items)) as {
+      _id: string
+      name: string
+      email: string
+      roleName?: string
+    }[]
+    return plain
   } catch (e) {
     console.error("Error fetching team members:", e)
     return []
