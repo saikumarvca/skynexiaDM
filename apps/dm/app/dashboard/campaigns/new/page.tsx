@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { CampaignForm } from "@/components/campaign-form"
 
-import { getBaseUrl } from "@/lib/server-fetch"
-const BASE = getBaseUrl()
+import { serverFetch } from "@/lib/server-fetch"
+import { parseFlexibleDateParam } from "@/lib/date-format"
 
 async function getClients() {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) return []
-    return res.json()
+    return await res.json()
   } catch {
     return []
   }
@@ -35,9 +35,11 @@ export default async function NewCampaignPage({
       throw new Error("Client, campaign name, and platform are required")
     }
     const budget = formData.get("budget")
-    const startDate = formData.get("startDate")
-    const endDate = formData.get("endDate")
-    const res = await fetch(`${BASE}/api/campaigns`, {
+    const startRaw = ((formData.get("startDate") as string) ?? "").trim()
+    const endRaw = ((formData.get("endDate") as string) ?? "").trim()
+    const startIsoDay = parseFlexibleDateParam(startRaw)
+    const endIsoDay = parseFlexibleDateParam(endRaw)
+    const res = await serverFetch("/api/campaigns", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -46,8 +48,8 @@ export default async function NewCampaignPage({
         platform,
         objective: (formData.get("objective") as string) || undefined,
         budget: budget ? Number(budget) : undefined,
-        startDate: startDate ? new Date(startDate as string).toISOString() : undefined,
-        endDate: endDate ? new Date(endDate as string).toISOString() : undefined,
+        startDate: startIsoDay ? new Date(`${startIsoDay}T12:00:00.000Z`).toISOString() : undefined,
+        endDate: endIsoDay ? new Date(`${endIsoDay}T12:00:00.000Z`).toISOString() : undefined,
         status: (formData.get("status") as string) || "PLANNED",
         notes: (formData.get("notes") as string) || undefined,
       }),

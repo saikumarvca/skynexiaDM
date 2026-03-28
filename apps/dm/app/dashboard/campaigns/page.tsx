@@ -3,13 +3,13 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StatusBadge } from "@/components/status-badge"
-import { Plus, Target, ExternalLink } from "lucide-react"
+import { Plus, Target } from "lucide-react"
 import { Campaign, CampaignStatus } from "@/types"
 import { Client } from "@/types"
 import dbConnect from "@/lib/mongodb"
 import CampaignModel from "@/models/Campaign"
 import ClientModel from "@/models/Client"
+import { CampaignsListWithSheet } from "@/components/campaigns/campaigns-list-with-sheet"
 
 async function getCampaigns(filters: {
   clientId?: string
@@ -58,14 +58,6 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
     }),
     getClients(),
   ])
-
-  const clientName = (c: Campaign) => {
-    const id = typeof c.clientId === "object" ? c.clientId : null
-    if (id && "businessName" in id) return (id as { businessName?: string }).businessName ?? (id as { name?: string }).name ?? "—"
-    return "—"
-  }
-  const clientId = (c: Campaign) =>
-    typeof c.clientId === "object" ? (c.clientId as { _id: string })._id : (c.clientId as string)
 
   return (
     <DashboardLayout>
@@ -157,72 +149,7 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
                 </Link>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-3 font-medium">Campaign</th>
-                      <th className="pb-3 font-medium">Client</th>
-                      <th className="pb-3 font-medium">Platform</th>
-                      <th className="pb-3 font-medium">Status</th>
-                      <th className="pb-3 font-medium">Budget</th>
-                      <th className="pb-3 font-medium">Dates</th>
-                      <th className="pb-3 font-medium">Metrics</th>
-                      <th className="pb-3 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {campaigns.map((c) => (
-                      <tr key={c._id} className="border-b last:border-0">
-                        <td className="py-3 font-medium">{c.campaignName}</td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(c)}`}
-                            className="text-primary hover:underline"
-                          >
-                            {clientName(c)}
-                          </Link>
-                        </td>
-                        <td className="py-3">{c.platform}</td>
-                        <td className="py-3">
-                          <StatusBadge status={c.status as CampaignStatus} />
-                        </td>
-                        <td className="py-3">
-                          {c.budget != null ? `$${Number(c.budget).toLocaleString()}` : "—"}
-                        </td>
-                        <td className="py-3">
-                          {c.startDate
-                            ? new Date(c.startDate).toLocaleDateString()
-                            : "—"}
-                          {" → "}
-                          {c.endDate
-                            ? new Date(c.endDate).toLocaleDateString()
-                            : "—"}
-                        </td>
-                        <td className="py-3">
-                          {c.metrics && (
-                            <span className="text-muted-foreground">
-                              {c.metrics.impressions != null && `${(c.metrics.impressions / 1000).toFixed(1)}k imp`}
-                              {c.metrics.clicks != null && ` · ${c.metrics.clicks} clk`}
-                              {c.metrics.leads != null && ` · ${c.metrics.leads} leads`}
-                              {!c.metrics?.impressions && !c.metrics?.clicks && !c.metrics?.leads && "—"}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3">
-                          <Link
-                            href={`/clients/${clientId(c)}`}
-                            className="text-muted-foreground hover:text-foreground"
-                            title="Open client"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <CampaignsListWithSheet campaigns={campaigns} clients={clients} />
             )}
           </CardContent>
         </Card>

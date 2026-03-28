@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import "@/models/ReviewAllocation";
 import "@/models/ReviewDraft";
 import PostedReviewModel from "@/models/PostedReview";
+import { parseFlexibleDateParam, toDdMmYyyyDisplay } from "@/lib/date-format";
 
 async function getPostedReviews(params: {
   platform?: string;
@@ -14,12 +15,14 @@ async function getPostedReviews(params: {
   search?: string;
 }): Promise<PostedReview[]> {
   await dbConnect();
+  const dateFromIso = parseFlexibleDateParam(params.dateFrom);
+  const dateToIso = parseFlexibleDateParam(params.dateTo);
   const query: Record<string, unknown> = {};
   if (params.platform) query.platform = params.platform;
-  if (params.dateFrom || params.dateTo) {
+  if (dateFromIso || dateToIso) {
     query.postedDate = {};
-    if (params.dateFrom) (query.postedDate as Record<string, unknown>).$gte = new Date(params.dateFrom);
-    if (params.dateTo) (query.postedDate as Record<string, unknown>).$lte = new Date(params.dateTo + "T23:59:59.999Z");
+    if (dateFromIso) (query.postedDate as Record<string, unknown>).$gte = new Date(dateFromIso);
+    if (dateToIso) (query.postedDate as Record<string, unknown>).$lte = new Date(dateToIso + "T23:59:59.999Z");
   }
   let docs = await PostedReviewModel.find(query)
     .populate("draftId", "subject reviewText")
@@ -87,18 +90,26 @@ export default async function UsedReviewsPage({ searchParams }: PageProps) {
             <label className="mb-1 block text-sm font-medium text-muted-foreground">Date From</label>
             <input
               name="dateFrom"
-              type="date"
-              defaultValue={params.dateFrom ?? ""}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="dd-mm-yyyy"
+              title="Day-Month-Year, e.g. 28-03-2026"
+              defaultValue={toDdMmYyyyDisplay(params.dateFrom)}
+              className="flex h-9 w-full min-w-[9.5rem] rounded-md border border-input bg-background px-3 py-1 text-sm"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-muted-foreground">Date To</label>
             <input
               name="dateTo"
-              type="date"
-              defaultValue={params.dateTo ?? ""}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="dd-mm-yyyy"
+              title="Day-Month-Year, e.g. 28-03-2026"
+              defaultValue={toDdMmYyyyDisplay(params.dateTo)}
+              className="flex h-9 w-full min-w-[9.5rem] rounded-md border border-input bg-background px-3 py-1 text-sm"
             />
           </div>
           <div>
