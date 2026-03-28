@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,6 +14,53 @@ interface CampaignFormProps {
 }
 
 const STATUS_OPTIONS = ["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"] as const
+
+function DateInput({ id, name }: { id: string; name: string }) {
+  const [display, setDisplay] = useState("") // DD-MM-YYYY shown to user
+  const [pickerVal, setPickerVal] = useState("") // YYYY-MM-DD for the picker
+
+  function handlePicker(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value // YYYY-MM-DD
+    setPickerVal(val)
+    if (val) {
+      const [yyyy, mm, dd] = val.split("-")
+      setDisplay(`${dd}-${mm}-${yyyy}`)
+    } else {
+      setDisplay("")
+    }
+  }
+
+  function handleText(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value
+    setDisplay(val)
+    if (/^\d{2}-\d{2}-\d{4}$/.test(val)) {
+      const [dd, mm, yyyy] = val.split("-")
+      setPickerVal(`${yyyy}-${mm}-${dd}`)
+    } else {
+      setPickerVal("")
+    }
+  }
+
+  return (
+    <div className="flex gap-2">
+      <Input
+        value={display}
+        onChange={handleText}
+        placeholder="DD-MM-YYYY"
+        pattern="\d{2}-\d{2}-\d{4}"
+        className="flex-1"
+      />
+      <input
+        type="date"
+        value={pickerVal}
+        onChange={handlePicker}
+        className="h-9 rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      />
+      {/* hidden input carries DD-MM-YYYY to the server action */}
+      <input type="hidden" id={id} name={name} value={display} />
+    </div>
+  )
+}
 
 export function CampaignForm({ clients, action, defaultClientId }: CampaignFormProps) {
   return (
@@ -115,7 +163,7 @@ export function CampaignForm({ clients, action, defaultClientId }: CampaignFormP
               <label htmlFor="startDate" className="block text-sm font-medium">
                 Start date
               </label>
-              <Input id="startDate" name="startDate" type="text" placeholder="DD-MM-YYYY" pattern="\d{2}-\d{2}-\d{4}" />
+              <DateInput id="startDate" name="startDate" />
             </div>
           </div>
 
@@ -123,7 +171,7 @@ export function CampaignForm({ clients, action, defaultClientId }: CampaignFormP
             <label htmlFor="endDate" className="block text-sm font-medium">
               End date
             </label>
-            <Input id="endDate" name="endDate" type="text" placeholder="DD-MM-YYYY" pattern="\d{2}-\d{2}-\d{4}" />
+            <DateInput id="endDate" name="endDate" />
           </div>
 
           <div className="space-y-2">
