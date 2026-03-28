@@ -9,8 +9,7 @@ import "@/models/ReviewDraft";
 import ReviewAllocationModel from "@/models/ReviewAllocation";
 import TeamMember from "@/models/TeamMember";
 
-import { getBaseUrl } from "@/lib/server-fetch";
-const BASE = getBaseUrl();
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getAllocations(assignedToUserId: string | undefined): Promise<ReviewAllocation[]> {
   await dbConnect();
@@ -34,7 +33,7 @@ async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
 
 async function markShared(id: string, data: { customerName: string; customerContact?: string; platform?: string; sentDate: string }) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-allocations/${id}/mark-shared`, {
+  const res = await serverFetch(`/api/review-allocations/${id}/mark-shared`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -59,7 +58,7 @@ async function markPosted(
   }
 ) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-allocations/${id}/mark-posted`, {
+  const res = await serverFetch(`/api/review-allocations/${id}/mark-posted`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

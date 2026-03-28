@@ -115,7 +115,7 @@ export function CampaignForm({ clients, action, defaultClientId }: CampaignFormP
               <label htmlFor="startDate" className="block text-sm font-medium">
                 Start date
               </label>
-              <Input id="startDate" name="startDate" type="date" />
+              <Input id="startDate" name="startDate" type="text" placeholder="DD-MM-YYYY" pattern="\d{2}-\d{2}-\d{4}" />
             </div>
           </div>
 
@@ -123,7 +123,7 @@ export function CampaignForm({ clients, action, defaultClientId }: CampaignFormP
             <label htmlFor="endDate" className="block text-sm font-medium">
               End date
             </label>
-            <Input id="endDate" name="endDate" type="date" />
+            <Input id="endDate" name="endDate" type="text" placeholder="DD-MM-YYYY" pattern="\d{2}-\d{2}-\d{4}" />
           </div>
 
           <div className="space-y-2">

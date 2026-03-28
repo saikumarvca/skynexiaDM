@@ -9,8 +9,7 @@ import ReviewAllocationModel from "@/models/ReviewAllocation";
 import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
 
-import { getBaseUrl } from "@/lib/server-fetch";
-const BASE = getBaseUrl();
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getAllocations(params: {
   clientId?: string;
@@ -60,7 +59,7 @@ async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
 
 async function markShared(id: string, data: { customerName: string; customerContact?: string; platform?: string; sentDate: string }) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-allocations/${id}/mark-shared`, {
+  const res = await serverFetch(`/api/review-allocations/${id}/mark-shared`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -85,7 +84,7 @@ async function markPosted(
   }
 ) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-allocations/${id}/mark-posted`, {
+  const res = await serverFetch(`/api/review-allocations/${id}/mark-posted`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -99,7 +98,7 @@ async function markPosted(
 
 async function cancelAllocation(id: string) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-allocations/${id}`, {
+  const res = await serverFetch(`/api/review-allocations/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ allocationStatus: "Cancelled" }),

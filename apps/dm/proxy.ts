@@ -13,7 +13,7 @@ function isPublicPath(pathname: string) {
   return PUBLIC_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (isPublicPath(pathname)) return NextResponse.next();
 

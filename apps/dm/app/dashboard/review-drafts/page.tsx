@@ -8,8 +8,7 @@ import ReviewDraftModel from "@/models/ReviewDraft";
 import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
 
-import { getBaseUrl } from "@/lib/server-fetch";
-const BASE = getBaseUrl();
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getDrafts(params: {
   clientId?: string;
@@ -47,7 +46,7 @@ async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
 
 async function createDraft(data: ReviewDraftFormData & { createdBy?: string }) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-drafts`, {
+  const res = await serverFetch('/api/review-drafts', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...data, createdBy: "system" }),
@@ -58,7 +57,7 @@ async function createDraft(data: ReviewDraftFormData & { createdBy?: string }) {
 
 async function updateDraft(id: string, data: Partial<ReviewDraftFormData>) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-drafts/${id}`, {
+  const res = await serverFetch(`/api/review-drafts/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -69,7 +68,7 @@ async function updateDraft(id: string, data: Partial<ReviewDraftFormData>) {
 
 async function duplicateDraft(id: string) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-drafts/${id}/duplicate`, {
+  const res = await serverFetch(`/api/review-drafts/${id}/duplicate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ performedBy: "system" }),
@@ -80,7 +79,7 @@ async function duplicateDraft(id: string) {
 
 async function assignDraft(draftId: string, data: AssignDraftFormData) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-drafts/${draftId}/assign`, {
+  const res = await serverFetch(`/api/review-drafts/${draftId}/assign`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -94,7 +93,7 @@ async function assignDraft(draftId: string, data: AssignDraftFormData) {
 
 async function archiveDraft(id: string) {
   "use server";
-  const res = await fetch(`${BASE}/api/review-drafts/${id}`, {
+  const res = await serverFetch(`/api/review-drafts/${id}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to archive draft");
