@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { CampaignForm } from "@/components/campaign-form"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { getBaseUrl } from "@/lib/server-fetch"
+const BASE = getBaseUrl()
 
 async function getClients() {
   try {

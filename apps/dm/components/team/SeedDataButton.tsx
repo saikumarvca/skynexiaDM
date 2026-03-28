@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 export function SeedDataButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -13,7 +11,7 @@ export function SeedDataButton() {
   async function handleSeed() {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE}/api/team/seed`, {
+      const res = await fetch(`/api/team/seed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),

@@ -2,7 +2,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { requireUser, assertAdmin } from "@/lib/auth";
 import { AdminUsersClient } from "./users-client";
 
-const BASE = `http://localhost:${process.env.PORT || 3152}`;
+import { getBaseUrl } from "@/lib/server-fetch";
+const BASE = getBaseUrl();
 
 async function getUsers() {
   const res = await fetch(`${BASE}/api/users`, { cache: "no-store" });

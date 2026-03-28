@@ -8,7 +8,8 @@ import ReviewDraftModel from "@/models/ReviewDraft";
 import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
 
-const BASE = `http://localhost:${process.env.PORT || 3152}`;
+import { getBaseUrl } from "@/lib/server-fetch";
+const BASE = getBaseUrl();
 
 async function getDrafts(params: {
   clientId?: string;

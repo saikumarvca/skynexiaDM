@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 interface TeamMemberFormProps {
   memberId?: string;
   initialData?: {
@@ -42,8 +40,8 @@ export function TeamMemberForm({
     setLoading(true);
     try {
       const url = memberId
-        ? `${BASE}/api/team/members/${memberId}`
-        : `${BASE}/api/team/members`;
+        ? `/api/team/members/${memberId}`
+        : `/api/team/members`;
       const method = memberId ? "PATCH" : "POST";
       const body: Record<string, unknown> = {
         name,

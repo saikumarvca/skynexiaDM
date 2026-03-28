@@ -7,7 +7,7 @@ import { Plus, Layers, ExternalLink } from "lucide-react"
 import { ContentItem, ContentCategory, ContentItemStatus } from "@/types"
 import { Client } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
 
 async function getContentItems(filters: {
   clientId?: string
@@ -17,15 +17,15 @@ async function getContentItems(filters: {
   search?: string
 }): Promise<ContentItem[]> {
   try {
-    const url = new URL(`${BASE}/api/content-bank`)
+    const url = new URL(`${getBaseUrl()}/api/content-bank`)
     if (filters.clientId) url.searchParams.set("clientId", filters.clientId)
     if (filters.platform) url.searchParams.set("platform", filters.platform)
     if (filters.category) url.searchParams.set("category", filters.category)
     if (filters.status) url.searchParams.set("status", filters.status)
     if (filters.search) url.searchParams.set("search", filters.search)
-    const res = await fetch(url, { cache: "no-store" })
+    const res = await serverFetch(url.pathname + url.search)
     if (!res.ok) throw new Error("Failed to fetch content")
-    return res.json()
+    return await res.json()
   } catch (e) {
     console.error("Error fetching content:", e)
     return []
@@ -34,9 +34,9 @@ async function getContentItems(filters: {
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) throw new Error("Failed to fetch clients")
-    return res.json()
+    return await res.json()
   } catch (e) {
     console.error("Error fetching clients:", e)
     return []

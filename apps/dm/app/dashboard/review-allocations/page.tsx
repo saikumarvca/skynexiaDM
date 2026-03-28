@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Client } from "@/types";
 import type { ReviewAllocation } from "@/types/reviews";
 import dbConnect from "@/lib/mongodb";
+import "@/models/ReviewDraft";
 import ReviewAllocationModel from "@/models/ReviewAllocation";
 import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
 
-const BASE = `http://localhost:${process.env.PORT || 3152}`;
+import { getBaseUrl } from "@/lib/server-fetch";
+const BASE = getBaseUrl();
 
 async function getAllocations(params: {
   clientId?: string;

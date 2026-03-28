@@ -11,7 +11,7 @@ import { ReviewDraftDetailsPane } from "./review-draft-details-pane";
 import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/types/reviews";
 import type { Client } from "@/types";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Rows3 } from "lucide-react";
+import { Archive, LayoutGrid, Rows3 } from "lucide-react";
 
 interface User {
   _id: string;
@@ -30,7 +30,6 @@ interface ReviewDraftTableProps {
   onArchive: (id: string) => Promise<void>;
 }
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
 
 function truncate(s: string, len: number) {
   if (!s) return "—";
@@ -66,7 +65,7 @@ export function ReviewDraftTable({
   const [activity, setActivity] = useState<{ action: string; performedBy: string; performedAt: string }[]>([]);
   const [importLoading, setImportLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const cardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const paneRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [allocationsByDraftId, setAllocationsByDraftId] = useState<Record<string, string>>({});
@@ -83,9 +82,9 @@ export function ReviewDraftTable({
           if (!cancelled) setAllocationsByDraftId({});
           return;
         }
-        const url = new URL(`${BASE}/api/review-allocations`);
+        const url = new URL("/api/review-allocations", window.location.origin);
         url.searchParams.set("draftIds", draftIds.join(","));
-        const res = await fetch(url.toString(), { cache: "no-store" });
+        const res = await fetch(url.pathname + url.search, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load allocations");
         const list = (await res.json()) as AllocationLite[];
         const map: Record<string, string> = {};
@@ -163,7 +162,7 @@ export function ReviewDraftTable({
           alert("No valid rows found. CSV should have columns: subject, reviewText (or review text), and optionally category, language, suggestedRating.");
           return;
         }
-        const res = await fetch(`${BASE}/api/review-drafts/import`, {
+        const res = await fetch(`/api/review-drafts/import`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -217,7 +216,8 @@ export function ReviewDraftTable({
   };
 
   const handleFetchActivity = async (entityType: string, entityId: string) => {
-    const res = await fetch(`${BASE}/api/review-activity?entityType=${entityType}&entityId=${entityId}`);
+    const res = await fetch(`/api/review-activity?entityType=${entityType}&entityId=${entityId}`);
+    if (!res.ok) return [];
     return res.json();
   };
 
@@ -263,26 +263,64 @@ export function ReviewDraftTable({
   const renderDraftCard = (d: ReviewDraft, mode: "row" | "grid") => {
     const selected = selectedDraftId === d._id;
     const assignedToName = allocationsByDraftId[d._id];
+    const canArchive = d.status !== "Archived";
 
     return (
-      <button
+      <div
         key={d._id}
-        type="button"
-        onClick={() => handleRowClick(d)}
         ref={(el) => {
           cardRefs.current[d._id] = el;
         }}
         className={cn(
-          "group text-left rounded-lg border bg-card text-card-foreground shadow-md/40 transition-all hover:shadow-lg/35 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background",
-          mode === "grid"
-            ? "p-4 hover:-translate-y-0.5 flex flex-col"
-            : "p-4 md:p-5 flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)] md:items-start",
+          "group relative rounded-lg border bg-card text-card-foreground shadow-md/40 transition-all hover:shadow-lg/35",
           selected && "border-primary/50 ring-2 ring-ring"
         )}
-        aria-label={`Open details for ${d.subject}`}
       >
+        {canArchive && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="absolute right-2 top-2 z-10 h-8 w-8 shrink-0 shadow-sm"
+            aria-label={`Archive draft: ${d.subject}`}
+            title="Archive"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleArchiveClick(d);
+            }}
+          >
+            <Archive className="h-4 w-4" />
+          </Button>
+        )}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => handleRowClick(d)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleRowClick(d);
+            }
+          }}
+          className={cn(
+            "w-full cursor-pointer text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+            mode === "grid"
+              ? cn("p-4 flex flex-col hover:-translate-y-0.5", canArchive && "pt-12")
+              : cn(
+                  "flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)] md:items-start",
+                  canArchive ? "p-4 pt-12 md:p-5 md:pt-12" : "p-4 md:p-5"
+                )
+          )}
+          aria-label={`Open details for ${d.subject}`}
+        >
         <div className="min-w-0">
-          <div className="flex items-start justify-between gap-3">
+          <div
+            className={cn(
+              "flex items-start justify-between gap-3",
+              canArchive && "pr-10"
+            )}
+          >
             <div className="min-w-0">
               <p className="font-semibold leading-snug truncate group-hover:text-foreground" title={d.subject}>
                 {d.subject}
@@ -361,7 +399,8 @@ export function ReviewDraftTable({
             )}
           </div>
         )}
-      </button>
+        </div>
+      </div>
     );
   };
 
@@ -400,7 +439,7 @@ export function ReviewDraftTable({
           <Button onClick={() => { setEditDraft(null); setFormOpen(true); }}>
             Create Draft
           </Button>
-          <Button variant="outline" onClick={() => window.open(`${BASE}/api/review-drafts/export`, "_blank")}>
+          <Button variant="outline" onClick={() => window.open(`/api/review-drafts/export`, "_blank")}>
             Export CSV
           </Button>
           <input

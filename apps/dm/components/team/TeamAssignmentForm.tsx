@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 const TYPES = ["review", "lead", "task", "campaign", "client", "other"];
 const SOURCES = ["reviews", "leads", "tasks", "campaigns", "clients"];
 const STATUSES = ["Pending", "In Progress", "Completed", "Cancelled"];
@@ -67,8 +65,8 @@ export function TeamAssignmentForm({
     const assigner = members.find((m) => m._id === assignedByUserId);
     try {
       const url = assignmentId
-        ? `${BASE}/api/team/assignments/${assignmentId}`
-        : `${BASE}/api/team/assignments`;
+        ? `/api/team/assignments/${assignmentId}`
+        : `/api/team/assignments`;
       const method = assignmentId ? "PATCH" : "POST";
       const body = {
         title,

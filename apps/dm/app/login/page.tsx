@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = useMemo(() => searchParams.get("next") || "/dashboard", [searchParams]);
@@ -36,43 +36,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-sm">
-        <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Use your email and password to access the dashboard.</p>
+    <div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-sm">
+      <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Use your email and password to access the dashboard.</p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Email</label>
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="username"
-              required
-              placeholder="name@company.com"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Password</label>
-            <Input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              autoComplete="current-password"
-              required
-              placeholder="••••••••"
-            />
-          </div>
+      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Email</label>
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            autoComplete="username"
+            required
+            placeholder="name@company.com"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Password</label>
+          <Input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            autoComplete="current-password"
+            required
+            placeholder="••••••••"
+          />
+        </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
-      </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
     </div>
   );
 }
 
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </div>
+  );
+}

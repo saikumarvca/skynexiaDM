@@ -7,16 +7,16 @@ import { Plus, Search, ExternalLink, TrendingUp } from "lucide-react"
 import { Keyword } from "@/types"
 import { Client } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
 
 async function getKeywords(filters: { clientId?: string; search?: string }): Promise<Keyword[]> {
   try {
-    const url = new URL(`${BASE}/api/keywords`)
+    const url = new URL(`${getBaseUrl()}/api/keywords`)
     if (filters.clientId) url.searchParams.set("clientId", filters.clientId)
     if (filters.search) url.searchParams.set("search", filters.search)
-    const res = await fetch(url, { cache: "no-store" })
+    const res = await serverFetch(url.pathname + url.search)
     if (!res.ok) throw new Error("Failed to fetch keywords")
-    return res.json()
+    return await res.json()
   } catch (e) {
     console.error("Error fetching keywords:", e)
     return []
@@ -25,9 +25,9 @@ async function getKeywords(filters: { clientId?: string; search?: string }): Pro
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) throw new Error("Failed to fetch clients")
-    return res.json()
+    return await res.json()
   } catch (e) {
     console.error("Error fetching clients:", e)
     return []

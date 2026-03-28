@@ -10,15 +10,17 @@ import {
   Mail,
   Shield,
 } from "lucide-react"
-
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import dbConnect from "@/lib/mongodb"
+import TeamMember from "@/models/TeamMember"
 
 async function getTeamMembers(): Promise<{ _id: string; name: string; email: string; roleName?: string }[]> {
   try {
-    const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" })
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.items ?? []
+    await dbConnect()
+    const items = await TeamMember.find({ status: "Active", isDeleted: { $ne: true } })
+      .select("_id name email roleName")
+      .limit(100)
+      .lean()
+    return items as { _id: string; name: string; email: string; roleName?: string }[]
   } catch (e) {
     console.error("Error fetching team members:", e)
     return []

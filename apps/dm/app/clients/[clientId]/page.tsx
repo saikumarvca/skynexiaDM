@@ -8,6 +8,7 @@ import { Client } from "@/types"
 import { FileText, CheckCircle, Archive, Edit, Plus, Target, ListChecks, FileStack, LineChart, Layers, Search } from "lucide-react"
 import Link from "next/link"
 import { CollapsibleClientInfo } from "@/components/collapsible-client-info"
+import { serverFetch } from "@/lib/server-fetch"
 
 type UsageItem = {
   _id: string
@@ -45,11 +46,9 @@ type ClientAnalytics = {
 
 async function getClient(clientId: string): Promise<Client | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients/${clientId}`, {
-      cache: 'no-store'
-    })
+    const res = await serverFetch(`/api/clients/${clientId}`)
     if (!res.ok) return null
-    return res.json()
+    return await res.json()
   } catch (error) {
     console.error('Error fetching client:', error)
     return null
@@ -58,11 +57,9 @@ async function getClient(clientId: string): Promise<Client | null> {
 
 async function getClientStats(clientId: string) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients/${clientId}/stats`, {
-      cache: 'no-store'
-    })
+    const res = await serverFetch(`/api/clients/${clientId}/stats`)
     if (!res.ok) throw new Error('Failed to fetch stats')
-    return res.json()
+    return await res.json()
   } catch (error) {
     console.error('Error fetching client stats:', error)
     return {
@@ -76,13 +73,11 @@ async function getClientStats(clientId: string) {
 
 async function getClientUsage(clientId: string): Promise<UsageItem[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/review-usage?clientId=${clientId}`, {
-      cache: 'no-store'
-    })
+    const res = await serverFetch(`/api/review-usage?clientId=${encodeURIComponent(clientId)}`)
     if (!res.ok) {
       throw new Error('Failed to fetch usage')
     }
-    return res.json()
+    return await res.json()
   } catch (error) {
     console.error('Error fetching client usage:', error)
     return []
@@ -91,13 +86,11 @@ async function getClientUsage(clientId: string): Promise<UsageItem[]> {
 
 async function getClientAnalytics(clientId: string): Promise<ClientAnalytics | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients/${clientId}/analytics`, {
-      cache: 'no-store'
-    })
+    const res = await serverFetch(`/api/clients/${clientId}/analytics`)
     if (!res.ok) {
       throw new Error('Failed to fetch analytics')
     }
-    return res.json()
+    return await res.json()
   } catch (error) {
     console.error('Error fetching client analytics:', error)
     return null

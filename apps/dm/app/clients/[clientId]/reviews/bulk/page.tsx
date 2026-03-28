@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { BulkReviewFormData } from "@/types"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function createBulkReviews(data: BulkReviewFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews/bulk`, {
+  const res = await serverFetch('/api/reviews/bulk', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -20,7 +21,7 @@ async function createBulkReviews(data: BulkReviewFormData) {
     throw new Error('Failed to create bulk reviews')
   }
 
-  return res.json()
+  return await res.json()
 }
 
 interface BulkReviewPageProps {

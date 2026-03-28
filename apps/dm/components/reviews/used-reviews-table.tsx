@@ -13,8 +13,6 @@ import { Button } from "@/components/ui/button";
 import { ReviewActivityTimeline } from "./review-activity-timeline";
 import type { PostedReview } from "@/types/reviews";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 function truncate(s: string, len: number) {
   if (!s) return "—";
   return s.length <= len ? s : s.slice(0, len) + "…";
@@ -49,8 +47,9 @@ export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
   const openHistory = async (pr: PostedReview) => {
     setActivityPosted(pr);
     const res = await fetch(
-      `${BASE}/api/posted-reviews/${pr._id}`
+      `/api/posted-reviews/${pr._id}`
     );
+    if (!res.ok) { setDetail({ posted: pr, activity: [] }); return; }
     const data = await res.json();
     setDetail({ posted: data.posted ?? pr, activity: data.activity ?? [] });
   };

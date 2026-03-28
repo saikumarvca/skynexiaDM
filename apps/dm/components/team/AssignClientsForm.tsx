@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 interface AssignClientsFormProps {
   memberId: string;
   memberName: string;
@@ -37,7 +35,7 @@ export function AssignClientsForm({
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${BASE}/api/team/members/${memberId}`, {
+      const res = await fetch(`/api/team/members/${memberId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 type SeedButtonProps = {
   endpoint: string;
   label?: string;
@@ -29,7 +27,7 @@ export function SeedButton({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${BASE}${endpoint}`, {
+      const res = await fetch(`${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(force ? { force: true } : {}),

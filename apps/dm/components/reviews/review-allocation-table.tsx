@@ -18,8 +18,6 @@ import { ReviewActivityTimeline } from "./review-activity-timeline";
 import { ReviewDetailSidePane } from "./review-detail-side-pane";
 import type { ReviewAllocation } from "@/types/reviews";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
 function truncate(s: string, len: number) {
   if (!s) return "—";
   return s.length <= len ? s : s.slice(0, len) + "…";
@@ -61,8 +59,9 @@ export function ReviewAllocationTable({
 
   const fetchActivity = async (entityType: string, entityId: string) => {
     const res = await fetch(
-      `${BASE}/api/review-activity?entityType=${entityType}&entityId=${entityId}`
+      `/api/review-activity?entityType=${entityType}&entityId=${entityId}`
     );
+    if (!res.ok) return [];
     return res.json();
   };
 

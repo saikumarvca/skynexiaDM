@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic"
 import { StatsCard } from "@/components/stats-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, FileText, CheckCircle, Archive } from "lucide-react"
+import { DashboardRecentClients } from "@/components/dashboard-recent-clients"
 import Link from "next/link"
 import { Client, DashboardStats } from "@/types"
 import dbConnect from "@/lib/mongodb"
@@ -32,6 +33,12 @@ async function getRecentClients(): Promise<Client[]> {
 export default async function DashboardPage() {
   const stats = await getDashboardStats()
   const recentClients = await getRecentClients()
+  const recentForUi = recentClients.map((c) => ({
+    _id: String(c._id),
+    name: c.name,
+    businessName: c.businessName,
+    createdAt: typeof c.createdAt === "string" ? c.createdAt : new Date(c.createdAt).toISOString(),
+  }))
 
   return (
     <DashboardLayout>
@@ -78,23 +85,7 @@ export default async function DashboardPage() {
               <CardTitle>Recent Clients</CardTitle>
             </CardHeader>
             <CardContent>
-              {recentClients.length > 0 ? (
-                <div className="space-y-4">
-                  {recentClients.map((client: Client) => (
-                    <div key={client._id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{client.name}</p>
-                        <p className="text-sm text-muted-foreground">{client.businessName}</p>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(client.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">No clients yet.</p>
-              )}
+              <DashboardRecentClients clients={recentForUi} />
             </CardContent>
           </Card>
 
@@ -115,6 +106,13 @@ export default async function DashboardPage() {
                   className="block w-full rounded-md border px-4 py-2 text-center text-sm hover:bg-accent"
                 >
                   View All Clients
+                </Link>
+                <Link
+                  href="/clients?archived=1"
+                  className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-4 py-2 text-center text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  <Archive className="h-4 w-4" />
+                  Archived clients
                 </Link>
               </div>
             </CardContent>

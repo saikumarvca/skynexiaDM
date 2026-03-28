@@ -8,7 +8,8 @@ import dbConnect from "@/lib/mongodb"
 import ReviewModel from "@/models/Review"
 import ClientModel from "@/models/Client"
 
-const BASE = `http://localhost:${process.env.PORT || 3152}`
+import { getBaseUrl } from "@/lib/server-fetch"
+const BASE = getBaseUrl()
 
 async function getReviews(params: {
   clientId?: string

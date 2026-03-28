@@ -1,11 +1,12 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ClientForm } from "@/components/client-form"
 import { ClientFormData } from "@/types"
+import { getBaseUrl } from "@/lib/server-fetch"
 
 async function createClient(data: ClientFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/clients`, {
+  const res = await fetch(`${getBaseUrl()}/api/clients`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

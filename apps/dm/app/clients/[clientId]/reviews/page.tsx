@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button"
 import { Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Review, MarkUsedFormData } from "@/types"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getClientReviews(clientId: string): Promise<Review[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews?clientId=${clientId}`, {
-      cache: 'no-store'
-    })
+    const res = await serverFetch(
+      `/api/reviews?clientId=${encodeURIComponent(clientId)}`
+    )
     if (!res.ok) throw new Error('Failed to fetch reviews')
-    return res.json()
+    return await res.json()
   } catch (error) {
     console.error('Error fetching reviews:', error)
     return []
@@ -21,7 +22,7 @@ async function getClientReviews(clientId: string): Promise<Review[]> {
 async function markReviewUsed(data: MarkUsedFormData) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews/mark-used`, {
+  const res = await serverFetch('/api/reviews/mark-used', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -33,13 +34,13 @@ async function markReviewUsed(data: MarkUsedFormData) {
     throw new Error('Failed to mark review as used')
   }
 
-  return res.json()
+  return await res.json()
 }
 
 async function archiveReview(reviewId: string) {
   'use server'
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews/${reviewId}`, {
+  const res = await serverFetch(`/api/reviews/${reviewId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ async function archiveReview(reviewId: string) {
     throw new Error('Failed to archive review')
   }
 
-  return res.json()
+  return await res.json()
 }
 
 interface ClientReviewsPageProps {

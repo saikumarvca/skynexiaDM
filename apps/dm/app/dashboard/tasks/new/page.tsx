@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { TaskForm } from "@/components/task-form"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getClients() {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) return []
-    return res.json()
+    return await res.json()
   } catch {
     return []
   }
@@ -19,7 +19,7 @@ async function getClients() {
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
   try {
-    const res = await fetch(`${BASE}/api/team/members?status=Active&limit=100`, { cache: "no-store" })
+    const res = await serverFetch("/api/team/members?status=Active&limit=100")
     if (!res.ok) return []
     const data = await res.json()
     return (data.items ?? []) as { _id: string; name: string }[]
@@ -43,7 +43,7 @@ export default async function NewTaskPage({
     if (!clientId || !title) throw new Error("Client and title are required")
     const assignedToUserId = (formData.get("assignedTo") as string)?.trim() || undefined
     const assignee = assignedToUserId ? teamMembers.find((m) => m._id === assignedToUserId) : null
-    const res = await fetch(`${BASE}/api/tasks`, {
+    const res = await serverFetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -10,12 +10,16 @@ import {
   Archive,
 } from "lucide-react";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getAnalytics() {
-  const res = await fetch(`${BASE}/api/review-analytics`, { cache: "no-store" });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await serverFetch("/api/review-analytics");
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 export default async function ReviewAnalyticsPage() {

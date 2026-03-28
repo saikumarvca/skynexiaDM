@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { ContentForm } from "@/components/content-form"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getClients() {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) return []
-    return res.json()
+    return await res.json()
   } catch {
     return []
   }
@@ -38,7 +38,7 @@ export default async function NewContentPage({
     const tags = tagsRaw
       ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
       : undefined
-    const res = await fetch(`${BASE}/api/content-bank`, {
+    const res = await serverFetch("/api/content-bank", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { KeywordForm } from "@/components/keyword-form"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getClients() {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) return []
-    return res.json()
+    return await res.json()
   } catch {
     return []
   }
@@ -38,7 +38,7 @@ export default async function NewKeywordPage({
     const competitorUrls = competitorUrlsRaw
       ? competitorUrlsRaw.split(",").map((u) => u.trim()).filter(Boolean)
       : undefined
-    const res = await fetch(`${BASE}/api/keywords`, {
+    const res = await serverFetch("/api/keywords", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

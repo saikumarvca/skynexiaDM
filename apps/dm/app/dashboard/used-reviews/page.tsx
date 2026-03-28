@@ -3,6 +3,8 @@ import { UsedReviewsTable } from "@/components/reviews/used-reviews-table";
 import { Button } from "@/components/ui/button";
 import type { PostedReview } from "@/types/reviews";
 import dbConnect from "@/lib/mongodb";
+import "@/models/ReviewAllocation";
+import "@/models/ReviewDraft";
 import PostedReviewModel from "@/models/PostedReview";
 
 async function getPostedReviews(params: {

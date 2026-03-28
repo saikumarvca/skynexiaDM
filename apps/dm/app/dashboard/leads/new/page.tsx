@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { LeadForm } from "@/components/lead-form"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getClients() {
   try {
-    const res = await fetch(`${BASE}/api/clients?limit=500`, { cache: "no-store" })
+    const res = await serverFetch("/api/clients?limit=500")
     if (!res.ok) return []
-    return res.json()
+    return await res.json()
   } catch {
     return []
   }
@@ -19,9 +19,9 @@ async function getClients() {
 
 async function getCampaigns() {
   try {
-    const res = await fetch(`${BASE}/api/campaigns`, { cache: "no-store" })
+    const res = await serverFetch("/api/campaigns")
     if (!res.ok) return []
-    return res.json()
+    return await res.json()
   } catch {
     return []
   }
@@ -41,7 +41,7 @@ export default async function NewLeadPage({
     const name = (formData.get("name") as string)?.trim()
     if (!clientId || !name) throw new Error("Client and name are required")
     const campaignId = formData.get("campaignId") as string
-    const res = await fetch(`${BASE}/api/leads`, {
+    const res = await serverFetch("/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

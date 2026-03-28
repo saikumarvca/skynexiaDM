@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Review } from "@/types"
+import { getBaseUrl } from "@/lib/server-fetch"
 
 async function getReviews(searchParams: {
   search?: string
@@ -11,7 +12,7 @@ async function getReviews(searchParams: {
   category?: string
   language?: string
 }) {
-  const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3152'}/api/reviews`)
+  const url = new URL(`${getBaseUrl()}/api/reviews`)
   if (searchParams.search) url.searchParams.set('search', searchParams.search)
   if (searchParams.status) url.searchParams.set('status', searchParams.status)
   if (searchParams.category) url.searchParams.set('category', searchParams.category)

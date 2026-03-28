@@ -5,24 +5,24 @@ import { ClientForm } from "@/components/client-form"
 import { Button } from "@/components/ui/button"
 import { ClientFormData } from "@/types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152"
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getClient(clientId: string) {
-  const res = await fetch(`${BASE}/api/clients/${clientId}`, { cache: "no-store" })
+  const res = await serverFetch(`/api/clients/${clientId}`)
   if (!res.ok) return null
-  return res.json()
+  return await res.json()
 }
 
 async function updateClient(clientId: string, data: ClientFormData) {
   "use server"
 
-  const res = await fetch(`${BASE}/api/clients/${clientId}`, {
+  const res = await serverFetch(`/api/clients/${clientId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error("Failed to update client")
-  return res.json()
+  return await res.json()
 }
 
 export default async function ClientEditPage({

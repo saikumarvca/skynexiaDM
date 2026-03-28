@@ -1,21 +1,15 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamAssignmentForm } from "@/components/team/TeamAssignmentForm";
-
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3152";
-
-async function getMembers() {
-  const res = await fetch(`${BASE}/api/team/members?limit=100`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.items || [];
-}
+import dbConnect from "@/lib/mongodb";
+import TeamMember from "@/models/TeamMember";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewAssignmentPage() {
-  const membersData = await getMembers();
-const members = Array.isArray(membersData) ? membersData : [];
+  await dbConnect();
+  const docs = await TeamMember.find({ isDeleted: { $ne: true } }).select("name").limit(100).lean();
+  const members = docs.map((m) => JSON.parse(JSON.stringify(m)));
 
   return (
     <DashboardLayout>
@@ -25,12 +19,8 @@ const members = Array.isArray(membersData) ? membersData : [];
           <p className="text-muted-foreground">Assign work to a team member.</p>
         </div>
         <Card>
-          <CardHeader>
-            <CardTitle>Assignment Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TeamAssignmentForm members={members} />
-          </CardContent>
+          <CardHeader><CardTitle>Assignment Details</CardTitle></CardHeader>
+          <CardContent><TeamAssignmentForm members={members} /></CardContent>
         </Card>
       </div>
     </DashboardLayout>

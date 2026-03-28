@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useLayoutEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   BarChart3,
   Users,
@@ -24,7 +25,11 @@ import {
   Activity,
   TrendingUp,
   Loader2,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react"
+
+const SIDEBAR_COLLAPSED_KEY = "dm-sidebar-collapsed"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -66,8 +71,38 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
+function persistCollapsed(next: boolean) {
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0")
+    document.documentElement.toggleAttribute("data-sidebar-collapsed", next)
+  } catch {
+    /* ignore */
+  }
+}
+
 export function Sidebar() {
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false)
+
+  /** Restore width before paint on every mount (layout remounts on each in-app navigation). */
+  useLayoutEffect(() => {
+    try {
+      const c = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1"
+      setCollapsed(c)
+      document.documentElement.toggleAttribute("data-sidebar-collapsed", c)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((c) => {
+      const next = !c
+      persistCollapsed(next)
+      return next
+    })
+  }, [])
+
   const isReviewActive =
     pathname === "/dashboard/reviews" ||
     pathname.startsWith("/dashboard/review-") ||
@@ -87,19 +122,78 @@ export function Sidebar() {
   }, [pathname, isTeamActive])
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-card">
-      <div className="flex h-16 items-center border-b px-6 gap-2.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+    <div
+      id="app-sidebar"
+      className={cn(
+        "flex h-full shrink-0 flex-col border-r bg-card transition-[width] duration-200 ease-out",
+        collapsed ? "w-[4.25rem]" : "w-64"
+      )}
+    >
+      <div
+        className={cn(
+          "flex h-16 items-center border-b gap-2",
+          collapsed ? "flex-col justify-center px-1 py-2 gap-1.5" : "px-4 gap-2.5"
+        )}
+      >
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary">
           <BarChart3 className="h-4 w-4 text-primary-foreground" />
         </div>
-        <h1 className="text-base font-semibold tracking-tight">DM Dashboard</h1>
+        {!collapsed && (
+          <h1 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight">
+            DM Dashboard
+          </h1>
+        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={cn("h-8 w-8 shrink-0 text-muted-foreground", collapsed && "mt-0.5")}
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <PanelLeft className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
+        </Button>
       </div>
-      <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto scrollbar-thin">
+      <nav
+        className={cn(
+          "flex-1 space-y-0.5 overflow-y-auto py-4 scrollbar-thin",
+          collapsed ? "px-1.5" : "px-3"
+        )}
+      >
         {navigation.map((item) => {
           if ("children" in item && item.children) {
-            const sectionActive = item.name === "Reviews" ? isReviewActive : item.name === "Team" ? isTeamActive : false
+            const sectionActive =
+              item.name === "Reviews"
+                ? isReviewActive
+                : item.name === "Team"
+                  ? isTeamActive
+                  : false
             const isExpanded = sectionActive || !!expandedSections[item.name]
             const isParentActive = pathname === item.href
+
+            if (collapsed) {
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  title={`${item.name} — expand sidebar for full menu`}
+                  className={cn(
+                    "flex items-center justify-center rounded-md py-2.5 text-sm font-medium transition-colors",
+                    isParentActive || sectionActive
+                      ? "bg-primary/10 text-primary dark:bg-primary/20"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                </Link>
+              )
+            }
+
             return (
               <div key={item.name}>
                 <button
@@ -114,9 +208,9 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <div className="flex items-center">
-                    <item.icon className="mr-3 h-4 w-4" />
-                    {item.name}
+                  <div className="flex min-w-0 items-center">
+                    <item.icon className="mr-3 h-4 w-4 shrink-0" />
+                    <span className="truncate">{item.name}</span>
                   </div>
                   {isExpanded ? (
                     <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
@@ -136,7 +230,7 @@ export function Sidebar() {
                           className={cn(
                             "flex items-center rounded-md px-2 py-1.5 text-sm transition-colors",
                             isChildActive
-                              ? "bg-primary/10 text-primary dark:bg-primary/20 font-medium"
+                              ? "bg-primary/10 font-medium text-primary dark:bg-primary/20"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           )}
                         >
@@ -156,15 +250,17 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              title={collapsed ? item.name : undefined}
               className={cn(
-                "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center rounded-md text-sm font-medium transition-colors",
+                collapsed ? "justify-center py-2.5" : "px-3 py-2",
                 isActive
                   ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <item.icon className="mr-3 h-4 w-4" />
-              {item.name}
+              <item.icon className={cn("h-4 w-4 shrink-0", !collapsed && "mr-3")} />
+              {!collapsed && item.name}
             </Link>
           )
         })}
