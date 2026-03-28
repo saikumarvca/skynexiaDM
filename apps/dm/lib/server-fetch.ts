@@ -6,7 +6,6 @@ import { headers } from "next/headers";
  * correct PORT so server components can call their own API routes.
  */
 export function getBaseUrl() {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   const port = process.env.PORT || "3152";
   return `http://localhost:${port}`;
 }

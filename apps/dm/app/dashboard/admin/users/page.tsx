@@ -2,11 +2,10 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { requireUser, assertAdmin } from "@/lib/auth";
 import { AdminUsersClient } from "./users-client";
 
-import { getBaseUrl } from "@/lib/server-fetch";
-const BASE = getBaseUrl();
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getUsers() {
-  const res = await fetch(`${BASE}/api/users`, { cache: "no-store" });
+  const res = await serverFetch('/api/users', { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load users");
   return res.json() as Promise<Array<{ _id: string; name: string; email: string; role: string }>>;
 }

@@ -8,8 +8,7 @@ import dbConnect from "@/lib/mongodb"
 import ReviewModel from "@/models/Review"
 import ClientModel from "@/models/Client"
 
-import { getBaseUrl } from "@/lib/server-fetch"
-const BASE = getBaseUrl()
+import { serverFetch } from "@/lib/server-fetch"
 
 async function getReviews(params: {
   clientId?: string
@@ -52,7 +51,7 @@ async function getClients(): Promise<Client[]> {
 async function markReviewUsed(data: MarkUsedFormData) {
   "use server"
 
-  const res = await fetch(`${BASE}/api/reviews/mark-used`, {
+  const res = await serverFetch('/api/reviews/mark-used', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -70,7 +69,7 @@ async function markReviewUsed(data: MarkUsedFormData) {
 async function archiveReview(reviewId: string) {
   "use server"
 
-  const res = await fetch(`${BASE}/api/reviews/${reviewId}`, {
+  const res = await serverFetch(`/api/reviews/${reviewId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
