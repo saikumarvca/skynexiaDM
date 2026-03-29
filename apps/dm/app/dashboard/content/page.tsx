@@ -10,6 +10,7 @@ import { ContentItem, ContentCategory, ContentItemStatus } from "@/types"
 import { Client } from "@/types"
 
 import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
+import { ContentPageClient } from "@/components/content/content-page-client"
 
 async function getContentItems(filters: {
   clientId?: string
@@ -84,6 +85,8 @@ export default async function DashboardContentPage({ searchParams }: PageProps) 
       <Suspense fallback={null}>
         <QueryToast message="Content created" />
       </Suspense>
+      <Suspense fallback={null}>
+        <ContentPageClient>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -256,6 +259,8 @@ export default async function DashboardContentPage({ searchParams }: PageProps) 
           </CardContent>
         </Card>
       </div>
+        </ContentPageClient>
+      </Suspense>
     </DashboardLayout>
   )
 }

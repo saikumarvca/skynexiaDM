@@ -10,6 +10,7 @@ import { Archive, Calendar, User, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SavedFiltersBar } from "@/components/saved-filters/saved-filters-bar"
 
+
 const TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
 const TASK_PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
@@ -82,6 +83,17 @@ interface TasksListClientProps {
 
 export function TasksListClient({ tasks }: TasksListClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const currentFilters: Record<string, string> = {}
+  searchParams.forEach((value, key) => {
+    currentFilters[key] = value
+  })
+
+  function applyFilters(filters: Record<string, string>) {
+    const params = new URLSearchParams(filters)
+    router.push(`/dashboard/tasks?${params.toString()}`)
+  }
 
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<TaskStatus | "">("")
@@ -259,6 +271,15 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
 
   return (
     <>
+      {/* Saved filters bar */}
+      <div className="mb-3">
+        <SavedFiltersBar
+          entityType="task"
+          currentFilters={currentFilters}
+          onApply={applyFilters}
+        />
+      </div>
+
       {/* Show archived toggle */}
       <div className="mb-3 flex items-center gap-2">
         <input

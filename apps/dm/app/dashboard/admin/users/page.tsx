@@ -7,7 +7,9 @@ import { serverFetch } from "@/lib/server-fetch";
 async function getUsers() {
   const res = await serverFetch('/api/users', { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load users");
-  return res.json() as Promise<Array<{ _id: string; name: string; email: string; role: string }>>;
+  return res.json() as Promise<
+    Array<{ _id: string; name: string; email: string; role: string; isActive: boolean }>
+  >;
 }
 
 export default async function AdminUsersPage() {

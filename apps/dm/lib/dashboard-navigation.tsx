@@ -23,6 +23,11 @@ import {
   ScrollText,
   Webhook,
   Mail,
+  Plus,
+  Archive,
+  Columns3,
+  Hash,
+  ListChecks,
 } from "lucide-react"
 
 export type DashboardNavChild = {
@@ -46,13 +51,66 @@ export type DashboardNavItem =
 
 const baseNavigation: DashboardNavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Clients", href: "/clients", icon: Users },
-  { name: "Campaigns", href: "/dashboard/campaigns", icon: Target },
-  { name: "Content", href: "/dashboard/content", icon: Layers },
-  { name: "Scheduled posts", href: "/dashboard/scheduled-posts", icon: CalendarClock },
-  { name: "SEO", href: "/dashboard/seo", icon: Search },
-  { name: "Leads", href: "/dashboard/leads", icon: Users },
-  { name: "Tasks", href: "/dashboard/tasks", icon: ClipboardList },
+  {
+    name: "Clients",
+    href: "/clients",
+    icon: Users,
+    children: [
+      { name: "All Clients", href: "/clients", icon: Users },
+      { name: "Add Client", href: "/clients/new", icon: Plus },
+      { name: "Archived", href: "/clients?archived=1", icon: Archive },
+      { name: "Google Reviews", href: "/dashboard/google-reviews", icon: CheckCircle },
+    ],
+  },
+  {
+    name: "Campaigns",
+    href: "/dashboard/campaigns",
+    icon: Target,
+    children: [
+      { name: "All Campaigns", href: "/dashboard/campaigns", icon: Target },
+      { name: "New Campaign", href: "/dashboard/campaigns/new", icon: Plus },
+      { name: "Archived", href: "/dashboard/campaigns?archived=1", icon: Archive },
+    ],
+  },
+  {
+    name: "Content",
+    href: "/dashboard/content",
+    icon: Layers,
+    children: [
+      { name: "Content Bank", href: "/dashboard/content", icon: Layers },
+      { name: "New Content", href: "/dashboard/content/new", icon: Plus },
+      { name: "Scheduled Posts", href: "/dashboard/scheduled-posts", icon: CalendarClock },
+      { name: "New Scheduled Post", href: "/dashboard/scheduled-posts/new", icon: CalendarClock },
+    ],
+  },
+  {
+    name: "SEO",
+    href: "/dashboard/seo",
+    icon: Search,
+    children: [
+      { name: "Keywords", href: "/dashboard/seo", icon: Hash },
+      { name: "Add Keyword", href: "/dashboard/seo/new", icon: Plus },
+    ],
+  },
+  {
+    name: "Leads",
+    href: "/dashboard/leads",
+    icon: TrendingUp,
+    children: [
+      { name: "All Leads", href: "/dashboard/leads", icon: TrendingUp },
+      { name: "Kanban Board", href: "/dashboard/leads?view=kanban", icon: Columns3 },
+      { name: "Add Lead", href: "/dashboard/leads/new", icon: Plus },
+    ],
+  },
+  {
+    name: "Tasks",
+    href: "/dashboard/tasks",
+    icon: ClipboardList,
+    children: [
+      { name: "All Tasks", href: "/dashboard/tasks", icon: ListChecks },
+      { name: "New Task", href: "/dashboard/tasks/new", icon: Plus },
+    ],
+  },
   {
     name: "Reviews",
     href: "/dashboard/reviews",

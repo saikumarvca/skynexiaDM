@@ -15,6 +15,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const { clientId } = await params
 
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+    sixMonthsAgo.setDate(1)
+    sixMonthsAgo.setHours(0, 0, 0, 0)
+
     const [
       summaryCounts,
       byPlatformRaw,
@@ -22,6 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       usageOverTimeRaw,
       campaignsAggRaw,
       leadsAggRaw,
+      monthlyUsageRaw,
     ] = await Promise.all([
       (async () => {
         const [totalReviews, unusedReviews, usedReviews, archivedReviews, totalUsage] = await Promise.all([
@@ -105,6 +111,28 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           },
         },
       ]),
+      ReviewUsage.aggregate([
+        {
+          $match: {
+            clientId,
+            usedAt: { $gte: sixMonthsAgo },
+          },
+        },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m', date: '$usedAt' } },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            month: '$_id',
+            count: 1,
+          },
+        },
+        { $sort: { month: 1 } },
+      ]),
     ])
 
     const byPlatform = byPlatformRaw as { platform: string; count: number }[]
@@ -118,6 +146,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       status: l._id,
       count: l.count,
     }))
+    const monthlyReviewUsage = monthlyUsageRaw as { month: string; count: number }[]
 
     const recommendations: {
       id: string
@@ -156,6 +185,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       usageOverTime,
       campaignsByStatus,
       leadsByStatus,
+      monthlyReviewUsage,
       recommendations,
     })
   } catch (error) {

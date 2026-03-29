@@ -8,8 +8,10 @@ import { Client } from "@/types"
 import { FileText, CheckCircle, Archive, Edit, Plus, Target, ListChecks, FileStack, LineChart, Layers, Search, Download } from "lucide-react"
 import Link from "next/link"
 import { CollapsibleClientInfo } from "@/components/collapsible-client-info"
+import { CollapsibleStats } from "@/components/collapsible-stats"
 import { serverFetch } from "@/lib/server-fetch"
 import { GeneratePortalLinkButton } from "@/components/generate-portal-link-button"
+import { ClientPerformanceCharts } from "@/components/clients/client-performance-charts"
 
 type UsageItem = {
   _id: string
@@ -159,32 +161,34 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total Reviews"
-            value={stats.totalReviews}
-            icon={FileText}
-            description="All reviews"
-          />
-          <StatsCard
-            title="Unused Reviews"
-            value={stats.unusedReviews}
-            icon={CheckCircle}
-            description="Available for use"
-          />
-          <StatsCard
-            title="Used Reviews"
-            value={stats.usedReviews}
-            icon={Archive}
-            description="Already utilized"
-          />
-          <StatsCard
-            title="Total Usage"
-            value={stats.totalUsage}
-            icon={FileText}
-            description="Usage records"
-          />
-        </div>
+        <CollapsibleStats label="stats">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatsCard
+              title="Total Reviews"
+              value={stats.totalReviews}
+              icon={FileText}
+              description="All reviews"
+            />
+            <StatsCard
+              title="Unused Reviews"
+              value={stats.unusedReviews}
+              icon={CheckCircle}
+              description="Available for use"
+            />
+            <StatsCard
+              title="Used Reviews"
+              value={stats.usedReviews}
+              icon={Archive}
+              description="Already utilized"
+            />
+            <StatsCard
+              title="Total Usage"
+              value={stats.totalUsage}
+              icon={FileText}
+              description="Usage records"
+            />
+          </div>
+        </CollapsibleStats>
 
         <CollapsibleClientInfo client={client} />
 
@@ -416,6 +420,11 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                     )}
                   </CardContent>
                 </Card>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Performance Charts</h3>
+                  <ClientPerformanceCharts clientId={clientId} />
+                </div>
               </div>
             )}
           </TabsContent>

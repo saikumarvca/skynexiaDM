@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     assertAdmin(user);
 
     await dbConnect();
-    const users = await User.find({ isActive: true })
-      .select('_id name email role')
+    const users = await User.find({})
+      .select('_id name email role isActive')
       .sort({ name: 1 });
     return NextResponse.json(users);
   } catch (error) {
@@ -50,7 +50,13 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const created = await User.create({ name, email, role, passwordHash, isActive: true });
-    return NextResponse.json({ _id: created._id.toString(), name: created.name, email: created.email, role: created.role });
+    return NextResponse.json({
+      _id: created._id.toString(),
+      name: created.name,
+      email: created.email,
+      role: created.role,
+      isActive: created.isActive,
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

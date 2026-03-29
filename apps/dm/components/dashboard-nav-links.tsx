@@ -1,11 +1,35 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { buildDashboardNavItems } from "@/lib/dashboard-navigation"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+const HOVER_CLOSE_MS = 220
+
+function sectionStillActiveForPath(name: string, p: string): boolean {
+  if (name === "Clients") return p.startsWith("/clients")
+  if (name === "Campaigns") return p.startsWith("/dashboard/campaigns")
+  if (name === "Content")
+    return p.startsWith("/dashboard/content") || p.startsWith("/dashboard/scheduled-posts")
+  if (name === "SEO") return p.startsWith("/dashboard/seo")
+  if (name === "Leads") return p.startsWith("/dashboard/leads")
+  if (name === "Tasks") return p.startsWith("/dashboard/tasks")
+  if (name === "Reviews")
+    return (
+      p === "/dashboard/reviews" ||
+      p.startsWith("/dashboard/review-") ||
+      p === "/dashboard/my-assigned-reviews" ||
+      p === "/dashboard/used-reviews" ||
+      p.startsWith("/dashboard/review-requests")
+    )
+  if (name === "Team") return p.startsWith("/team")
+  if (name === "Admin") return p.startsWith("/dashboard/admin")
+  return false
+}
 
 export function DashboardNavLinks({
   isAdmin = false,
@@ -19,8 +43,17 @@ export function DashboardNavLinks({
   className?: string
 }) {
   const pathname = usePathname()
+  const pathnameRef = useRef(pathname)
+  pathnameRef.current = pathname
   const navItems = buildDashboardNavItems(isAdmin)
 
+  const isClientsActive = pathname.startsWith("/clients")
+  const isCampaignsActive = pathname.startsWith("/dashboard/campaigns")
+  const isContentActive =
+    pathname.startsWith("/dashboard/content") || pathname.startsWith("/dashboard/scheduled-posts")
+  const isSeoActive = pathname.startsWith("/dashboard/seo")
+  const isLeadsActive = pathname.startsWith("/dashboard/leads")
+  const isTasksActive = pathname.startsWith("/dashboard/tasks")
   const isReviewActive =
     pathname === "/dashboard/reviews" ||
     pathname.startsWith("/dashboard/review-") ||
@@ -30,11 +63,90 @@ export function DashboardNavLinks({
   const isTeamActive = pathname.startsWith("/team")
   const isAdminActive = pathname.startsWith("/dashboard/admin")
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    Clients: isClientsActive,
+    Campaigns: isCampaignsActive,
+    Content: isContentActive,
+    SEO: isSeoActive,
+    Leads: isLeadsActive,
+    Tasks: isTasksActive,
     Reviews: isReviewActive,
     Team: isTeamActive,
     Admin: isAdminActive,
   })
 
+  const sectionCloseTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const flyoutCloseTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const [flyoutOpen, setFlyoutOpen] = useState<string | null>(null)
+
+  const cancelSectionClose = useCallback((name: string) => {
+    const t = sectionCloseTimers.current.get(name)
+    if (t) {
+      clearTimeout(t)
+      sectionCloseTimers.current.delete(name)
+    }
+  }, [])
+
+  const scheduleSectionClose = useCallback(
+    (name: string) => {
+      cancelSectionClose(name)
+      const id = window.setTimeout(() => {
+        sectionCloseTimers.current.delete(name)
+        const p = pathnameRef.current
+        if (!sectionStillActiveForPath(name, p)) {
+          setExpandedSections((prev) => ({ ...prev, [name]: false }))
+        }
+      }, HOVER_CLOSE_MS)
+      sectionCloseTimers.current.set(name, id)
+    },
+    [cancelSectionClose]
+  )
+
+  const cancelFlyoutClose = useCallback((name: string) => {
+    const t = flyoutCloseTimers.current.get(name)
+    if (t) {
+      clearTimeout(t)
+      flyoutCloseTimers.current.delete(name)
+    }
+  }, [])
+
+  const scheduleFlyoutClose = useCallback(
+    (name: string) => {
+      cancelFlyoutClose(name)
+      const id = window.setTimeout(() => {
+        flyoutCloseTimers.current.delete(name)
+        setFlyoutOpen((cur) => (cur === name ? null : cur))
+      }, HOVER_CLOSE_MS)
+      flyoutCloseTimers.current.set(name, id)
+    },
+    [cancelFlyoutClose]
+  )
+
+  const openFlyout = useCallback(
+    (name: string) => {
+      cancelFlyoutClose(name)
+      setFlyoutOpen(name)
+    },
+    [cancelFlyoutClose]
+  )
+
+  useEffect(() => {
+    if (isClientsActive) setExpandedSections((p) => ({ ...p, Clients: true }))
+  }, [pathname, isClientsActive])
+  useEffect(() => {
+    if (isCampaignsActive) setExpandedSections((p) => ({ ...p, Campaigns: true }))
+  }, [pathname, isCampaignsActive])
+  useEffect(() => {
+    if (isContentActive) setExpandedSections((p) => ({ ...p, Content: true }))
+  }, [pathname, isContentActive])
+  useEffect(() => {
+    if (isSeoActive) setExpandedSections((p) => ({ ...p, SEO: true }))
+  }, [pathname, isSeoActive])
+  useEffect(() => {
+    if (isLeadsActive) setExpandedSections((p) => ({ ...p, Leads: true }))
+  }, [pathname, isLeadsActive])
+  useEffect(() => {
+    if (isTasksActive) setExpandedSections((p) => ({ ...p, Tasks: true }))
+  }, [pathname, isTasksActive])
   useEffect(() => {
     if (isReviewActive) setExpandedSections((p) => ({ ...p, Reviews: true }))
   }, [pathname, isReviewActive])
@@ -45,8 +157,28 @@ export function DashboardNavLinks({
     if (isAdminActive) setExpandedSections((p) => ({ ...p, Admin: true }))
   }, [pathname, isAdminActive])
 
+  useEffect(() => {
+    return () => {
+      sectionCloseTimers.current.forEach(clearTimeout)
+      flyoutCloseTimers.current.forEach(clearTimeout)
+    }
+  }, [])
+
   const linkAfterNav = () => {
     onLinkClick?.()
+  }
+
+  const sectionStillActive = (name: string) => {
+    if (name === "Clients") return isClientsActive
+    if (name === "Campaigns") return isCampaignsActive
+    if (name === "Content") return isContentActive
+    if (name === "SEO") return isSeoActive
+    if (name === "Leads") return isLeadsActive
+    if (name === "Tasks") return isTasksActive
+    if (name === "Reviews") return isReviewActive
+    if (name === "Team") return isTeamActive
+    if (name === "Admin") return isAdminActive
+    return false
   }
 
   return (
@@ -59,39 +191,107 @@ export function DashboardNavLinks({
     >
       {navItems.map((item) => {
         if ("children" in item && item.children) {
-          const sectionActive =
-            item.name === "Reviews"
-              ? isReviewActive
-              : item.name === "Team"
-                ? isTeamActive
-                : item.name === "Admin"
-                  ? isAdminActive
-                  : false
+          const sectionActive = sectionStillActive(item.name)
           const isExpanded = sectionActive || !!expandedSections[item.name]
           const isParentActive = pathname === item.href
 
           if (collapsed) {
             return (
-              <Link
+              <Popover
                 key={item.name}
-                href={item.href}
-                title={`${item.name} — expand sidebar for full menu`}
-                onClick={linkAfterNav}
-                className={cn(
-                  "flex items-center justify-center rounded-md py-2.5 text-sm font-medium transition-colors",
-                  isParentActive || sectionActive
-                    ? "bg-primary/10 text-primary dark:bg-primary/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
+                open={flyoutOpen === item.name}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    cancelFlyoutClose(item.name)
+                    setFlyoutOpen((cur) => (cur === item.name ? null : cur))
+                  }
+                }}
+                modal={false}
               >
-                <item.icon className="h-4 w-4 shrink-0" />
-              </Link>
+                <div
+                  onMouseEnter={() => openFlyout(item.name)}
+                  onMouseLeave={() => scheduleFlyoutClose(item.name)}
+                >
+                  <PopoverTrigger asChild>
+                    <Link
+                      href={item.href}
+                      title={`${item.name} — hover for more`}
+                      onClick={linkAfterNav}
+                      className={cn(
+                        "flex items-center justify-center rounded-md py-2.5 text-sm font-medium transition-colors",
+                        isParentActive || sectionActive
+                          ? "bg-primary/10 text-primary dark:bg-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                    </Link>
+                  </PopoverTrigger>
+                </div>
+                <PopoverContent
+                  side="right"
+                  align="start"
+                  sideOffset={8}
+                  className="w-56 p-1.5"
+                  onMouseEnter={() => cancelFlyoutClose(item.name)}
+                  onMouseLeave={() => scheduleFlyoutClose(item.name)}
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <p className="mb-1.5 px-2 pt-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {item.name}
+                  </p>
+                  <div className="flex flex-col gap-0.5">
+                    {item.children.map((child) => {
+                      const isChildActive =
+                        pathname === child.href || pathname.startsWith(`${child.href}/`)
+                      return (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          onClick={() => {
+                            linkAfterNav()
+                            setFlyoutOpen(null)
+                          }}
+                          className={cn(
+                            "flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",
+                            isChildActive
+                              ? "bg-primary/10 font-medium text-primary dark:bg-primary/20"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          <child.icon className="h-3.5 w-3.5 shrink-0" />
+                          {child.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )
           }
 
           const sectionId = `nav-section-${item.name.toLowerCase().replace(/\s+/g, "-")}`
           return (
-            <div key={item.name}>
+            <div
+              key={item.name}
+              className="rounded-md"
+              onMouseEnter={() => {
+                cancelSectionClose(item.name)
+                setExpandedSections((p) => ({ ...p, [item.name]: true }))
+              }}
+              onMouseLeave={() => {
+                scheduleSectionClose(item.name)
+              }}
+              onFocusCapture={() => {
+                cancelSectionClose(item.name)
+                setExpandedSections((p) => ({ ...p, [item.name]: true }))
+              }}
+              onBlurCapture={(e) => {
+                const next = e.relatedTarget as Node | null
+                if (next && e.currentTarget.contains(next)) return
+                scheduleSectionClose(item.name)
+              }}
+            >
               <button
                 type="button"
                 id={`${sectionId}-trigger`}

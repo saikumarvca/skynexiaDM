@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react"
+import type { DashboardViewId } from "@/lib/dashboard/views-config"
 
 function firstName(displayName: string) {
   const t = displayName.trim()
@@ -6,8 +7,50 @@ function firstName(displayName: string) {
   return t.split(/\s+/)[0] ?? "there"
 }
 
-export function DashboardHero({ userName }: { userName: string }) {
-  const name = firstName(userName)
+const HERO_COPY: Record<
+  DashboardViewId,
+  { badge: string; title: (name: string) => string; subtitle: string }
+> = {
+  overview: {
+    badge: "Overview",
+    title: (name) => `Welcome back, ${firstName(name)}`,
+    subtitle:
+      "Track clients, reviews, and campaigns from one place. Here is what is happening across your workspace today.",
+  },
+  operations: {
+    badge: "Operations",
+    title: (name) => `Day-to-day, ${firstName(name)}`,
+    subtitle:
+      "Tasks, publishing schedule, and pipeline signals in one glance. Jump straight into execution.",
+  },
+  content: {
+    badge: "Content & reviews",
+    title: () => "Review library & content health",
+    subtitle:
+      "Drafts, allocations, and review balance—keep copy ready and know what is still unused.",
+  },
+  growth: {
+    badge: "Growth",
+    title: () => "Pipeline & campaigns",
+    subtitle:
+      "Leads and campaigns at a summary level. Open full analytics when you need depth.",
+  },
+  technical: {
+    badge: "Technical",
+    title: () => "System snapshot",
+    subtitle:
+      "Document counts and environment metadata for administrators. No secrets are exposed here.",
+  },
+}
+
+export function DashboardHero({
+  userName,
+  view,
+}: {
+  userName: string
+  view: DashboardViewId
+}) {
+  const copy = HERO_COPY[view]
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -32,14 +75,13 @@ export function DashboardHero({ userName }: { userName: string }) {
         <div className="space-y-2">
           <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Overview
+            {copy.badge}
           </p>
           <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-            Welcome back, {name}
+            {copy.title(userName)}
           </h1>
           <p className="max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-            Track clients, reviews, and campaigns from one place. Here is what is happening across your
-            workspace today.
+            {copy.subtitle}
           </p>
         </div>
         <div className="shrink-0 rounded-xl border border-border/60 bg-background/60 px-4 py-3 text-sm text-muted-foreground backdrop-blur-sm">

@@ -23,9 +23,16 @@ export function LeadsPageClient({ leads, clients, tableContent }: LeadsPageClien
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === "kanban" || saved === "table") {
-      setView(saved)
+    // URL param takes priority over localStorage (e.g. nav link ?view=kanban)
+    const urlView = searchParams.get("view")
+    if (urlView === "kanban" || urlView === "table") {
+      setView(urlView)
+      localStorage.setItem(STORAGE_KEY, urlView)
+    } else {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved === "kanban" || saved === "table") {
+        setView(saved)
+      }
     }
     setMounted(true)
   }, [])

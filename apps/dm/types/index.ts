@@ -52,6 +52,50 @@ export interface DashboardStats {
   usedReviews: number;
 }
 
+/** Aggregated metrics for `/dashboard` multi-variant shell (server-fetched once). */
+export interface DashboardPageData {
+  totalClients: number;
+  totalReviews: number;
+  unusedReviews: number;
+  usedReviews: number;
+  totalLeads: number;
+  totalCampaigns: number;
+  activeCampaigns: number;
+  openTasks: number;
+  scheduledToday: number;
+  reviewDrafts: number;
+  reviewAllocations: number;
+  reviewRequestsPending: number;
+  /** Counts per Lead.status for Growth funnel. */
+  leadStatusBreakdown: Record<string, number>;
+  /** Present only when loaded with isAdmin; otherwise null. */
+  technical: DashboardTechnicalSnapshot | null;
+}
+
+export interface DashboardTechnicalCounts {
+  clients: number;
+  reviews: number;
+  leads: number;
+  campaigns: number;
+  tasks: number;
+  scheduledPosts: number;
+  webhooks: number;
+  teamMembers: number;
+  users: number;
+  notifications: number;
+  contentItems: number;
+  keywords: number;
+  reviewDrafts: number;
+  reviewAllocations: number;
+  reviewRequests: number;
+}
+
+export interface DashboardTechnicalSnapshot {
+  appVersion: string;
+  nodeEnv: string;
+  counts: DashboardTechnicalCounts;
+}
+
 export interface ClientFormData {
   name: string;
   businessName: string;
