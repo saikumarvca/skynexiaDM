@@ -13,6 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { serverFetch } from "@/lib/server-fetch";
+import { InvoiceStatusFilter } from "./invoice-status-filter";
 
 async function getInvoices(status?: string) {
   try {
@@ -125,23 +126,7 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
                 <FileText className="h-5 w-5" />
                 Invoices ({invoices.length})
               </CardTitle>
-              <form method="get">
-                <select
-                  name="status"
-                  defaultValue={params.status ?? ""}
-                  onChange={(e) => (e.target.form as HTMLFormElement).submit()}
-                  className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-                >
-                  <option value="">All statuses</option>
-                  {["DRAFT", "SENT", "PAID", "OVERDUE", "CANCELLED"].map(
-                    (s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </form>
+              <InvoiceStatusFilter defaultStatus={params.status} />
             </div>
           </CardHeader>
           <CardContent>

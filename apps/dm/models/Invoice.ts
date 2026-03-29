@@ -7,6 +7,7 @@ export interface IInvoiceLineItem {
   quantity: number;
   unitPrice: number;
   total: number;
+  itemMasterId?: mongoose.Types.ObjectId;
 }
 
 export interface IInvoice extends mongoose.Document {
@@ -50,12 +51,17 @@ const InvoiceSchema = new mongoose.Schema<IInvoice>(
         quantity: { type: Number, required: true, default: 1 },
         unitPrice: { type: Number, required: true, default: 0 },
         total: { type: Number, required: true, default: 0 },
+        itemMasterId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "ItemMaster",
+          required: false,
+        },
       },
     ],
     subtotal: { type: Number, required: true, default: 0 },
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true, default: 0 },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "INR" },
     notes: { type: String },
     paidAt: { type: Date },
     sentAt: { type: Date },

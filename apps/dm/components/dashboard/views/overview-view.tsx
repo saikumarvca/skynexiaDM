@@ -99,6 +99,7 @@ export function OverviewView({
           icon={Users}
           description="Active client accounts"
           accent="primary"
+          href="/clients"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
         />
         <StatsCard
@@ -107,6 +108,7 @@ export function OverviewView({
           icon={FileText}
           description="All reviews in the system"
           accent="sky"
+          href="/dashboard/reviews"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:60ms]"
         />
         <StatsCard
@@ -115,6 +117,7 @@ export function OverviewView({
           icon={CheckCircle}
           description="Ready to assign or publish"
           accent="emerald"
+          href="/dashboard/reviews?status=UNUSED"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:120ms]"
         />
         <StatsCard
@@ -123,6 +126,7 @@ export function OverviewView({
           icon={Archive}
           description="Already in the wild"
           accent="violet"
+          href="/dashboard/reviews?status=USED"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:180ms]"
         />
       </div>

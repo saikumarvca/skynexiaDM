@@ -38,6 +38,7 @@ import {
   AlertTriangle,
   HelpCircle,
   BookOpen,
+  Wallet,
 } from "lucide-react";
 
 export type DashboardNavChild = {
@@ -210,11 +211,24 @@ const baseNavigation: DashboardNavItem[] = [
       },
     ],
   },
-  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   {
-    name: "Social Analytics",
-    href: "/dashboard/social-analytics",
-    icon: BarChart2,
+    name: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+    children: [
+      { name: "Overview", href: "/dashboard/analytics", icon: BarChart3 },
+      { name: "Social", href: "/dashboard/social-analytics", icon: BarChart2 },
+      { name: "Reviews", href: "/dashboard/review-analytics", icon: Activity },
+      {
+        name: "Budget & pacing",
+        href: "/dashboard/budget-pacing",
+        icon: AlertTriangle,
+      },
+      { name: "Pipeline", href: "/dashboard/leads", icon: TrendingUp },
+      { name: "SEO", href: "/dashboard/seo", icon: Hash },
+      { name: "Team", href: "/team/performance", icon: Users2 },
+      { name: "Time", href: "/dashboard/time-tracking", icon: Clock },
+    ],
   },
   {
     name: "Reports",
@@ -231,6 +245,11 @@ const baseNavigation: DashboardNavItem[] = [
     icon: DollarSign,
     children: [
       { name: "All Invoices", href: "/dashboard/invoices", icon: DollarSign },
+      {
+        name: "Accounts receivable",
+        href: "/dashboard/invoices/accounts-receivable",
+        icon: Wallet,
+      },
       { name: "New Invoice", href: "/dashboard/invoices/new", icon: Plus },
     ],
   },
@@ -239,12 +258,12 @@ const baseNavigation: DashboardNavItem[] = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
   {
     name: "Help",
-    href: "/dashboard/help/documentation",
+    href: "/dashboard/help/documentation/overview",
     icon: HelpCircle,
     children: [
       {
         name: "Documentation",
-        href: "/dashboard/help/documentation",
+        href: "/dashboard/help/documentation/overview",
         icon: BookOpen,
       },
     ],

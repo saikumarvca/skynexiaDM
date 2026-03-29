@@ -245,6 +245,11 @@ export function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
                     <p className="mb-2 text-xs text-muted-foreground">
                       {clientName(lead)}
                     </p>
+                    <span
+                      className={`mb-2 inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${STATUS_COLORS[lead.status].badge}`}
+                    >
+                      {STATUS_LABELS[lead.status]}
+                    </span>
                     {lead.source && (
                       <p className="mb-1.5 text-xs text-muted-foreground">
                         <span className="font-medium">Source:</span>{" "}

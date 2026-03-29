@@ -28,6 +28,7 @@ import {
   LayoutTemplate,
   Shield,
   MessageSquare,
+  Package,
 } from "lucide-react";
 
 interface LiveClient {
@@ -142,6 +143,13 @@ const ALL_ITEMS: SearchItem[] = [
     href: "/dashboard/settings",
     group: "Settings",
     icon: Settings,
+  },
+  {
+    name: "Item master",
+    href: "/dashboard/settings/item-master",
+    group: "Settings",
+    icon: Package,
+    keywords: "invoice catalog sku products services billing",
   },
   {
     name: "Notifications",

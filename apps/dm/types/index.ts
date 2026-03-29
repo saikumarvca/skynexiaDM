@@ -1,3 +1,13 @@
+export interface ItemMaster {
+  _id: string;
+  name: string;
+  description: string;
+  defaultUnitPrice: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Client {
   _id: string;
   name: string;

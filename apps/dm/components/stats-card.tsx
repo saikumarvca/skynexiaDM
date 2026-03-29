@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
@@ -19,6 +20,8 @@ interface StatsCardProps {
   /** Visual accent for the icon tile; defaults to muted. */
   accent?: keyof typeof accentStyles;
   className?: string;
+  /** When set, the whole card is a clickable link. */
+  href?: string;
 }
 
 export function StatsCard({
@@ -28,11 +31,13 @@ export function StatsCard({
   description,
   accent = "default",
   className,
+  href,
 }: StatsCardProps) {
-  return (
+  const card = (
     <Card
       className={cn(
-        "group relative overflow-hidden border-border/80 transition-shadow duration-300 hover:shadow-md",
+        "group relative h-full overflow-hidden border-border/80 transition-[box-shadow,border-color] duration-300 hover:shadow-md",
+        href && "cursor-pointer hover:border-primary/35",
         className,
       )}
     >
@@ -48,7 +53,7 @@ export function StatsCard({
             accentStyles[accent],
           )}
         >
-          <Icon className="h-4 w-4" />
+          <Icon className="h-4 w-4" aria-hidden />
         </span>
       </CardHeader>
       <CardContent>
@@ -61,4 +66,17 @@ export function StatsCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="block rounded-lg text-inherit no-underline outline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 }

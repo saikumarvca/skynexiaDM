@@ -1,34 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import type { Client, ItemMaster } from "@/types";
 
 interface LineItem {
+  itemMasterId?: string;
   description: string;
   quantity: number;
   unitPrice: number;
 }
 
-export function NewInvoiceForm() {
+function clientLabel(c: Client) {
+  return c.businessName?.trim() || c.name?.trim() || "Unnamed client";
+}
+
+interface NewInvoiceFormProps {
+  clients: Client[];
+  itemMasters: ItemMaster[];
+  defaultClientId?: string;
+}
+
+export function NewInvoiceForm({
+  clients,
+  itemMasters,
+  defaultClientId = "",
+}: NewInvoiceFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
-    clientId: "",
+    clientId: defaultClientId,
     issueDate: new Date().toISOString().slice(0, 10),
     dueDate: "",
-    currency: "USD",
+    currency: "INR",
     notes: "",
     tax: 0,
   });
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: "Retainer fee", quantity: 1, unitPrice: 0 },
+    { description: "", quantity: 1, unitPrice: 0 },
   ]);
+
+  useEffect(() => {
+    if (defaultClientId) {
+      setForm((f) => ({ ...f, clientId: defaultClientId }));
+    }
+  }, [defaultClientId]);
 
   const subtotal = lineItems.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
   const total = subtotal + Number(form.tax);
@@ -43,17 +65,52 @@ export function NewInvoiceForm() {
     );
   }
 
+  function applyCatalogPick(i: number, masterId: string) {
+    setLineItems((items) =>
+      items.map((item, j) => {
+        if (j !== i) return item;
+        if (!masterId) {
+          return { ...item, itemMasterId: undefined };
+        }
+        const m = itemMasters.find((x) => x._id === masterId);
+        if (!m) return { ...item, itemMasterId: undefined };
+        return {
+          ...item,
+          itemMasterId: masterId,
+          description: m.description,
+          unitPrice: m.defaultUnitPrice,
+        };
+      }),
+    );
+  }
+
+  function updateLineDescription(i: number, value: string) {
+    setLineItems((items) =>
+      items.map((item, j) =>
+        j === i
+          ? { ...item, description: value, itemMasterId: undefined }
+          : item,
+      ),
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const items = lineItems.map((l) => ({
-        ...l,
-        quantity: Number(l.quantity),
-        unitPrice: Number(l.unitPrice),
-        total: Number(l.quantity) * Number(l.unitPrice),
-      }));
+      const items = lineItems.map((l) => {
+        const quantity = Number(l.quantity);
+        const unitPrice = Number(l.unitPrice);
+        const row: Record<string, unknown> = {
+          description: l.description,
+          quantity,
+          unitPrice,
+          total: quantity * unitPrice,
+        };
+        if (l.itemMasterId) row.itemMasterId = l.itemMasterId;
+        return row;
+      });
       const res = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,16 +164,28 @@ export function NewInvoiceForm() {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">
-                Client ID *
+                Client *
               </label>
-              <Input
+              <select
                 required
+                disabled={clients.length === 0}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm disabled:opacity-60"
                 value={form.clientId}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, clientId: e.target.value }))
                 }
-                placeholder="MongoDB ObjectId"
-              />
+              >
+                <option value="">
+                  {clients.length === 0
+                    ? "No clients loaded — add a client first"
+                    : "Select client"}
+                </option>
+                {clients.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {clientLabel(c)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium">
@@ -129,7 +198,7 @@ export function NewInvoiceForm() {
                   setForm((f) => ({ ...f, currency: e.target.value }))
                 }
               >
-                {["USD", "EUR", "GBP", "AUD", "CAD"].map((c) => (
+                {["INR", "USD", "EUR", "GBP", "AUD", "CAD"].map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>
@@ -181,16 +250,39 @@ export function NewInvoiceForm() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Optional: choose a{" "}
+              <Link
+                href="/dashboard/settings/item-master"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                catalog item
+              </Link>{" "}
+              to fill the line and track analytics.
+            </p>
             {lineItems.map((item, i) => (
               <div
                 key={i}
-                className="grid grid-cols-[1fr_80px_100px_32px] gap-2 items-center"
+                className="flex flex-col gap-2 sm:grid sm:grid-cols-[minmax(0,7.5rem)_1fr_4rem_5.5rem_auto] sm:items-center sm:gap-2"
               >
+                <select
+                  aria-label="Catalog item"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 py-1 text-xs sm:text-sm"
+                  value={item.itemMasterId ?? ""}
+                  onChange={(e) => applyCatalogPick(i, e.target.value)}
+                >
+                  <option value="">Custom line</option>
+                  {itemMasters.map((m) => (
+                    <option key={m._id} value={m._id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
                 <Input
                   placeholder="Description"
                   value={item.description}
                   onChange={(e) =>
-                    updateLineItem(i, "description", e.target.value)
+                    updateLineDescription(i, e.target.value)
                   }
                 />
                 <Input
@@ -225,6 +317,7 @@ export function NewInvoiceForm() {
                     type="button"
                     size="sm"
                     variant="ghost"
+                    className="justify-self-end sm:justify-self-center"
                     onClick={() =>
                       setLineItems((l) => l.filter((_, j) => j !== i))
                     }

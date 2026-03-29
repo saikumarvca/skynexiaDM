@@ -337,20 +337,37 @@
   }
 }
 
+/* Collapsed dashboard nav: Radix popper + small `--radix-popper-available-height` caps flyout height for low triggers; constrain the wrapper instead so the inner scroller can use real viewport space */
+@layer components {
+  [data-radix-popper-content-wrapper]:has([data-nav-collapsed-flyout]) {
+    max-height: min(85dvh, calc(100dvh - 2rem));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
+
 @layer utilities {
-  /* Thin scrollbar for inner panels */
+  /* Thin scrollbar for inner panels (documentation sidebar, drawers) */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--border)) transparent;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.28) transparent;
   }
   .scrollbar-thin::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
+    margin-block: 4px;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--border));
+    background-color: hsl(var(--muted-foreground) / 0.22);
     border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.42);
   }
 }

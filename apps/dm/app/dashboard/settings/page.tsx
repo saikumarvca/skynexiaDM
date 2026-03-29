@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 
 export const dynamic = "force-dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Building2, Bell, Plug, Mail, Download } from "lucide-react";
+import { Users, Building2, Bell, Plug, Mail, Download, Package } from "lucide-react";
 import dbConnect from "@/lib/mongodb";
 import TeamMember from "@/models/TeamMember";
 import { requireUser } from "@/lib/auth";
@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { SettingsClient } from "@/components/settings/settings-client";
 import { EmailConfigCard } from "@/components/settings/email-config-card";
 import { SocialPlatformsCard } from "@/components/settings/social-platforms-card";
+import Link from "next/link";
 
 async function getTeamMembers(): Promise<
   { _id: string; name: string; email: string; roleName?: string }[]
@@ -102,6 +103,29 @@ export default async function DashboardSettingsPage() {
                   ))}
                 </ul>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Item master
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Maintain reusable invoice line items. View usage and revenue
+                analytics on the item master page.
+              </p>
+              <Link href="/dashboard/settings/item-master">
+                <button
+                  type="button"
+                  className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  Manage item catalog
+                </button>
+              </Link>
             </CardContent>
           </Card>
 

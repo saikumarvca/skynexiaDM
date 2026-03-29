@@ -14,6 +14,19 @@ import {
 
 const HOVER_CLOSE_MS = 220;
 
+function isAnalyticsSectionPath(p: string) {
+  return (
+    p.startsWith("/dashboard/analytics") ||
+    p.startsWith("/dashboard/social-analytics") ||
+    p.startsWith("/dashboard/review-analytics") ||
+    p.startsWith("/dashboard/budget-pacing") ||
+    p.startsWith("/dashboard/leads") ||
+    p.startsWith("/dashboard/seo") ||
+    p.startsWith("/team/performance") ||
+    p.startsWith("/dashboard/time-tracking")
+  );
+}
+
 function sectionStillActiveForPath(name: string, p: string): boolean {
   if (name === "Clients") return p.startsWith("/clients");
   if (name === "Campaigns") return p.startsWith("/dashboard/campaigns");
@@ -38,6 +51,7 @@ function sectionStillActiveForPath(name: string, p: string): boolean {
   if (name === "Reports") return p.startsWith("/dashboard/reports");
   if (name === "Invoices") return p.startsWith("/dashboard/invoices");
   if (name === "Help") return p.startsWith("/dashboard/help");
+  if (name === "Analytics") return isAnalyticsSectionPath(p);
   return false;
 }
 
@@ -76,6 +90,7 @@ export function DashboardNavLinks({
   const isReportsActive = pathname.startsWith("/dashboard/reports");
   const isInvoicesActive = pathname.startsWith("/dashboard/invoices");
   const isHelpActive = pathname.startsWith("/dashboard/help");
+  const isAnalyticsActive = isAnalyticsSectionPath(pathname);
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
@@ -91,34 +106,13 @@ export function DashboardNavLinks({
     Reports: isReportsActive,
     Invoices: isInvoicesActive,
     Help: isHelpActive,
+    Analytics: isAnalyticsActive,
   });
 
-  const sectionCloseTimers = useRef<Map<string, number>>(new Map());
+  const [manuallyClosed, setManuallyClosed] = useState<Record<string, boolean>>({});
+
   const flyoutCloseTimers = useRef<Map<string, number>>(new Map());
   const [flyoutOpen, setFlyoutOpen] = useState<string | null>(null);
-
-  const cancelSectionClose = useCallback((name: string) => {
-    const t = sectionCloseTimers.current.get(name);
-    if (t) {
-      clearTimeout(t);
-      sectionCloseTimers.current.delete(name);
-    }
-  }, []);
-
-  const scheduleSectionClose = useCallback(
-    (name: string) => {
-      cancelSectionClose(name);
-      const id = window.setTimeout(() => {
-        sectionCloseTimers.current.delete(name);
-        const p = pathnameRef.current;
-        if (!sectionStillActiveForPath(name, p)) {
-          setExpandedSections((prev) => ({ ...prev, [name]: false }));
-        }
-      }, HOVER_CLOSE_MS) as unknown as number;
-      sectionCloseTimers.current.set(name, id);
-    },
-    [cancelSectionClose],
-  );
 
   const cancelFlyoutClose = useCallback((name: string) => {
     const t = flyoutCloseTimers.current.get(name);
@@ -186,10 +180,40 @@ export function DashboardNavLinks({
   useEffect(() => {
     if (isHelpActive) setExpandedSections((p) => ({ ...p, Help: true }));
   }, [pathname, isHelpActive]);
+  useEffect(() => {
+    if (isAnalyticsActive)
+      setExpandedSections((p) => ({ ...p, Analytics: true }));
+  }, [pathname, isAnalyticsActive]);
+
+  // When the user navigates into a section, clear any manual-close override
+  // so the section auto-expands to show the active child.
+  useEffect(() => {
+    setManuallyClosed((prev) => {
+      const next = { ...prev };
+      const sectionMap: Record<string, boolean> = {
+        Clients: isClientsActive,
+        Campaigns: isCampaignsActive,
+        Content: isContentActive,
+        SEO: isSeoActive,
+        Leads: isLeadsActive,
+        Tasks: isTasksActive,
+        Reviews: isReviewActive,
+        Team: isTeamActive,
+        Admin: isAdminActive,
+        Reports: isReportsActive,
+        Invoices: isInvoicesActive,
+        Help: isHelpActive,
+        Analytics: isAnalyticsActive,
+      };
+      Object.entries(sectionMap).forEach(([name, active]) => {
+        if (active) delete next[name];
+      });
+      return next;
+    });
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     return () => {
-      sectionCloseTimers.current.forEach(clearTimeout);
       flyoutCloseTimers.current.forEach(clearTimeout);
     };
   }, []);
@@ -211,6 +235,7 @@ export function DashboardNavLinks({
     if (name === "Reports") return isReportsActive;
     if (name === "Invoices") return isInvoicesActive;
     if (name === "Help") return isHelpActive;
+    if (name === "Analytics") return isAnalyticsActive;
     return false;
   };
 
@@ -221,7 +246,9 @@ export function DashboardNavLinks({
       {navItems.map((item) => {
         if ("children" in item && item.children) {
           const sectionActive = sectionStillActive(item.name);
-          const isExpanded = sectionActive || !!expandedSections[item.name];
+          const isExpanded =
+            (sectionActive || !!expandedSections[item.name]) &&
+            !manuallyClosed[item.name];
           const isParentActive = pathname === item.href;
 
           if (collapsed) {
@@ -259,41 +286,46 @@ export function DashboardNavLinks({
                 </div>
                 <PopoverContent
                   side="right"
-                  align="start"
+                  align="center"
                   sideOffset={8}
-                  className="w-56 p-1.5"
+                  collisionPadding={12}
+                  avoidCollisions={false}
+                  data-nav-collapsed-flyout=""
+                  className="flex min-h-0 w-56 flex-1 flex-col overflow-hidden p-1.5"
                   onMouseEnter={() => cancelFlyoutClose(item.name)}
                   onMouseLeave={() => scheduleFlyoutClose(item.name)}
                   onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                  <p className="mb-1.5 px-2 pt-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="mb-1.5 shrink-0 px-2 pt-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {item.name}
                   </p>
-                  <div className="flex flex-col gap-0.5">
-                    {item.children.map((child) => {
-                      const isChildActive =
-                        pathname === child.href ||
-                        pathname.startsWith(`${child.href}/`);
-                      return (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          onClick={() => {
-                            linkAfterNav();
-                            setFlyoutOpen(null);
-                          }}
-                          className={cn(
-                            "flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",
-                            isChildActive
-                              ? "bg-primary/10 font-medium text-primary dark:bg-primary/20"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                          )}
-                        >
-                          <child.icon className="h-3.5 w-3.5 shrink-0" />
-                          {child.name}
-                        </Link>
-                      );
-                    })}
+                  <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    <div className="flex flex-col gap-0.5">
+                      {item.children.map((child) => {
+                        const isChildActive =
+                          pathname === child.href ||
+                          pathname.startsWith(`${child.href}/`);
+                        return (
+                          <Link
+                            key={child.name}
+                            href={child.href}
+                            onClick={() => {
+                              linkAfterNav();
+                              setFlyoutOpen(null);
+                            }}
+                            className={cn(
+                              "flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",
+                              isChildActive
+                                ? "bg-primary/10 font-medium text-primary dark:bg-primary/20"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                            )}
+                          >
+                            <child.icon className="h-3.5 w-3.5 shrink-0" />
+                            {child.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -305,34 +337,29 @@ export function DashboardNavLinks({
             <div
               key={item.name}
               className="rounded-md"
-              onMouseEnter={() => {
-                cancelSectionClose(item.name);
-                setExpandedSections((p) => ({ ...p, [item.name]: true }));
-              }}
-              onMouseLeave={() => {
-                scheduleSectionClose(item.name);
-              }}
-              onFocusCapture={() => {
-                cancelSectionClose(item.name);
-                setExpandedSections((p) => ({ ...p, [item.name]: true }));
-              }}
-              onBlurCapture={(e) => {
-                const next = e.relatedTarget as Node | null;
-                if (next && e.currentTarget.contains(next)) return;
-                scheduleSectionClose(item.name);
-              }}
             >
               <button
                 type="button"
                 id={`${sectionId}-trigger`}
                 aria-expanded={isExpanded}
                 aria-controls={sectionId}
-                onClick={() =>
-                  setExpandedSections((p) => ({
-                    ...p,
-                    [item.name]: !p[item.name],
-                  }))
-                }
+                onClick={() => {
+                  if (isExpanded) {
+                    // User is explicitly closing — record manual close
+                    setManuallyClosed((p) => ({ ...p, [item.name]: true }));
+                    setExpandedSections((p) => ({
+                      ...p,
+                      [item.name]: false,
+                    }));
+                  } else {
+                    // User is opening — clear manual close
+                    setManuallyClosed((p) => ({ ...p, [item.name]: false }));
+                    setExpandedSections((p) => ({
+                      ...p,
+                      [item.name]: true,
+                    }));
+                  }
+                }}
                 className={cn(
                   "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isParentActive || sectionActive
