@@ -87,7 +87,7 @@ const GROUPS: Group[] = [
 const ALL_ITEMS: SearchItem[] = [
   // Main
   { name: "Dashboard",       href: "/dashboard",                 group: "Main",      icon: Home },
-  { name: "Connect Wall",    href: "/connect-wall",              group: "Main",      icon: MessageSquare, keywords: "slack chat team org" },
+  { name: "Connect",    href: "/connect-wall",              group: "Main",      icon: MessageSquare, keywords: "slack chat team org" },
   { name: "Analytics",       href: "/dashboard/analytics",       group: "Analytics", icon: BarChart3 },
   { name: "Settings",        href: "/dashboard/settings",        group: "Settings",  icon: Settings },
   { name: "Notifications",   href: "/dashboard/notifications",   group: "Settings",  icon: Activity },

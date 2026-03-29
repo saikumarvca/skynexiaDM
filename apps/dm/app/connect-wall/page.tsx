@@ -11,7 +11,7 @@ export default async function ConnectWallPage() {
     <DashboardLayout>
       <div className="mx-auto max-w-6xl">
         <div className="mb-4">
-          <h1 className="text-2xl font-semibold tracking-tight">Connect Wall</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Connect</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Slack-style spaces for your team — shared channels and real-time-friendly threads.
           </p>

@@ -52,7 +52,7 @@ export type DashboardNavItem =
 
 const baseNavigation: DashboardNavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Connect Wall", href: "/connect-wall", icon: MessageSquare },
+  { name: "Connect", href: "/connect-wall", icon: MessageSquare },
   {
     name: "Clients",
     href: "/clients",

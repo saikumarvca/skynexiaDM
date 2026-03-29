@@ -8,6 +8,8 @@ import {
   type NotificationItem,
 } from "@/components/notifications-page-client"
 
+export const dynamic = "force-dynamic"
+
 async function getNotifications(): Promise<NotificationItem[]> {
   try {
     const res = await serverFetch("/api/notifications")

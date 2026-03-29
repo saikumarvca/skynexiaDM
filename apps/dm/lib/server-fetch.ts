@@ -20,9 +20,15 @@ async function cookieHeaderForInternalFetch(): Promise<string | null> {
     }
   } catch {
     // Outside a request (e.g. static generation)
+    return null;
   }
-  const h = await headers();
-  return h.get("cookie");
+  try {
+    const h = await headers();
+    return h.get("cookie");
+  } catch {
+    // Static generation / dynamic server usage — avoid failing the build
+    return null;
+  }
 }
 
 /**

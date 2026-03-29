@@ -43,7 +43,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
     <div
       id="app-sidebar"
       className={cn(
-        "hidden h-full shrink-0 flex-col border-r bg-card transition-[width] duration-200 ease-out md:flex",
+        "hidden min-h-dvh shrink-0 flex-col self-stretch border-r bg-card transition-[width] duration-200 ease-out md:flex",
         collapsed ? "w-[4.25rem]" : "w-64"
       )}
     >
@@ -98,7 +98,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           )}
         </Button>
       </div>
-      <div className="flex-1 overflow-y-auto py-4 scrollbar-thin">
+      <div className="min-h-0 flex-1 overflow-y-auto py-4 scrollbar-thin">
         <DashboardNavLinks isAdmin={isAdmin} collapsed={collapsed} />
       </div>
     </div>

@@ -111,7 +111,7 @@ export function ConnectWallApp({ currentUserId }: Props) {
       <aside className="flex w-full shrink-0 flex-col border-b border-border bg-muted/30 md:w-56 md:border-b-0 md:border-r">
         <div className="border-b border-border px-3 py-3">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Connect Wall
+            Connect
           </p>
           <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
             Org-wide chat — same channels for everyone.
