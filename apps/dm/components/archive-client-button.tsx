@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,17 +11,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Archive, Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dialog";
+import { Archive, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ArchiveClientButtonProps {
-  clientId: string
-  clientName: string
-  disabled?: boolean
-  className?: string
-  size?: "default" | "sm" | "lg" | "icon"
-  variant?: "default" | "outline" | "ghost" | "secondary"
+  clientId: string;
+  clientName: string;
+  disabled?: boolean;
+  className?: string;
+  size?: "default" | "sm" | "lg" | "icon";
+  variant?: "default" | "outline" | "ghost" | "secondary";
 }
 
 export function ArchiveClientButton({
@@ -32,26 +32,28 @@ export function ArchiveClientButton({
   size = "icon",
   variant = "outline",
 }: ArchiveClientButtonProps) {
-  const router = useRouter()
-  const [archiving, setArchiving] = useState(false)
-  const [open, setOpen] = useState(false)
+  const router = useRouter();
+  const [archiving, setArchiving] = useState(false);
+  const [open, setOpen] = useState(false);
 
   async function confirmArchive() {
-    setArchiving(true)
+    setArchiving(true);
     try {
-      const res = await fetch(`/api/clients/${clientId}`, { method: "DELETE" })
+      const res = await fetch(`/api/clients/${clientId}`, { method: "DELETE" });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || "Request failed")
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Request failed");
       }
-      toast.success(`Archived ${clientName}`)
-      setOpen(false)
-      router.refresh()
+      toast.success(`Archived ${clientName}`);
+      setOpen(false);
+      router.refresh();
     } catch (err) {
-      console.error(err)
-      toast.error(err instanceof Error ? err.message : "Failed to archive client")
+      console.error(err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to archive client",
+      );
     } finally {
-      setArchiving(false)
+      setArchiving(false);
     }
   }
 
@@ -62,8 +64,9 @@ export function ArchiveClientButton({
         variant={variant}
         size={size}
         className={cn(
-          size === "icon" && "h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive",
-          className
+          size === "icon" &&
+            "h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive",
+          className,
         )}
         disabled={disabled || archiving}
         title="Archive client"
@@ -71,12 +74,16 @@ export function ArchiveClientButton({
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          setOpen(true)
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
         }}
       >
-        {archiving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+        {archiving ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Archive className="h-4 w-4" />
+        )}
       </Button>
 
       <Dialog open={open} onOpenChange={(next) => !archiving && setOpen(next)}>
@@ -91,16 +98,24 @@ export function ArchiveClientButton({
             <div className="space-y-2">
               <DialogTitle className="text-xl font-semibold tracking-tight">
                 Archive{" "}
-                <span className="whitespace-nowrap text-primary">“{clientName}”</span>?
+                <span className="whitespace-nowrap text-primary">
+                  “{clientName}”
+                </span>
+                ?
               </DialogTitle>
               <DialogDescription className="text-base leading-relaxed text-muted-foreground">
-                They will leave your main client list. Nothing is deleted — you can still open them
-                from archived clients whenever you need.
+                They will leave your main client list. Nothing is deleted — you
+                can still open them from archived clients whenever you need.
               </DialogDescription>
             </div>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
-            <Button type="button" variant="outline" disabled={archiving} onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={archiving}
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="button" disabled={archiving} onClick={confirmArchive}>
@@ -120,5 +135,5 @@ export function ArchiveClientButton({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

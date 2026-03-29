@@ -14,7 +14,8 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "DM Dashboard",
-  description: "Digital Marketing Dashboard - Manage clients, campaigns, reviews, leads, and content.",
+  description:
+    "Digital Marketing Dashboard - Manage clients, campaigns, reviews, leads, and content.",
 };
 
 export default function RootLayout({

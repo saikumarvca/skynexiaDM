@@ -3,6 +3,18 @@
     {
       "path": "/api/cron/scheduled-posts",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/send-reports",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/check-budget-pacing",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/sync-post-metrics",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

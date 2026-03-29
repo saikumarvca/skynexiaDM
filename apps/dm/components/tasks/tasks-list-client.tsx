@@ -1,246 +1,269 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { toast } from "sonner"
-import { Task, TaskStatus, TaskPriority, Client } from "@/types"
-import { Button } from "@/components/ui/button"
-import { Archive, Calendar, User, ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { SavedFiltersBar } from "@/components/saved-filters/saved-filters-bar"
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
+import { Task, TaskStatus, TaskPriority, Client } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Archive, Calendar, User, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SavedFiltersBar } from "@/components/saved-filters/saved-filters-bar";
 
-
-const TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
-const TASK_PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+const TASK_STATUSES: TaskStatus[] = [
+  "TODO",
+  "IN_PROGRESS",
+  "BLOCKED",
+  "DONE",
+  "ARCHIVED",
+];
+const TASK_PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
 function clientName(task: Task): string {
-  const c = task.clientId
+  const c = task.clientId;
   if (c && typeof c === "object") {
     return (
       (c as { businessName?: string }).businessName ??
       (c as { name?: string }).name ??
       "—"
-    )
+    );
   }
-  return "—"
+  return "—";
 }
 
 function clientId(task: Task): string {
   return typeof task.clientId === "object"
     ? (task.clientId as { _id: string })._id
-    : (task.clientId as string)
+    : (task.clientId as string);
 }
 
 function assigneeName(task: Task & { assignedToName?: string }): string {
   if ((task as { assignedToName?: string }).assignedToName) {
-    return (task as { assignedToName?: string }).assignedToName!
+    return (task as { assignedToName?: string }).assignedToName!;
   }
-  if (!task.assignedTo) return "—"
-  const a = task.assignedTo
+  if (!task.assignedTo) return "—";
+  const a = task.assignedTo;
   if (typeof a === "object" && a && "name" in a) {
-    return (a as { name?: string }).name ?? (a as { email?: string }).email ?? "—"
+    return (
+      (a as { name?: string }).name ?? (a as { email?: string }).email ?? "—"
+    );
   }
-  return "—"
+  return "—";
 }
 
 function statusBadgeClass(status: TaskStatus): string {
   switch (status) {
     case "TODO":
-      return "bg-slate-100 text-slate-800"
+      return "bg-slate-100 text-slate-800";
     case "IN_PROGRESS":
-      return "bg-blue-100 text-blue-800"
+      return "bg-blue-100 text-blue-800";
     case "BLOCKED":
-      return "bg-red-100 text-red-800"
+      return "bg-red-100 text-red-800";
     case "DONE":
-      return "bg-green-100 text-green-800"
+      return "bg-green-100 text-green-800";
     case "ARCHIVED":
-      return "bg-gray-200 text-gray-500"
+      return "bg-gray-200 text-gray-500";
     default:
-      return "bg-gray-100 text-gray-800"
+      return "bg-gray-100 text-gray-800";
   }
 }
 
 function priorityClass(priority: TaskPriority): string {
   switch (priority) {
     case "CRITICAL":
-      return "text-red-600 font-semibold"
+      return "text-red-600 font-semibold";
     case "HIGH":
-      return "text-amber-600"
+      return "text-amber-600";
     case "MEDIUM":
-      return "text-slate-600"
+      return "text-slate-600";
     case "LOW":
-      return "text-muted-foreground"
+      return "text-muted-foreground";
     default:
-      return ""
+      return "";
   }
 }
 
 interface TasksListClientProps {
-  tasks: Task[]
-  clients: Client[]
+  tasks: Task[];
+  clients: Client[];
 }
 
 export function TasksListClient({ tasks }: TasksListClientProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const currentFilters: Record<string, string> = {}
+  const currentFilters: Record<string, string> = {};
   searchParams.forEach((value, key) => {
-    currentFilters[key] = value
-  })
+    currentFilters[key] = value;
+  });
 
   function applyFilters(filters: Record<string, string>) {
-    const params = new URLSearchParams(filters)
-    router.push(`/dashboard/tasks?${params.toString()}`)
+    const params = new URLSearchParams(filters);
+    router.push(`/dashboard/tasks?${params.toString()}`);
   }
 
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
-  const [bulkStatus, setBulkStatus] = useState<TaskStatus | "">("")
-  const [bulkWorking, setBulkWorking] = useState(false)
-  const [showArchived, setShowArchived] = useState(false)
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<TaskStatus | "">("");
+  const [bulkWorking, setBulkWorking] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Inline status editing
-  const [editingStatusId, setEditingStatusId] = useState<string | null>(null)
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const visibleTasks = showArchived
     ? tasks
-    : tasks.filter((t) => t.status !== "ARCHIVED")
+    : tasks.filter((t) => t.status !== "ARCHIVED");
 
-  const allChecked = visibleTasks.length > 0 && checkedIds.size === visibleTasks.length
-  const someChecked = checkedIds.size > 0 && !allChecked
+  const allChecked =
+    visibleTasks.length > 0 && checkedIds.size === visibleTasks.length;
+  const someChecked = checkedIds.size > 0 && !allChecked;
 
   function toggleAll() {
     if (allChecked) {
-      setCheckedIds(new Set())
+      setCheckedIds(new Set());
     } else {
-      setCheckedIds(new Set(visibleTasks.map((t) => t._id)))
+      setCheckedIds(new Set(visibleTasks.map((t) => t._id)));
     }
   }
 
   function toggleOne(id: string) {
     setCheckedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   async function updateTaskStatus(taskId: string, status: TaskStatus) {
-    setUpdatingId(taskId)
-    setEditingStatusId(null)
+    setUpdatingId(taskId);
+    setEditingStatusId(null);
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ status }),
-      })
+      });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(typeof err.error === "string" ? err.error : "Failed to update task")
-        return
+        const err = await res.json().catch(() => ({}));
+        toast.error(
+          typeof err.error === "string" ? err.error : "Failed to update task",
+        );
+        return;
       }
-      toast.success("Task status updated")
-      router.refresh()
+      toast.success("Task status updated");
+      router.refresh();
     } catch {
-      toast.error("Failed to update task")
+      toast.error("Failed to update task");
     } finally {
-      setUpdatingId(null)
+      setUpdatingId(null);
     }
   }
 
   async function archiveTask(taskId: string) {
-    if (!window.confirm("Archive this task?")) return
-    setUpdatingId(taskId)
+    if (!window.confirm("Archive this task?")) return;
+    setUpdatingId(taskId);
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ status: "ARCHIVED" }),
-      })
+      });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(typeof err.error === "string" ? err.error : "Failed to archive task")
-        return
+        const err = await res.json().catch(() => ({}));
+        toast.error(
+          typeof err.error === "string" ? err.error : "Failed to archive task",
+        );
+        return;
       }
-      toast.success("Task archived")
+      toast.success("Task archived");
       setCheckedIds((prev) => {
-        const next = new Set(prev)
-        next.delete(taskId)
-        return next
-      })
-      router.refresh()
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+      router.refresh();
     } catch {
-      toast.error("Failed to archive task")
+      toast.error("Failed to archive task");
     } finally {
-      setUpdatingId(null)
+      setUpdatingId(null);
     }
   }
 
   async function unarchiveTask(taskId: string) {
-    setUpdatingId(taskId)
+    setUpdatingId(taskId);
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ status: "TODO" }),
-      })
+      });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(typeof err.error === "string" ? err.error : "Failed to unarchive task")
-        return
+        const err = await res.json().catch(() => ({}));
+        toast.error(
+          typeof err.error === "string"
+            ? err.error
+            : "Failed to unarchive task",
+        );
+        return;
       }
-      toast.success("Task unarchived")
-      router.refresh()
+      toast.success("Task unarchived");
+      router.refresh();
     } catch {
-      toast.error("Failed to unarchive task")
+      toast.error("Failed to unarchive task");
     } finally {
-      setUpdatingId(null)
+      setUpdatingId(null);
     }
   }
 
   async function bulkArchive() {
     if (
       !window.confirm(
-        `Archive ${checkedIds.size} task${checkedIds.size > 1 ? "s" : ""}?`
+        `Archive ${checkedIds.size} task${checkedIds.size > 1 ? "s" : ""}?`,
       )
     )
-      return
-    setBulkWorking(true)
+      return;
+    setBulkWorking(true);
     try {
       const res = await fetch("/api/tasks/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ action: "archive", ids: Array.from(checkedIds) }),
-      })
+        body: JSON.stringify({
+          action: "archive",
+          ids: Array.from(checkedIds),
+        }),
+      });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(typeof err.error === "string" ? err.error : "Bulk archive failed")
-        return
+        const err = await res.json().catch(() => ({}));
+        toast.error(
+          typeof err.error === "string" ? err.error : "Bulk archive failed",
+        );
+        return;
       }
-      const data = await res.json()
-      toast.success(`Archived ${data.archived} task${data.archived !== 1 ? "s" : ""}`)
-      setCheckedIds(new Set())
-      router.refresh()
+      const data = await res.json();
+      toast.success(
+        `Archived ${data.archived} task${data.archived !== 1 ? "s" : ""}`,
+      );
+      setCheckedIds(new Set());
+      router.refresh();
     } catch {
-      toast.error("Bulk archive failed")
+      toast.error("Bulk archive failed");
     } finally {
-      setBulkWorking(false)
+      setBulkWorking(false);
     }
   }
 
   async function bulkUpdateStatus() {
     if (!bulkStatus) {
-      toast.error("Please select a status")
-      return
+      toast.error("Please select a status");
+      return;
     }
-    setBulkWorking(true)
+    setBulkWorking(true);
     try {
       const res = await fetch("/api/tasks/bulk", {
         method: "POST",
@@ -251,21 +274,25 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
           ids: Array.from(checkedIds),
           status: bulkStatus,
         }),
-      })
+      });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(typeof err.error === "string" ? err.error : "Bulk update failed")
-        return
+        const err = await res.json().catch(() => ({}));
+        toast.error(
+          typeof err.error === "string" ? err.error : "Bulk update failed",
+        );
+        return;
       }
-      const data = await res.json()
-      toast.success(`Updated ${data.updated} task${data.updated !== 1 ? "s" : ""}`)
-      setCheckedIds(new Set())
-      setBulkStatus("")
-      router.refresh()
+      const data = await res.json();
+      toast.success(
+        `Updated ${data.updated} task${data.updated !== 1 ? "s" : ""}`,
+      );
+      setCheckedIds(new Set());
+      setBulkStatus("");
+      router.refresh();
     } catch {
-      toast.error("Bulk update failed")
+      toast.error("Bulk update failed");
     } finally {
-      setBulkWorking(false)
+      setBulkWorking(false);
     }
   }
 
@@ -289,7 +316,10 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
           onChange={(e) => setShowArchived(e.target.checked)}
           className="h-4 w-4 cursor-pointer rounded border-input"
         />
-        <label htmlFor="show-archived-tasks" className="text-sm text-muted-foreground cursor-pointer select-none">
+        <label
+          htmlFor="show-archived-tasks"
+          className="text-sm text-muted-foreground cursor-pointer select-none"
+        >
           Show archived tasks
         </label>
       </div>
@@ -362,7 +392,7 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
                     type="checkbox"
                     checked={allChecked}
                     ref={(el) => {
-                      if (el) el.indeterminate = someChecked
+                      if (el) el.indeterminate = someChecked;
                     }}
                     onChange={toggleAll}
                     aria-label="Select all tasks"
@@ -384,13 +414,10 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
                   key={task._id}
                   className={cn(
                     "border-b last:border-0",
-                    checkedIds.has(task._id) && "bg-primary/5"
+                    checkedIds.has(task._id) && "bg-primary/5",
                   )}
                 >
-                  <td
-                    className="py-3 pl-2"
-                    onClick={() => toggleOne(task._id)}
-                  >
+                  <td className="py-3 pl-2" onClick={() => toggleOne(task._id)}>
                     <input
                       type="checkbox"
                       checked={checkedIds.has(task._id)}
@@ -432,13 +459,13 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
                       <button
                         onClick={() =>
                           setEditingStatusId(
-                            editingStatusId === task._id ? null : task._id
+                            editingStatusId === task._id ? null : task._id,
                           )
                         }
                         disabled={updatingId === task._id}
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-opacity hover:opacity-80 disabled:opacity-50",
-                          statusBadgeClass(task.status)
+                          statusBadgeClass(task.status),
                         )}
                       >
                         {task.status.replace("_", " ")}
@@ -452,7 +479,7 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
                               onClick={() => updateTaskStatus(task._id, s)}
                               className={cn(
                                 "block w-full px-3 py-1.5 text-left text-xs hover:bg-muted",
-                                task.status === s && "font-semibold"
+                                task.status === s && "font-semibold",
                               )}
                             >
                               {s.replace("_", " ")}
@@ -504,5 +531,5 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
         </div>
       )}
     </>
-  )
+  );
 }

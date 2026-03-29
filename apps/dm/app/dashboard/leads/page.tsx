@@ -1,90 +1,118 @@
-import Link from "next/link"
-import { Suspense } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { QueryToast } from "@/components/query-toast"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Users, ExternalLink, Mail, Phone } from "lucide-react"
-import { Lead, LeadStatus } from "@/types"
-import { Client } from "@/types"
-import { LeadsPageClient } from "@/components/leads/leads-page-client"
-import { ExportButton } from "@/components/export-button"
-import { PdfExportButton } from "@/components/pdf-export-button"
+import Link from "next/link";
+import { Suspense } from "react";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { QueryToast } from "@/components/query-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Users, ExternalLink, Mail, Phone } from "lucide-react";
+import { Lead, LeadStatus } from "@/types";
+import { Client } from "@/types";
+import { LeadsPageClient } from "@/components/leads/leads-page-client";
+import { ExportButton } from "@/components/export-button";
+import { PdfExportButton } from "@/components/pdf-export-button";
 
-import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
+import { getBaseUrl, serverFetch } from "@/lib/server-fetch";
 
 async function getLeads(filters: {
-  clientId?: string
-  status?: string
-  source?: string
+  clientId?: string;
+  status?: string;
+  source?: string;
 }): Promise<Lead[]> {
   try {
-    const url = new URL(`${getBaseUrl()}/api/leads`)
-    if (filters.clientId) url.searchParams.set("clientId", filters.clientId)
-    if (filters.status) url.searchParams.set("status", filters.status)
-    if (filters.source) url.searchParams.set("source", filters.source)
-    const res = await serverFetch(url.pathname + url.search)
-    if (!res.ok) throw new Error("Failed to fetch leads")
-    return await res.json()
+    const url = new URL(`${getBaseUrl()}/api/leads`);
+    if (filters.clientId) url.searchParams.set("clientId", filters.clientId);
+    if (filters.status) url.searchParams.set("status", filters.status);
+    if (filters.source) url.searchParams.set("source", filters.source);
+    const res = await serverFetch(url.pathname + url.search);
+    if (!res.ok) throw new Error("Failed to fetch leads");
+    return await res.json();
   } catch (e) {
-    console.error("Error fetching leads:", e)
-    return []
+    console.error("Error fetching leads:", e);
+    return [];
   }
 }
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await serverFetch("/api/clients?limit=500")
-    if (!res.ok) throw new Error("Failed to fetch clients")
-    return await res.json()
+    const res = await serverFetch("/api/clients?limit=500");
+    if (!res.ok) throw new Error("Failed to fetch clients");
+    return await res.json();
   } catch (e) {
-    console.error("Error fetching clients:", e)
-    return []
+    console.error("Error fetching clients:", e);
+    return [];
   }
 }
 
-const STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "CLOSED_WON", "CLOSED_LOST"]
+const STATUSES: LeadStatus[] = [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "CLOSED_WON",
+  "CLOSED_LOST",
+];
 
 interface PageProps {
-  searchParams: Promise<{ clientId?: string; status?: string; source?: string }>
+  searchParams: Promise<{
+    clientId?: string;
+    status?: string;
+    source?: string;
+  }>;
 }
 
 export default async function DashboardLeadsPage({ searchParams }: PageProps) {
-  const params = await searchParams
+  const params = await searchParams;
   const [leads, clients] = await Promise.all([
     getLeads({
-      clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
-      status: params.status && params.status !== "ALL" ? params.status : undefined,
+      clientId:
+        params.clientId && params.clientId !== "ALL"
+          ? params.clientId
+          : undefined,
+      status:
+        params.status && params.status !== "ALL" ? params.status : undefined,
       source: params.source || undefined,
     }),
     getClients(),
-  ])
+  ]);
 
   const clientName = (lead: Lead) => {
-    const id = typeof lead.clientId === "object" ? lead.clientId : null
-    if (id && "businessName" in id) return (id as { businessName?: string }).businessName ?? (id as { name?: string }).name ?? "—"
-    return "—"
-  }
+    const id = typeof lead.clientId === "object" ? lead.clientId : null;
+    if (id && "businessName" in id)
+      return (
+        (id as { businessName?: string }).businessName ??
+        (id as { name?: string }).name ??
+        "—"
+      );
+    return "—";
+  };
   const clientId = (lead: Lead) =>
-    typeof lead.clientId === "object" ? (lead.clientId as { _id: string })._id : (lead.clientId as string)
+    typeof lead.clientId === "object"
+      ? (lead.clientId as { _id: string })._id
+      : (lead.clientId as string);
   const campaignName = (lead: Lead) => {
-    if (!lead.campaignId) return "—"
-    const c = lead.campaignId
-    if (typeof c === "object" && c && "campaignName" in c) return (c as { campaignName?: string }).campaignName ?? "—"
-    return "—"
-  }
+    if (!lead.campaignId) return "—";
+    const c = lead.campaignId;
+    if (typeof c === "object" && c && "campaignName" in c)
+      return (c as { campaignName?: string }).campaignName ?? "—";
+    return "—";
+  };
 
   const statusColor = (status: LeadStatus) => {
     switch (status) {
-      case "NEW": return "bg-blue-100 text-blue-800"
-      case "CONTACTED": return "bg-amber-100 text-amber-800"
-      case "QUALIFIED": return "bg-green-100 text-green-800"
-      case "CLOSED_WON": return "bg-emerald-100 text-emerald-800"
-      case "CLOSED_LOST": return "bg-gray-100 text-gray-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "NEW":
+        return "bg-blue-100 text-blue-800";
+      case "CONTACTED":
+        return "bg-amber-100 text-amber-800";
+      case "QUALIFIED":
+        return "bg-green-100 text-green-800";
+      case "CLOSED_WON":
+        return "bg-emerald-100 text-emerald-800";
+      case "CLOSED_LOST":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   return (
     <DashboardLayout>
@@ -102,7 +130,9 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
           <div className="flex items-center gap-2">
             <ExportButton
               href={`/api/export/leads${
-                params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+                params.clientId && params.clientId !== "ALL"
+                  ? `?clientId=${params.clientId}`
+                  : ""
               }${
                 params.status && params.status !== "ALL"
                   ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
@@ -111,7 +141,9 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
             />
             <PdfExportButton
               href={`/api/export/leads/pdf${
-                params.clientId && params.clientId !== "ALL" ? `?clientId=${params.clientId}` : ""
+                params.clientId && params.clientId !== "ALL"
+                  ? `?clientId=${params.clientId}`
+                  : ""
               }${
                 params.status && params.status !== "ALL"
                   ? `${params.clientId && params.clientId !== "ALL" ? "&" : "?"}status=${params.status}`
@@ -132,9 +164,14 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
             <CardTitle className="text-base">Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <form method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <form
+              method="get"
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Client</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Client
+                </label>
                 <select
                   name="clientId"
                   defaultValue={params.clientId ?? "ALL"}
@@ -149,7 +186,9 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Status</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Status
+                </label>
                 <select
                   name="status"
                   defaultValue={params.status ?? "ALL"}
@@ -164,7 +203,9 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Source</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Source
+                </label>
                 <Input
                   name="source"
                   placeholder="e.g. Google Ads"
@@ -279,5 +320,5 @@ export default async function DashboardLeadsPage({ searchParams }: PageProps) {
         />
       </div>
     </DashboardLayout>
-  )
+  );
 }

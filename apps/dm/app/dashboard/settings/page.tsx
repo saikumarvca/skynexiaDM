@@ -1,52 +1,50 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard-layout";
 
-export const dynamic = "force-dynamic"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Users,
-  Building2,
-  Bell,
-  Plug,
-  Mail,
-  Download,
-} from "lucide-react"
-import dbConnect from "@/lib/mongodb"
-import TeamMember from "@/models/TeamMember"
-import { requireUser } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import { SettingsClient } from "@/components/settings/settings-client"
-import { EmailConfigCard } from "@/components/settings/email-config-card"
-import { SocialPlatformsCard } from "@/components/settings/social-platforms-card"
+export const dynamic = "force-dynamic";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Building2, Bell, Plug, Mail, Download } from "lucide-react";
+import dbConnect from "@/lib/mongodb";
+import TeamMember from "@/models/TeamMember";
+import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { SettingsClient } from "@/components/settings/settings-client";
+import { EmailConfigCard } from "@/components/settings/email-config-card";
+import { SocialPlatformsCard } from "@/components/settings/social-platforms-card";
 
-async function getTeamMembers(): Promise<{ _id: string; name: string; email: string; roleName?: string }[]> {
+async function getTeamMembers(): Promise<
+  { _id: string; name: string; email: string; roleName?: string }[]
+> {
   try {
-    await dbConnect()
-    const items = await TeamMember.find({ status: "Active", isDeleted: { $ne: true } })
+    await dbConnect();
+    const items = await TeamMember.find({
+      status: "Active",
+      isDeleted: { $ne: true },
+    })
       .select("_id name email roleName")
       .limit(100)
-      .lean()
+      .lean();
     const plain = JSON.parse(JSON.stringify(items)) as {
-      _id: string
-      name: string
-      email: string
-      roleName?: string
-    }[]
-    return plain
+      _id: string;
+      name: string;
+      email: string;
+      roleName?: string;
+    }[];
+    return plain;
   } catch (e) {
-    console.error("Error fetching team members:", e)
-    return []
+    console.error("Error fetching team members:", e);
+    return [];
   }
 }
 
 export default async function DashboardSettingsPage() {
-  let sessionUser
+  let sessionUser;
   try {
-    sessionUser = await requireUser()
+    sessionUser = await requireUser();
   } catch {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const teamMembers = await getTeamMembers()
+  const teamMembers = await getTeamMembers();
 
   return (
     <DashboardLayout>
@@ -122,8 +120,8 @@ export default async function DashboardSettingsPage() {
                 <p className="font-medium">DM Dashboard</p>
               </div>
               <p className="text-sm text-muted-foreground">
-                Workspace name and default preferences can be configured here in a
-                future update.
+                Workspace name and default preferences can be configured here in
+                a future update.
               </p>
             </CardContent>
           </Card>
@@ -172,7 +170,8 @@ export default async function DashboardSettingsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Export all client data as JSON for backup or compliance purposes.
+                  Export all client data as JSON for backup or compliance
+                  purposes.
                 </p>
                 <a href="/api/export/all-data" download="all-data-export.json">
                   <button className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
@@ -186,5 +185,5 @@ export default async function DashboardSettingsPage() {
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

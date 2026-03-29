@@ -1,55 +1,61 @@
-import Link from "next/link"
-import { Suspense } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { QueryToast } from "@/components/query-toast"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search } from "lucide-react"
-import { Keyword } from "@/types"
-import { Client } from "@/types"
-import { SeoKeywordsTable } from "@/components/seo/seo-keywords-table"
+import Link from "next/link";
+import { Suspense } from "react";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { QueryToast } from "@/components/query-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Search } from "lucide-react";
+import { Keyword } from "@/types";
+import { Client } from "@/types";
+import { SeoKeywordsTable } from "@/components/seo/seo-keywords-table";
 
-import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
+import { getBaseUrl, serverFetch } from "@/lib/server-fetch";
 
-async function getKeywords(filters: { clientId?: string; search?: string }): Promise<Keyword[]> {
+async function getKeywords(filters: {
+  clientId?: string;
+  search?: string;
+}): Promise<Keyword[]> {
   try {
-    const url = new URL(`${getBaseUrl()}/api/keywords`)
-    if (filters.clientId) url.searchParams.set("clientId", filters.clientId)
-    if (filters.search) url.searchParams.set("search", filters.search)
-    const res = await serverFetch(url.pathname + url.search)
-    if (!res.ok) throw new Error("Failed to fetch keywords")
-    return await res.json()
+    const url = new URL(`${getBaseUrl()}/api/keywords`);
+    if (filters.clientId) url.searchParams.set("clientId", filters.clientId);
+    if (filters.search) url.searchParams.set("search", filters.search);
+    const res = await serverFetch(url.pathname + url.search);
+    if (!res.ok) throw new Error("Failed to fetch keywords");
+    return await res.json();
   } catch (e) {
-    console.error("Error fetching keywords:", e)
-    return []
+    console.error("Error fetching keywords:", e);
+    return [];
   }
 }
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await serverFetch("/api/clients?limit=500")
-    if (!res.ok) throw new Error("Failed to fetch clients")
-    return await res.json()
+    const res = await serverFetch("/api/clients?limit=500");
+    if (!res.ok) throw new Error("Failed to fetch clients");
+    return await res.json();
   } catch (e) {
-    console.error("Error fetching clients:", e)
-    return []
+    console.error("Error fetching clients:", e);
+    return [];
   }
 }
 
 interface PageProps {
-  searchParams: Promise<{ clientId?: string; search?: string }>
+  searchParams: Promise<{ clientId?: string; search?: string }>;
 }
 
 export default async function DashboardSeoPage({ searchParams }: PageProps) {
-  const params = await searchParams
+  const params = await searchParams;
   const [keywords, clients] = await Promise.all([
     getKeywords({
-      clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
+      clientId:
+        params.clientId && params.clientId !== "ALL"
+          ? params.clientId
+          : undefined,
       search: params.search || undefined,
     }),
     getClients(),
-  ])
+  ]);
 
   return (
     <DashboardLayout>
@@ -61,7 +67,8 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">SEO</h1>
             <p className="text-muted-foreground">
-              Track keywords, difficulty, rankings, and search volume for your clients.
+              Track keywords, difficulty, rankings, and search volume for your
+              clients.
             </p>
           </div>
           <Link href="/dashboard/seo/new">
@@ -77,9 +84,14 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
             <CardTitle className="text-base">Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <form method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <form
+              method="get"
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Client</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Client
+                </label>
                 <select
                   name="clientId"
                   defaultValue={params.clientId ?? "ALL"}
@@ -94,7 +106,9 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Search keyword</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Search keyword
+                </label>
                 <Input
                   name="search"
                   placeholder="Filter by keyword..."
@@ -135,5 +149,5 @@ export default async function DashboardSeoPage({ searchParams }: PageProps) {
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

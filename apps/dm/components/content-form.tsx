@@ -1,33 +1,46 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Client } from "@/types"
-import { ContentCategory, ContentItemStatus, ContentItemSource } from "@/types"
-import { AIGenerateButton } from "@/components/content/ai-generate-button"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Client } from "@/types";
+import { ContentCategory, ContentItemStatus, ContentItemSource } from "@/types";
+import { AIGenerateButton } from "@/components/content/ai-generate-button";
 
 interface ContentFormProps {
-  clients: Client[]
-  action: (formData: FormData) => Promise<void>
-  defaultClientId?: string
+  clients: Client[];
+  action: (formData: FormData) => Promise<void>;
+  defaultClientId?: string;
 }
 
-const CATEGORIES: ContentCategory[] = ["CAPTION", "HASHTAGS", "AD_COPY", "CTA", "HOOK", "OTHER"]
-const STATUSES: ContentItemStatus[] = ["DRAFT", "APPROVED", "ARCHIVED"]
-const SOURCES: ContentItemSource[] = ["MANUAL", "AI", "IMPORT"]
+const CATEGORIES: ContentCategory[] = [
+  "CAPTION",
+  "HASHTAGS",
+  "AD_COPY",
+  "CTA",
+  "HOOK",
+  "OTHER",
+];
+const STATUSES: ContentItemStatus[] = ["DRAFT", "APPROVED", "ARCHIVED"];
+const SOURCES: ContentItemSource[] = ["MANUAL", "AI", "IMPORT"];
 
-export function ContentForm({ clients, action, defaultClientId }: ContentFormProps) {
-  const [contentValue, setContentValue] = useState("")
-  const [categoryValue, setCategoryValue] = useState("")
-  const [selectedClientId, setSelectedClientId] = useState(defaultClientId ?? "")
+export function ContentForm({
+  clients,
+  action,
+  defaultClientId,
+}: ContentFormProps) {
+  const [contentValue, setContentValue] = useState("");
+  const [categoryValue, setCategoryValue] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState(
+    defaultClientId ?? "",
+  );
 
   function handleAIUse(generated: string, type: ContentCategory) {
-    setContentValue(generated)
+    setContentValue(generated);
     if (type !== "OTHER") {
-      setCategoryValue(type)
+      setCategoryValue(type);
     }
   }
 
@@ -181,9 +194,9 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
               type="button"
               variant="outline"
               onClick={() => {
-                setContentValue("")
-                setCategoryValue("")
-                setSelectedClientId(defaultClientId ?? "")
+                setContentValue("");
+                setCategoryValue("");
+                setSelectedClientId(defaultClientId ?? "");
               }}
             >
               Reset
@@ -192,5 +205,5 @@ export function ContentForm({ clients, action, defaultClientId }: ContentFormPro
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -36,19 +36,23 @@ export function TeamAssignmentForm({
 }: TeamAssignmentFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title ?? "");
-  const [description, setDescription] = useState(initialData?.description ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
   const [assignmentType, setAssignmentType] = useState(
-    initialData?.assignmentType ?? "task"
+    initialData?.assignmentType ?? "task",
   );
   const [sourceModule, setSourceModule] = useState(
-    initialData?.sourceModule ?? ""
+    initialData?.sourceModule ?? "",
   );
-  const [referenceId, setReferenceId] = useState(initialData?.referenceId ?? "");
+  const [referenceId, setReferenceId] = useState(
+    initialData?.referenceId ?? "",
+  );
   const [assignedToUserId, setAssignedToUserId] = useState(
-    initialData?.assignedToUserId ?? members[0]?._id ?? ""
+    initialData?.assignedToUserId ?? members[0]?._id ?? "",
   );
   const [assignedByUserId, setAssignedByUserId] = useState(
-    initialData?.assignedByUserId ?? members[0]?._id ?? ""
+    initialData?.assignedByUserId ?? members[0]?._id ?? "",
   );
   const [status, setStatus] = useState(initialData?.status ?? "Pending");
   const [priority, setPriority] = useState(initialData?.priority ?? "Medium");
@@ -255,7 +259,11 @@ export function TeamAssignmentForm({
         <label className="mb-1 block text-sm font-medium text-muted-foreground">
           Notes
         </label>
-        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+        <Textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+        />
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={loading}>

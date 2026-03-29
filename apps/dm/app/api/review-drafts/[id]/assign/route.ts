@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import ReviewDraft from '@/models/ReviewDraft';
-import ReviewAllocation from '@/models/ReviewAllocation';
-import { logActivity } from '@/lib/review-activity';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import ReviewDraft from "@/models/ReviewDraft";
+import ReviewAllocation from "@/models/ReviewAllocation";
+import { logActivity } from "@/lib/review-activity";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -10,6 +11,9 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { id: draftId } = await params;
@@ -24,22 +28,33 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       platform,
     } = body;
 
-    if (!assignedToUserId || !assignedToUserName || !assignedByUserId || !assignedByUserName) {
+    if (
+      !assignedToUserId ||
+      !assignedToUserName ||
+      !assignedByUserId ||
+      !assignedByUserName
+    ) {
       return NextResponse.json(
-        { error: 'assignedToUserId, assignedToUserName, assignedByUserId, assignedByUserName are required' },
-        { status: 400 }
+        {
+          error:
+            "assignedToUserId, assignedToUserName, assignedByUserId, assignedByUserName are required",
+        },
+        { status: 400 },
       );
     }
 
     const draft = await ReviewDraft.findById(draftId);
     if (!draft) {
-      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
+      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
 
-    if (!draft.reusable && draft.status === 'Used') {
+    if (!draft.reusable && draft.status === "Used") {
       return NextResponse.json(
-        { error: 'This draft is not reusable and has already been used. Cannot assign.' },
-        { status: 400 }
+        {
+          error:
+            "This draft is not reusable and has already been used. Cannot assign.",
+        },
+        { status: 400 },
       );
     }
 
@@ -52,30 +67,33 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       customerName: customerName || undefined,
       customerContact: customerContact || undefined,
       platform: platform || undefined,
-      allocationStatus: 'Assigned',
+      allocationStatus: "Assigned",
     });
     await allocation.save();
 
-    const newStatus = draft.status === 'Available' ? 'Allocated' : draft.status;
+    const newStatus = draft.status === "Available" ? "Allocated" : draft.status;
     await ReviewDraft.findByIdAndUpdate(draftId, {
       status: newStatus,
       updatedAt: new Date(),
     });
 
-    const populated = await ReviewAllocation.findById(allocation._id).populate('draftId', 'subject reviewText clientName');
+    const populated = await ReviewAllocation.findById(allocation._id).populate(
+      "draftId",
+      "subject reviewText clientName",
+    );
 
     await logActivity({
-      entityType: 'ALLOCATION',
+      entityType: "ALLOCATION",
       entityId: allocation._id.toString(),
-      action: 'CREATE',
+      action: "CREATE",
       newValue: populated?.toObject(),
       performedBy: assignedByUserName,
     });
 
     await logActivity({
-      entityType: 'DRAFT',
+      entityType: "DRAFT",
       entityId: draftId,
-      action: 'ALLOCATE',
+      action: "ALLOCATE",
       oldValue: { status: draft.status },
       newValue: { status: newStatus },
       performedBy: assignedByUserName,
@@ -83,10 +101,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json(populated, { status: 201 });
   } catch (error) {
-    console.error('Error assigning draft:', error);
+    console.error("Error assigning draft:", error);
     return NextResponse.json(
-      { error: 'Failed to assign draft' },
-      { status: 500 }
+      { error: "Failed to assign draft" },
+      { status: 500 },
     );
   }
 }

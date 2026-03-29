@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { LayoutList, CalendarDays } from "lucide-react"
-import { ScheduledPost, Client } from "@/types"
-import { PostsCalendar } from "./posts-calendar"
+import { useEffect, useState } from "react";
+import { LayoutList, CalendarDays } from "lucide-react";
+import { ScheduledPost, Client } from "@/types";
+import { PostsCalendar } from "./posts-calendar";
 
-const STORAGE_KEY = "dm-posts-view"
-type View = "list" | "calendar"
+const STORAGE_KEY = "dm-posts-view";
+type View = "list" | "calendar";
 
 interface ScheduledPostsPageClientProps {
-  posts: ScheduledPost[]
-  clients: Client[]
-  listContent: React.ReactNode
+  posts: ScheduledPost[];
+  clients: Client[];
+  listContent: React.ReactNode;
 }
 
 export function ScheduledPostsPageClient({
@@ -19,27 +19,30 @@ export function ScheduledPostsPageClient({
   clients,
   listContent,
 }: ScheduledPostsPageClientProps) {
-  const [view, setView] = useState<View>("list")
-  const [mounted, setMounted] = useState(false)
+  const [view, setView] = useState<View>("list");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
+    const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === "list" || saved === "calendar") {
-      setView(saved)
+      setView(saved);
     }
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   function switchView(v: View) {
-    setView(v)
-    localStorage.setItem(STORAGE_KEY, v)
+    setView(v);
+    localStorage.setItem(STORAGE_KEY, v);
   }
 
   return (
     <div className="space-y-4">
       {/* View toggle */}
       <div className="flex justify-end">
-        <div className="inline-flex rounded-md border bg-background shadow-sm" role="group">
+        <div
+          className="inline-flex rounded-md border bg-background shadow-sm"
+          role="group"
+        >
           <button
             onClick={() => switchView("list")}
             className={`inline-flex items-center gap-1.5 rounded-l-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${
@@ -72,5 +75,5 @@ export function ScheduledPostsPageClient({
         <PostsCalendar posts={posts} clients={clients} />
       )}
     </div>
-  )
+  );
 }

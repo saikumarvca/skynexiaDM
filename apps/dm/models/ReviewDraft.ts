@@ -1,6 +1,11 @@
 import * as mongoose from "mongoose";
 
-export type DraftStatus = 'Available' | 'Allocated' | 'Shared' | 'Used' | 'Archived';
+export type DraftStatus =
+  | "Available"
+  | "Allocated"
+  | "Shared"
+  | "Used"
+  | "Archived";
 
 export interface IReviewDraft extends mongoose.Document {
   subject: string;
@@ -23,22 +28,26 @@ const ReviewDraftSchema: mongoose.Schema = new mongoose.Schema(
   {
     subject: { type: String, required: true },
     reviewText: { type: String, required: true },
-    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
+    },
     clientName: { type: String, required: true },
     category: { type: String, required: true },
     language: { type: String, required: true },
-    suggestedRating: { type: String, default: '5' },
-    tone: { type: String, default: 'Professional' },
+    suggestedRating: { type: String, default: "5" },
+    tone: { type: String, default: "Professional" },
     reusable: { type: Boolean, default: true },
     status: {
       type: String,
-      enum: ['Available', 'Allocated', 'Shared', 'Used', 'Archived'],
-      default: 'Available',
+      enum: ["Available", "Allocated", "Shared", "Used", "Archived"],
+      default: "Available",
     },
     createdBy: { type: String, required: true },
     notes: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ReviewDraftSchema.index({ clientId: 1, status: 1 });
@@ -49,6 +58,6 @@ ReviewDraftSchema.index({ subject: 1, reviewText: 1 });
 
 const ReviewDraft =
   (mongoose.models.ReviewDraft as mongoose.Model<IReviewDraft> | undefined) ||
-  mongoose.model<IReviewDraft>('ReviewDraft', ReviewDraftSchema);
+  mongoose.model<IReviewDraft>("ReviewDraft", ReviewDraftSchema);
 
 export default ReviewDraft;

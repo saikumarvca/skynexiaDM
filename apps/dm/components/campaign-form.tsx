@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { DdMmYyyyDatePicker } from "@/components/dd-mm-yyyy-date-picker"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Client, Campaign } from "@/types"
-import { toDdMmYyyyDisplay } from "@/lib/date-format"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { DdMmYyyyDatePicker } from "@/components/dd-mm-yyyy-date-picker";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Client, Campaign } from "@/types";
+import { toDdMmYyyyDisplay } from "@/lib/date-format";
 
 interface CampaignFormProps {
-  clients: Client[]
-  action: (formData: FormData) => Promise<void>
-  defaultClientId?: string
+  clients: Client[];
+  action: (formData: FormData) => Promise<void>;
+  defaultClientId?: string;
   /** When set, form is pre-filled for edit / sheet. */
-  initialCampaign?: Campaign
-  submitLabel?: string
+  initialCampaign?: Campaign;
+  submitLabel?: string;
   /** Wrap in Card; set false for Sheet. */
-  showCard?: boolean
-  showReset?: boolean
+  showCard?: boolean;
+  showReset?: boolean;
   /** Extra metrics fields (edit / sheet). */
-  showMetrics?: boolean
+  showMetrics?: boolean;
 }
 
 const STATUS_OPTIONS = [
@@ -29,17 +29,17 @@ const STATUS_OPTIONS = [
   "COMPLETED",
   "CANCELLED",
   "ARCHIVED",
-] as const
+] as const;
 
 function isoStartToDdMmYyyy(iso?: string): string | undefined {
-  if (!iso) return undefined
-  const day = iso.slice(0, 10)
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return undefined
-  return toDdMmYyyyDisplay(day)
+  if (!iso) return undefined;
+  const day = iso.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return undefined;
+  return toDdMmYyyyDisplay(day);
 }
 
 function clientIdFromCampaign(c: Campaign): string {
-  return typeof c.clientId === "object" ? c.clientId._id : c.clientId
+  return typeof c.clientId === "object" ? c.clientId._id : c.clientId;
 }
 
 export function CampaignForm({
@@ -52,15 +52,18 @@ export function CampaignForm({
   showReset,
   showMetrics,
 }: CampaignFormProps) {
-  const isEdit = Boolean(initialCampaign)
-  const resolvedShowReset = showReset ?? !isEdit
-  const resolvedShowMetrics = showMetrics ?? isEdit
-  const resolvedSubmit = submitLabel ?? (isEdit ? "Save changes" : "Create campaign")
+  const isEdit = Boolean(initialCampaign);
+  const resolvedShowReset = showReset ?? !isEdit;
+  const resolvedShowMetrics = showMetrics ?? isEdit;
+  const resolvedSubmit =
+    submitLabel ?? (isEdit ? "Save changes" : "Create campaign");
 
   const defaultClient =
-    initialCampaign != null ? clientIdFromCampaign(initialCampaign) : defaultClientId
+    initialCampaign != null
+      ? clientIdFromCampaign(initialCampaign)
+      : defaultClientId;
 
-  const m = initialCampaign?.metrics
+  const m = initialCampaign?.metrics;
 
   const formInner = (
     <form action={action} className="space-y-6">
@@ -153,7 +156,11 @@ export function CampaignForm({
           min={0}
           step={0.01}
           placeholder="0"
-          defaultValue={initialCampaign?.budget != null ? String(initialCampaign.budget) : undefined}
+          defaultValue={
+            initialCampaign?.budget != null
+              ? String(initialCampaign.budget)
+              : undefined
+          }
         />
       </div>
 
@@ -187,7 +194,10 @@ export function CampaignForm({
           <p className="text-sm font-medium">Metrics</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="metricImpressions" className="block text-sm font-medium">
+              <label
+                htmlFor="metricImpressions"
+                className="block text-sm font-medium"
+              >
                 Impressions
               </label>
               <Input
@@ -196,11 +206,16 @@ export function CampaignForm({
                 type="number"
                 min={0}
                 step={1}
-                defaultValue={m?.impressions != null ? String(m.impressions) : ""}
+                defaultValue={
+                  m?.impressions != null ? String(m.impressions) : ""
+                }
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="metricClicks" className="block text-sm font-medium">
+              <label
+                htmlFor="metricClicks"
+                className="block text-sm font-medium"
+              >
                 Clicks
               </label>
               <Input
@@ -213,7 +228,10 @@ export function CampaignForm({
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="metricLeads" className="block text-sm font-medium">
+              <label
+                htmlFor="metricLeads"
+                className="block text-sm font-medium"
+              >
                 Leads
               </label>
               <Input
@@ -239,7 +257,10 @@ export function CampaignForm({
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="metricConversions" className="block text-sm font-medium">
+              <label
+                htmlFor="metricConversions"
+                className="block text-sm font-medium"
+              >
                 Conversions
               </label>
               <Input
@@ -248,11 +269,16 @@ export function CampaignForm({
                 type="number"
                 min={0}
                 step={1}
-                defaultValue={m?.conversions != null ? String(m.conversions) : ""}
+                defaultValue={
+                  m?.conversions != null ? String(m.conversions) : ""
+                }
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="metricCostPerLead" className="block text-sm font-medium">
+              <label
+                htmlFor="metricCostPerLead"
+                className="block text-sm font-medium"
+              >
                 Cost per lead
               </label>
               <Input
@@ -261,11 +287,16 @@ export function CampaignForm({
                 type="number"
                 min={0}
                 step={0.01}
-                defaultValue={m?.costPerLead != null ? String(m.costPerLead) : ""}
+                defaultValue={
+                  m?.costPerLead != null ? String(m.costPerLead) : ""
+                }
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="metricConversionRate" className="block text-sm font-medium">
+              <label
+                htmlFor="metricConversionRate"
+                className="block text-sm font-medium"
+              >
                 Conversion rate
               </label>
               <Input
@@ -274,7 +305,9 @@ export function CampaignForm({
                 type="number"
                 min={0}
                 step={0.01}
-                defaultValue={m?.conversionRate != null ? String(m.conversionRate) : ""}
+                defaultValue={
+                  m?.conversionRate != null ? String(m.conversionRate) : ""
+                }
               />
             </div>
           </div>
@@ -304,10 +337,10 @@ export function CampaignForm({
         )}
       </div>
     </form>
-  )
+  );
 
   if (!showCard) {
-    return <div className="space-y-6">{formInner}</div>
+    return <div className="space-y-6">{formInner}</div>;
   }
 
   return (
@@ -317,5 +350,5 @@ export function CampaignForm({
       </CardHeader>
       <CardContent>{formInner}</CardContent>
     </Card>
-  )
+  );
 }

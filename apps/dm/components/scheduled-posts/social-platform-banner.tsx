@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 
 interface PlatformStatus {
   facebook: boolean;
@@ -14,7 +14,7 @@ export function SocialPlatformBanner() {
   const [status, setStatus] = useState<PlatformStatus | null>(null);
 
   useEffect(() => {
-    fetch('/api/social/status')
+    fetch("/api/social/status")
       .then((r) => r.json())
       .then((d) => setStatus(d))
       .catch(() => {});
@@ -32,8 +32,8 @@ export function SocialPlatformBanner() {
     <div className="flex items-start gap-2 rounded-md border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950/20 dark:text-yellow-200">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
       <span>
-        <strong>Not configured:</strong> {unconfigured.join(', ')}. Posts will fail to publish on
-        these platforms. Configure environment variables in{' '}
+        <strong>Not configured:</strong> {unconfigured.join(", ")}. Posts will
+        fail to publish on these platforms. Configure environment variables in{" "}
         <a href="/dashboard/settings" className="underline">
           Settings
         </a>

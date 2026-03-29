@@ -29,15 +29,23 @@ export async function POST(request: NextRequest) {
 
     if (body.email && typeof body.email === "string" && body.email.trim()) {
       const found = await Client.findOne({
-        email: { $regex: new RegExp(`^${escapeRegex(body.email.trim())}$`, "i") },
+        email: {
+          $regex: new RegExp(`^${escapeRegex(body.email.trim())}$`, "i"),
+        },
         ...excludeFilter,
       });
       result.email = !!found;
     }
 
-    if (body.businessName && typeof body.businessName === "string" && body.businessName.trim()) {
+    if (
+      body.businessName &&
+      typeof body.businessName === "string" &&
+      body.businessName.trim()
+    ) {
       const found = await Client.findOne({
-        businessName: { $regex: new RegExp(`^${escapeRegex(body.businessName.trim())}$`, "i") },
+        businessName: {
+          $regex: new RegExp(`^${escapeRegex(body.businessName.trim())}$`, "i"),
+        },
         ...excludeFilter,
       });
       result.businessName = !!found;
@@ -46,6 +54,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error checking duplicate:", error);
-    return NextResponse.json({ error: "Failed to check duplicate" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to check duplicate" },
+      { status: 500 },
+    );
   }
 }

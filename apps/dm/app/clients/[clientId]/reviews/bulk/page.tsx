@@ -1,35 +1,35 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { BulkReviewForm } from "@/components/bulk-review-form"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { BulkReviewFormData } from "@/types"
-import { serverFetch } from "@/lib/server-fetch"
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { BulkReviewForm } from "@/components/bulk-review-form";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { BulkReviewFormData } from "@/types";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function createBulkReviews(data: BulkReviewFormData) {
-  'use server'
+  "use server";
 
-  const res = await serverFetch('/api/reviews/bulk', {
-    method: 'POST',
+  const res = await serverFetch("/api/reviews/bulk", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
 
   if (!res.ok) {
-    throw new Error('Failed to create bulk reviews')
+    throw new Error("Failed to create bulk reviews");
   }
 
-  return await res.json()
+  return await res.json();
 }
 
 interface BulkReviewPageProps {
-  params: Promise<{ clientId: string }>
+  params: Promise<{ clientId: string }>;
 }
 
 export default async function BulkReviewPage({ params }: BulkReviewPageProps) {
-  const { clientId } = await params
+  const { clientId } = await params;
 
   return (
     <DashboardLayout>
@@ -42,7 +42,9 @@ export default async function BulkReviewPage({ params }: BulkReviewPageProps) {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Bulk Import Reviews</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Bulk Import Reviews
+            </h1>
             <p className="text-muted-foreground">
               Import multiple reviews at once for this client.
             </p>
@@ -54,5 +56,5 @@ export default async function BulkReviewPage({ params }: BulkReviewPageProps) {
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

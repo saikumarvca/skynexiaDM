@@ -19,7 +19,9 @@ export default async function ReviewAnalyticsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Review Analytics</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Review Analytics
+          </h1>
           <p className="text-muted-foreground">
             Overview of review drafts, allocations, and usage.
           </p>

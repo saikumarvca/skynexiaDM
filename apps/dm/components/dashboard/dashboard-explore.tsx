@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link";
 import {
   Archive,
   BarChart3,
@@ -7,8 +7,8 @@ import {
   FileEdit,
   UserPlus,
   Users,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const items = [
   {
@@ -67,43 +67,55 @@ const items = [
     className: "hover:border-muted-foreground/30 hover:bg-muted/80",
     iconClass: "bg-muted text-muted-foreground",
   },
-] as const
+] as const;
 
-export function DashboardExplore({ hideIntro = false }: { hideIntro?: boolean }) {
+export function DashboardExplore({
+  hideIntro = false,
+}: {
+  hideIntro?: boolean;
+}) {
   return (
     <div className="space-y-3">
       {!hideIntro ? (
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Explore</h2>
-          <p className="text-sm text-muted-foreground">Jump into the areas you use most</p>
+          <p className="text-sm text-muted-foreground">
+            Jump into the areas you use most
+          </p>
         </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map(({ href, title, description, icon: Icon, className, iconClass }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "group flex gap-3 rounded-xl border border-border/80 bg-card p-4 text-left shadow-sm transition-all duration-200",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-              className
-            )}
-          >
-            <span
+        {items.map(
+          ({ href, title, description, icon: Icon, className, iconClass }) => (
+            <Link
+              key={href}
+              href={href}
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 motion-reduce:group-hover:scale-100",
-                iconClass
+                "group flex gap-3 rounded-xl border border-border/80 bg-card p-4 text-left shadow-sm transition-all duration-200",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                className,
               )}
             >
-              <Icon className="h-5 w-5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-medium text-foreground">{title}</span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">{description}</span>
-            </span>
-          </Link>
-        ))}
+              <span
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 motion-reduce:group-hover:scale-100",
+                  iconClass,
+                )}
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-medium text-foreground">
+                  {title}
+                </span>
+                <span className="mt-0.5 block text-sm text-muted-foreground">
+                  {description}
+                </span>
+              </span>
+            </Link>
+          ),
+        )}
       </div>
     </div>
-  )
+  );
 }

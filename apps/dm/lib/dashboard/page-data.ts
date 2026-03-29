@@ -1,46 +1,46 @@
-import { readFileSync } from "fs"
-import { join } from "path"
-import dbConnect from "@/lib/mongodb"
-import type { DashboardPageData, DashboardTechnicalSnapshot } from "@/types"
-import Client from "@/models/Client"
-import Review from "@/models/Review"
-import Lead from "@/models/Lead"
-import Campaign from "@/models/Campaign"
-import Task from "@/models/Task"
-import ScheduledPost from "@/models/ScheduledPost"
-import ReviewDraft from "@/models/ReviewDraft"
-import ReviewAllocation from "@/models/ReviewAllocation"
-import ReviewRequest from "@/models/ReviewRequest"
-import Webhook from "@/models/Webhook"
-import TeamMember from "@/models/TeamMember"
-import User from "@/models/User"
-import Notification from "@/models/Notification"
-import ContentItem from "@/models/ContentItem"
-import Keyword from "@/models/Keyword"
+import { readFileSync } from "fs";
+import { join } from "path";
+import dbConnect from "@/lib/mongodb";
+import type { DashboardPageData, DashboardTechnicalSnapshot } from "@/types";
+import Client from "@/models/Client";
+import Review from "@/models/Review";
+import Lead from "@/models/Lead";
+import Campaign from "@/models/Campaign";
+import Task from "@/models/Task";
+import ScheduledPost from "@/models/ScheduledPost";
+import ReviewDraft from "@/models/ReviewDraft";
+import ReviewAllocation from "@/models/ReviewAllocation";
+import ReviewRequest from "@/models/ReviewRequest";
+import Webhook from "@/models/Webhook";
+import TeamMember from "@/models/TeamMember";
+import User from "@/models/User";
+import Notification from "@/models/Notification";
+import ContentItem from "@/models/ContentItem";
+import Keyword from "@/models/Keyword";
 
 function scheduledTodayBounds() {
-  const start = new Date()
-  start.setHours(0, 0, 0, 0)
-  const end = new Date()
-  end.setHours(23, 59, 59, 999)
-  return { start, end }
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
 }
 
 function readAppVersion(): string {
   try {
-    const raw = readFileSync(join(process.cwd(), "package.json"), "utf8")
-    const pkg = JSON.parse(raw) as { version?: string }
-    return pkg.version ?? "0.0.0"
+    const raw = readFileSync(join(process.cwd(), "package.json"), "utf8");
+    const pkg = JSON.parse(raw) as { version?: string };
+    return pkg.version ?? "0.0.0";
   } catch {
-    return "0.0.0"
+    return "0.0.0";
   }
 }
 
 export async function getDashboardPageData(options: {
-  isAdmin: boolean
+  isAdmin: boolean;
 }): Promise<DashboardPageData> {
-  await dbConnect()
-  const { start, end } = scheduledTodayBounds()
+  await dbConnect();
+  const { start, end } = scheduledTodayBounds();
 
   const [
     totalClients,
@@ -64,7 +64,9 @@ export async function getDashboardPageData(options: {
     Lead.countDocuments({}),
     Campaign.countDocuments({}),
     Campaign.countDocuments({ status: "ACTIVE" }),
-    Task.countDocuments({ status: { $in: ["TODO", "IN_PROGRESS", "BLOCKED"] } }),
+    Task.countDocuments({
+      status: { $in: ["TODO", "IN_PROGRESS", "BLOCKED"] },
+    }),
     ScheduledPost.countDocuments({
       publishDate: { $gte: start, $lte: end },
       status: "SCHEDULED",
@@ -75,14 +77,14 @@ export async function getDashboardPageData(options: {
     Lead.aggregate<{ _id: string; count: number }>([
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]),
-  ])
+  ]);
 
-  const leadStatusBreakdown: Record<string, number> = {}
+  const leadStatusBreakdown: Record<string, number> = {};
   for (const row of leadAgg) {
-    if (row._id != null) leadStatusBreakdown[String(row._id)] = row.count
+    if (row._id != null) leadStatusBreakdown[String(row._id)] = row.count;
   }
 
-  let technical: DashboardTechnicalSnapshot | null = null
+  let technical: DashboardTechnicalSnapshot | null = null;
   if (options.isAdmin) {
     const [
       cClient,
@@ -129,10 +131,13 @@ export async function getDashboardPageData(options: {
       User.countDocuments({ isActive: true }),
       User.countDocuments({ isActive: false }),
       TeamMember.countDocuments({ status: "Active", isDeleted: { $ne: true } }),
-      TeamMember.countDocuments({ status: "Inactive", isDeleted: { $ne: true } }),
+      TeamMember.countDocuments({
+        status: "Inactive",
+        isDeleted: { $ne: true },
+      }),
       Client.countDocuments({ status: "ARCHIVED" }),
       Review.countDocuments({ status: "ARCHIVED" }),
-    ])
+    ]);
     const counts = {
       clients: cClient,
       reviews: cReview,
@@ -149,9 +154,9 @@ export async function getDashboardPageData(options: {
       reviewDrafts: cReviewDraft,
       reviewAllocations: cReviewAllocation,
       reviewRequests: cReviewRequest,
-    }
-    const totalDocuments = Object.values(counts).reduce((a, b) => a + b, 0)
-    const publicUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
+    };
+    const totalDocuments = Object.values(counts).reduce((a, b) => a + b, 0);
+    const publicUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
     technical = {
       appVersion: readAppVersion(),
       nodeEnv: process.env.NODE_ENV ?? "development",
@@ -169,7 +174,7 @@ export async function getDashboardPageData(options: {
         reviewsArchived,
       },
       totalDocuments,
-    }
+    };
   }
 
   return {
@@ -187,5 +192,5 @@ export async function getDashboardPageData(options: {
     reviewRequestsPending,
     leadStatusBreakdown,
     technical,
-  }
+  };
 }

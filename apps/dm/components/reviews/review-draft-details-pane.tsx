@@ -4,7 +4,15 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import type { ReviewDraft } from "@/types/reviews";
 import type { Client } from "@/types";
-import { X, Copy, Pencil, CopyPlus, UserPlus, Archive, History } from "lucide-react";
+import {
+  X,
+  Copy,
+  Pencil,
+  CopyPlus,
+  UserPlus,
+  Archive,
+  History,
+} from "lucide-react";
 
 interface User {
   _id: string;
@@ -58,7 +66,12 @@ export function ReviewDraftDetailsPane({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h3 className="font-semibold">Details</h3>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          aria-label="Close"
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -110,15 +123,21 @@ export function ReviewDraftDetailsPane({
 
           <div className="grid grid-cols-1 gap-3 text-sm transition-all sm:grid-cols-2">
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Category</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Category
+              </p>
               <p>{draft.category}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Language</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Language
+              </p>
               <p>{draft.language}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Rating</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Rating
+              </p>
               <p>{draft.suggestedRating} stars</p>
             </div>
             <div>
@@ -126,15 +145,21 @@ export function ReviewDraftDetailsPane({
               <p>{draft.tone}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Reusable</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Reusable
+              </p>
               <p>{draft.reusable ? "Yes" : "No"}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Status</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Status
+              </p>
               <StatusBadge status={draft.status} />
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Used / Unused</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Used / Unused
+              </p>
               <p
                 className={
                   isUsed
@@ -146,15 +171,21 @@ export function ReviewDraftDetailsPane({
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Created By</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Created By
+              </p>
               <p>{draft.createdBy}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Created At</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Created At
+              </p>
               <p>{new Date(draft.createdAt).toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Updated At</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Updated At
+              </p>
               <p>{new Date(draft.updatedAt).toLocaleString()}</p>
             </div>
           </div>
@@ -167,7 +198,9 @@ export function ReviewDraftDetailsPane({
           )}
 
           <div className="border-t pt-4 transition-all">
-            <p className="mb-3 text-xs font-medium text-muted-foreground">Actions</p>
+            <p className="mb-3 text-xs font-medium text-muted-foreground">
+              Actions
+            </p>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={() => onEdit(draft)}>
                 <Pencil className="mr-1 h-3.5 w-3.5" />
@@ -186,7 +219,11 @@ export function ReviewDraftDetailsPane({
                 Copy Text
               </Button>
               {draft.status !== "Archived" && (
-                <Button variant="outline" size="sm" onClick={() => onArchive(draft)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onArchive(draft)}
+                >
                   <Archive className="mr-1 h-3.5 w-3.5" />
                   Archive
                 </Button>

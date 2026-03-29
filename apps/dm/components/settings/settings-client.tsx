@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { toast } from "sonner"
-import { User, KeyRound } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import { toast } from "sonner";
+import { User, KeyRound } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface SettingsClientProps {
-  initialName: string
-  email: string
-  role: string
+  initialName: string;
+  email: string;
+  role: string;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -19,81 +19,85 @@ const ROLE_LABELS: Record<string, string> = {
   CONTENT_WRITER: "Content Writer",
   DESIGNER: "Designer",
   ANALYST: "Analyst",
-}
+};
 
-export function SettingsClient({ initialName, email, role }: SettingsClientProps) {
+export function SettingsClient({
+  initialName,
+  email,
+  role,
+}: SettingsClientProps) {
   // Profile form state
-  const [name, setName] = useState(initialName)
-  const [profileLoading, setProfileLoading] = useState(false)
+  const [name, setName] = useState(initialName);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // Password form state
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   async function handleProfileSave(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmedName = name.trim()
+    e.preventDefault();
+    const trimmedName = name.trim();
     if (!trimmedName) {
-      toast.error("Name cannot be empty")
-      return
+      toast.error("Name cannot be empty");
+      return;
     }
-    setProfileLoading(true)
+    setProfileLoading(true);
     try {
       const res = await fetch("/api/settings/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedName }),
-      })
-      const data = (await res.json()) as { name?: string; error?: string }
+      });
+      const data = (await res.json()) as { name?: string; error?: string };
       if (!res.ok) {
-        toast.error(data.error ?? "Failed to update profile")
-        return
+        toast.error(data.error ?? "Failed to update profile");
+        return;
       }
-      setName(data.name ?? trimmedName)
-      toast.success("Profile updated successfully")
+      setName(data.name ?? trimmedName);
+      toast.success("Profile updated successfully");
     } catch {
-      toast.error("An unexpected error occurred")
+      toast.error("An unexpected error occurred");
     } finally {
-      setProfileLoading(false)
+      setProfileLoading(false);
     }
   }
 
   async function handlePasswordChange(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("All password fields are required")
-      return
+      toast.error("All password fields are required");
+      return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("New passwords do not match")
-      return
+      toast.error("New passwords do not match");
+      return;
     }
     if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters")
-      return
+      toast.error("New password must be at least 8 characters");
+      return;
     }
-    setPasswordLoading(true)
+    setPasswordLoading(true);
     try {
       const res = await fetch("/api/settings/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),
-      })
-      const data = (await res.json()) as { message?: string; error?: string }
+      });
+      const data = (await res.json()) as { message?: string; error?: string };
       if (!res.ok) {
-        toast.error(data.error ?? "Failed to change password")
-        return
+        toast.error(data.error ?? "Failed to change password");
+        return;
       }
-      toast.success(data.message ?? "Password changed successfully")
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
+      toast.success(data.message ?? "Password changed successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch {
-      toast.error("An unexpected error occurred")
+      toast.error("An unexpected error occurred");
     } finally {
-      setPasswordLoading(false)
+      setPasswordLoading(false);
     }
   }
 
@@ -140,7 +144,8 @@ export function SettingsClient({ initialName, email, role }: SettingsClientProps
                 className="cursor-not-allowed bg-muted text-muted-foreground"
               />
               <p className="text-xs text-muted-foreground">
-                Email cannot be changed here. Contact an admin to update your email.
+                Email cannot be changed here. Contact an admin to update your
+                email.
               </p>
             </div>
 
@@ -233,5 +238,5 @@ export function SettingsClient({ initialName, email, role }: SettingsClientProps
         </CardContent>
       </Card>
     </>
-  )
+  );
 }

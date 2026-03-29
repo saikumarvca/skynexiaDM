@@ -1,38 +1,43 @@
-"use client"
+"use client";
 
-import { format } from "date-fns"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Client } from "@/types"
-import type { ScheduledPostStatus } from "@/types"
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Client } from "@/types";
+import type { ScheduledPostStatus } from "@/types";
 
 function toDatetimeLocalValue(iso: string | undefined): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ""
-  return format(d, "yyyy-MM-dd'T'HH:mm")
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return format(d, "yyyy-MM-dd'T'HH:mm");
 }
 
-const STATUSES: ScheduledPostStatus[] = ["SCHEDULED", "PUBLISHED", "FAILED", "CANCELLED"]
+const STATUSES: ScheduledPostStatus[] = [
+  "SCHEDULED",
+  "PUBLISHED",
+  "FAILED",
+  "CANCELLED",
+];
 
 export interface ScheduledPostFormInitial {
-  clientId: string
-  platform: string
-  content: string
-  publishDateIso: string
-  timeZone?: string
-  status: ScheduledPostStatus
-  contentId?: string | null
+  clientId: string;
+  platform: string;
+  content: string;
+  publishDateIso: string;
+  timeZone?: string;
+  status: ScheduledPostStatus;
+  contentId?: string | null;
 }
 
 interface ScheduledPostFormProps {
-  clients: Client[]
-  action: (formData: FormData) => Promise<void>
-  defaultClientId?: string
-  initial?: ScheduledPostFormInitial
-  submitLabel?: string
+  clients: Client[];
+  action: (formData: FormData) => Promise<void>;
+  defaultClientId?: string;
+  initial?: ScheduledPostFormInitial;
+  submitLabel?: string;
 }
 
 export function ScheduledPostForm({
@@ -42,7 +47,7 @@ export function ScheduledPostForm({
   initial,
   submitLabel = "Save",
 }: ScheduledPostFormProps) {
-  const defaultClient = initial?.clientId ?? defaultClientId
+  const defaultClient = initial?.clientId ?? defaultClientId;
 
   return (
     <Card>
@@ -154,5 +159,5 @@ export function ScheduledPostForm({
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

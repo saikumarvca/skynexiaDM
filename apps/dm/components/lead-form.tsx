@@ -1,23 +1,34 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Client } from "@/types"
-import { Campaign } from "@/types"
-import { LeadStatus } from "@/types"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Client } from "@/types";
+import { Campaign } from "@/types";
+import { LeadStatus } from "@/types";
 
 interface LeadFormProps {
-  clients: Client[]
-  campaigns: Campaign[]
-  action: (formData: FormData) => Promise<void>
-  defaultClientId?: string
+  clients: Client[];
+  campaigns: Campaign[];
+  action: (formData: FormData) => Promise<void>;
+  defaultClientId?: string;
 }
 
-const STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "CLOSED_WON", "CLOSED_LOST"]
+const STATUSES: LeadStatus[] = [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "CLOSED_WON",
+  "CLOSED_LOST",
+];
 
-export function LeadForm({ clients, campaigns, action, defaultClientId }: LeadFormProps) {
+export function LeadForm({
+  clients,
+  campaigns,
+  action,
+  defaultClientId,
+}: LeadFormProps) {
   return (
     <Card>
       <CardHeader>
@@ -57,7 +68,10 @@ export function LeadForm({ clients, campaigns, action, defaultClientId }: LeadFo
                 <option value="">None</option>
                 {campaigns.map((c) => (
                   <option key={c._id} value={c._id}>
-                    {c.campaignName} {typeof c.clientId === "object" ? `(${(c.clientId as { businessName?: string }).businessName})` : ""}
+                    {c.campaignName}{" "}
+                    {typeof c.clientId === "object"
+                      ? `(${(c.clientId as { businessName?: string }).businessName})`
+                      : ""}
                   </option>
                 ))}
               </select>
@@ -69,12 +83,7 @@ export function LeadForm({ clients, campaigns, action, defaultClientId }: LeadFo
               <label htmlFor="name" className="block text-sm font-medium">
                 Name *
               </label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="Lead name"
-                required
-              />
+              <Input id="name" name="name" placeholder="Lead name" required />
             </div>
             <div className="space-y-2">
               <label htmlFor="status" className="block text-sm font-medium">
@@ -153,5 +162,5 @@ export function LeadForm({ clients, campaigns, action, defaultClientId }: LeadFo
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

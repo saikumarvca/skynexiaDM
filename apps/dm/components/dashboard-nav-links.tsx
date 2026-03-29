@@ -1,23 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { ChevronDown, ChevronRight } from "lucide-react"
-import { buildDashboardNavItems } from "@/lib/dashboard-navigation"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { buildDashboardNavItems } from "@/lib/dashboard-navigation";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
-const HOVER_CLOSE_MS = 220
+const HOVER_CLOSE_MS = 220;
 
 function sectionStillActiveForPath(name: string, p: string): boolean {
-  if (name === "Clients") return p.startsWith("/clients")
-  if (name === "Campaigns") return p.startsWith("/dashboard/campaigns")
+  if (name === "Clients") return p.startsWith("/clients");
+  if (name === "Campaigns") return p.startsWith("/dashboard/campaigns");
   if (name === "Content")
-    return p.startsWith("/dashboard/content") || p.startsWith("/dashboard/scheduled-posts")
-  if (name === "SEO") return p.startsWith("/dashboard/seo")
-  if (name === "Leads") return p.startsWith("/dashboard/leads")
-  if (name === "Tasks") return p.startsWith("/dashboard/tasks")
+    return (
+      p.startsWith("/dashboard/content") ||
+      p.startsWith("/dashboard/scheduled-posts")
+    );
+  if (name === "SEO") return p.startsWith("/dashboard/seo");
+  if (name === "Leads") return p.startsWith("/dashboard/leads");
+  if (name === "Tasks") return p.startsWith("/dashboard/tasks");
   if (name === "Reviews")
     return (
       p === "/dashboard/reviews" ||
@@ -25,10 +32,13 @@ function sectionStillActiveForPath(name: string, p: string): boolean {
       p === "/dashboard/my-assigned-reviews" ||
       p === "/dashboard/used-reviews" ||
       p.startsWith("/dashboard/review-requests")
-    )
-  if (name === "Team") return p.startsWith("/team")
-  if (name === "Admin") return p.startsWith("/dashboard/admin")
-  return false
+    );
+  if (name === "Team") return p.startsWith("/team");
+  if (name === "Admin") return p.startsWith("/dashboard/admin");
+  if (name === "Reports") return p.startsWith("/dashboard/reports");
+  if (name === "Invoices") return p.startsWith("/dashboard/invoices");
+  if (name === "Help") return p.startsWith("/dashboard/help");
+  return false;
 }
 
 export function DashboardNavLinks({
@@ -37,32 +47,38 @@ export function DashboardNavLinks({
   onLinkClick,
   className,
 }: {
-  isAdmin?: boolean
-  collapsed?: boolean
-  onLinkClick?: () => void
-  className?: string
+  isAdmin?: boolean;
+  collapsed?: boolean;
+  onLinkClick?: () => void;
+  className?: string;
 }) {
-  const pathname = usePathname()
-  const pathnameRef = useRef(pathname)
-  pathnameRef.current = pathname
-  const navItems = buildDashboardNavItems(isAdmin)
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
+  const navItems = buildDashboardNavItems(isAdmin);
 
-  const isClientsActive = pathname.startsWith("/clients")
-  const isCampaignsActive = pathname.startsWith("/dashboard/campaigns")
+  const isClientsActive = pathname.startsWith("/clients");
+  const isCampaignsActive = pathname.startsWith("/dashboard/campaigns");
   const isContentActive =
-    pathname.startsWith("/dashboard/content") || pathname.startsWith("/dashboard/scheduled-posts")
-  const isSeoActive = pathname.startsWith("/dashboard/seo")
-  const isLeadsActive = pathname.startsWith("/dashboard/leads")
-  const isTasksActive = pathname.startsWith("/dashboard/tasks")
+    pathname.startsWith("/dashboard/content") ||
+    pathname.startsWith("/dashboard/scheduled-posts");
+  const isSeoActive = pathname.startsWith("/dashboard/seo");
+  const isLeadsActive = pathname.startsWith("/dashboard/leads");
+  const isTasksActive = pathname.startsWith("/dashboard/tasks");
   const isReviewActive =
     pathname === "/dashboard/reviews" ||
     pathname.startsWith("/dashboard/review-") ||
     pathname === "/dashboard/my-assigned-reviews" ||
     pathname === "/dashboard/used-reviews" ||
-    pathname.startsWith("/dashboard/review-requests")
-  const isTeamActive = pathname.startsWith("/team")
-  const isAdminActive = pathname.startsWith("/dashboard/admin")
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    pathname.startsWith("/dashboard/review-requests");
+  const isTeamActive = pathname.startsWith("/team");
+  const isAdminActive = pathname.startsWith("/dashboard/admin");
+  const isReportsActive = pathname.startsWith("/dashboard/reports");
+  const isInvoicesActive = pathname.startsWith("/dashboard/invoices");
+  const isHelpActive = pathname.startsWith("/dashboard/help");
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({
     Clients: isClientsActive,
     Campaigns: isCampaignsActive,
     Content: isContentActive,
@@ -72,128 +88,141 @@ export function DashboardNavLinks({
     Reviews: isReviewActive,
     Team: isTeamActive,
     Admin: isAdminActive,
-  })
+    Reports: isReportsActive,
+    Invoices: isInvoicesActive,
+    Help: isHelpActive,
+  });
 
-  const sectionCloseTimers = useRef<Map<string, number>>(new Map())
-  const flyoutCloseTimers = useRef<Map<string, number>>(new Map())
-  const [flyoutOpen, setFlyoutOpen] = useState<string | null>(null)
+  const sectionCloseTimers = useRef<Map<string, number>>(new Map());
+  const flyoutCloseTimers = useRef<Map<string, number>>(new Map());
+  const [flyoutOpen, setFlyoutOpen] = useState<string | null>(null);
 
   const cancelSectionClose = useCallback((name: string) => {
-    const t = sectionCloseTimers.current.get(name)
+    const t = sectionCloseTimers.current.get(name);
     if (t) {
-      clearTimeout(t)
-      sectionCloseTimers.current.delete(name)
+      clearTimeout(t);
+      sectionCloseTimers.current.delete(name);
     }
-  }, [])
+  }, []);
 
   const scheduleSectionClose = useCallback(
     (name: string) => {
-      cancelSectionClose(name)
+      cancelSectionClose(name);
       const id = window.setTimeout(() => {
-        sectionCloseTimers.current.delete(name)
-        const p = pathnameRef.current
+        sectionCloseTimers.current.delete(name);
+        const p = pathnameRef.current;
         if (!sectionStillActiveForPath(name, p)) {
-          setExpandedSections((prev) => ({ ...prev, [name]: false }))
+          setExpandedSections((prev) => ({ ...prev, [name]: false }));
         }
-      }, HOVER_CLOSE_MS) as unknown as number
-      sectionCloseTimers.current.set(name, id)
+      }, HOVER_CLOSE_MS) as unknown as number;
+      sectionCloseTimers.current.set(name, id);
     },
-    [cancelSectionClose]
-  )
+    [cancelSectionClose],
+  );
 
   const cancelFlyoutClose = useCallback((name: string) => {
-    const t = flyoutCloseTimers.current.get(name)
+    const t = flyoutCloseTimers.current.get(name);
     if (t) {
-      clearTimeout(t)
-      flyoutCloseTimers.current.delete(name)
+      clearTimeout(t);
+      flyoutCloseTimers.current.delete(name);
     }
-  }, [])
+  }, []);
 
   const scheduleFlyoutClose = useCallback(
     (name: string) => {
-      cancelFlyoutClose(name)
+      cancelFlyoutClose(name);
       const id = window.setTimeout(() => {
-        flyoutCloseTimers.current.delete(name)
-        setFlyoutOpen((cur) => (cur === name ? null : cur))
-      }, HOVER_CLOSE_MS) as unknown as number
-      flyoutCloseTimers.current.set(name, id)
+        flyoutCloseTimers.current.delete(name);
+        setFlyoutOpen((cur) => (cur === name ? null : cur));
+      }, HOVER_CLOSE_MS) as unknown as number;
+      flyoutCloseTimers.current.set(name, id);
     },
-    [cancelFlyoutClose]
-  )
+    [cancelFlyoutClose],
+  );
 
   const openFlyout = useCallback(
     (name: string) => {
-      cancelFlyoutClose(name)
-      setFlyoutOpen(name)
+      cancelFlyoutClose(name);
+      setFlyoutOpen(name);
     },
-    [cancelFlyoutClose]
-  )
+    [cancelFlyoutClose],
+  );
 
   useEffect(() => {
-    if (isClientsActive) setExpandedSections((p) => ({ ...p, Clients: true }))
-  }, [pathname, isClientsActive])
+    if (isClientsActive) setExpandedSections((p) => ({ ...p, Clients: true }));
+  }, [pathname, isClientsActive]);
   useEffect(() => {
-    if (isCampaignsActive) setExpandedSections((p) => ({ ...p, Campaigns: true }))
-  }, [pathname, isCampaignsActive])
+    if (isCampaignsActive)
+      setExpandedSections((p) => ({ ...p, Campaigns: true }));
+  }, [pathname, isCampaignsActive]);
   useEffect(() => {
-    if (isContentActive) setExpandedSections((p) => ({ ...p, Content: true }))
-  }, [pathname, isContentActive])
+    if (isContentActive) setExpandedSections((p) => ({ ...p, Content: true }));
+  }, [pathname, isContentActive]);
   useEffect(() => {
-    if (isSeoActive) setExpandedSections((p) => ({ ...p, SEO: true }))
-  }, [pathname, isSeoActive])
+    if (isSeoActive) setExpandedSections((p) => ({ ...p, SEO: true }));
+  }, [pathname, isSeoActive]);
   useEffect(() => {
-    if (isLeadsActive) setExpandedSections((p) => ({ ...p, Leads: true }))
-  }, [pathname, isLeadsActive])
+    if (isLeadsActive) setExpandedSections((p) => ({ ...p, Leads: true }));
+  }, [pathname, isLeadsActive]);
   useEffect(() => {
-    if (isTasksActive) setExpandedSections((p) => ({ ...p, Tasks: true }))
-  }, [pathname, isTasksActive])
+    if (isTasksActive) setExpandedSections((p) => ({ ...p, Tasks: true }));
+  }, [pathname, isTasksActive]);
   useEffect(() => {
-    if (isReviewActive) setExpandedSections((p) => ({ ...p, Reviews: true }))
-  }, [pathname, isReviewActive])
+    if (isReviewActive) setExpandedSections((p) => ({ ...p, Reviews: true }));
+  }, [pathname, isReviewActive]);
   useEffect(() => {
-    if (isTeamActive) setExpandedSections((p) => ({ ...p, Team: true }))
-  }, [pathname, isTeamActive])
+    if (isTeamActive) setExpandedSections((p) => ({ ...p, Team: true }));
+  }, [pathname, isTeamActive]);
   useEffect(() => {
-    if (isAdminActive) setExpandedSections((p) => ({ ...p, Admin: true }))
-  }, [pathname, isAdminActive])
+    if (isAdminActive) setExpandedSections((p) => ({ ...p, Admin: true }));
+  }, [pathname, isAdminActive]);
+  useEffect(() => {
+    if (isReportsActive) setExpandedSections((p) => ({ ...p, Reports: true }));
+  }, [pathname, isReportsActive]);
+  useEffect(() => {
+    if (isInvoicesActive)
+      setExpandedSections((p) => ({ ...p, Invoices: true }));
+  }, [pathname, isInvoicesActive]);
+  useEffect(() => {
+    if (isHelpActive) setExpandedSections((p) => ({ ...p, Help: true }));
+  }, [pathname, isHelpActive]);
 
   useEffect(() => {
     return () => {
-      sectionCloseTimers.current.forEach(clearTimeout)
-      flyoutCloseTimers.current.forEach(clearTimeout)
-    }
-  }, [])
+      sectionCloseTimers.current.forEach(clearTimeout);
+      flyoutCloseTimers.current.forEach(clearTimeout);
+    };
+  }, []);
 
   const linkAfterNav = () => {
-    onLinkClick?.()
-  }
+    onLinkClick?.();
+  };
 
   const sectionStillActive = (name: string) => {
-    if (name === "Clients") return isClientsActive
-    if (name === "Campaigns") return isCampaignsActive
-    if (name === "Content") return isContentActive
-    if (name === "SEO") return isSeoActive
-    if (name === "Leads") return isLeadsActive
-    if (name === "Tasks") return isTasksActive
-    if (name === "Reviews") return isReviewActive
-    if (name === "Team") return isTeamActive
-    if (name === "Admin") return isAdminActive
-    return false
-  }
+    if (name === "Clients") return isClientsActive;
+    if (name === "Campaigns") return isCampaignsActive;
+    if (name === "Content") return isContentActive;
+    if (name === "SEO") return isSeoActive;
+    if (name === "Leads") return isLeadsActive;
+    if (name === "Tasks") return isTasksActive;
+    if (name === "Reviews") return isReviewActive;
+    if (name === "Team") return isTeamActive;
+    if (name === "Admin") return isAdminActive;
+    if (name === "Reports") return isReportsActive;
+    if (name === "Invoices") return isInvoicesActive;
+    if (name === "Help") return isHelpActive;
+    return false;
+  };
 
   return (
     <nav
-      className={cn(
-        "space-y-0.5",
-        collapsed ? "px-1.5" : "px-3",
-        className
-      )}
+      className={cn("space-y-0.5", collapsed ? "px-1.5" : "px-3", className)}
     >
       {navItems.map((item) => {
         if ("children" in item && item.children) {
-          const sectionActive = sectionStillActive(item.name)
-          const isExpanded = sectionActive || !!expandedSections[item.name]
-          const isParentActive = pathname === item.href
+          const sectionActive = sectionStillActive(item.name);
+          const isExpanded = sectionActive || !!expandedSections[item.name];
+          const isParentActive = pathname === item.href;
 
           if (collapsed) {
             return (
@@ -202,8 +231,8 @@ export function DashboardNavLinks({
                 open={flyoutOpen === item.name}
                 onOpenChange={(open) => {
                   if (!open) {
-                    cancelFlyoutClose(item.name)
-                    setFlyoutOpen((cur) => (cur === item.name ? null : cur))
+                    cancelFlyoutClose(item.name);
+                    setFlyoutOpen((cur) => (cur === item.name ? null : cur));
                   }
                 }}
                 modal={false}
@@ -221,7 +250,7 @@ export function DashboardNavLinks({
                         "flex items-center justify-center rounded-md py-2.5 text-sm font-medium transition-colors",
                         isParentActive || sectionActive
                           ? "bg-primary/10 text-primary dark:bg-primary/20"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -243,53 +272,54 @@ export function DashboardNavLinks({
                   <div className="flex flex-col gap-0.5">
                     {item.children.map((child) => {
                       const isChildActive =
-                        pathname === child.href || pathname.startsWith(`${child.href}/`)
+                        pathname === child.href ||
+                        pathname.startsWith(`${child.href}/`);
                       return (
                         <Link
                           key={child.name}
                           href={child.href}
                           onClick={() => {
-                            linkAfterNav()
-                            setFlyoutOpen(null)
+                            linkAfterNav();
+                            setFlyoutOpen(null);
                           }}
                           className={cn(
                             "flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",
                             isChildActive
                               ? "bg-primary/10 font-medium text-primary dark:bg-primary/20"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
                           <child.icon className="h-3.5 w-3.5 shrink-0" />
                           {child.name}
                         </Link>
-                      )
+                      );
                     })}
                   </div>
                 </PopoverContent>
               </Popover>
-            )
+            );
           }
 
-          const sectionId = `nav-section-${item.name.toLowerCase().replace(/\s+/g, "-")}`
+          const sectionId = `nav-section-${item.name.toLowerCase().replace(/\s+/g, "-")}`;
           return (
             <div
               key={item.name}
               className="rounded-md"
               onMouseEnter={() => {
-                cancelSectionClose(item.name)
-                setExpandedSections((p) => ({ ...p, [item.name]: true }))
+                cancelSectionClose(item.name);
+                setExpandedSections((p) => ({ ...p, [item.name]: true }));
               }}
               onMouseLeave={() => {
-                scheduleSectionClose(item.name)
+                scheduleSectionClose(item.name);
               }}
               onFocusCapture={() => {
-                cancelSectionClose(item.name)
-                setExpandedSections((p) => ({ ...p, [item.name]: true }))
+                cancelSectionClose(item.name);
+                setExpandedSections((p) => ({ ...p, [item.name]: true }));
               }}
               onBlurCapture={(e) => {
-                const next = e.relatedTarget as Node | null
-                if (next && e.currentTarget.contains(next)) return
-                scheduleSectionClose(item.name)
+                const next = e.relatedTarget as Node | null;
+                if (next && e.currentTarget.contains(next)) return;
+                scheduleSectionClose(item.name);
               }}
             >
               <button
@@ -298,13 +328,16 @@ export function DashboardNavLinks({
                 aria-expanded={isExpanded}
                 aria-controls={sectionId}
                 onClick={() =>
-                  setExpandedSections((p) => ({ ...p, [item.name]: !p[item.name] }))
+                  setExpandedSections((p) => ({
+                    ...p,
+                    [item.name]: !p[item.name],
+                  }))
                 }
                 className={cn(
                   "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isParentActive || sectionActive
                     ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <div className="flex min-w-0 items-center">
@@ -312,9 +345,15 @@ export function DashboardNavLinks({
                   <span className="truncate">{item.name}</span>
                 </div>
                 {isExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+                  <ChevronDown
+                    className="h-3.5 w-3.5 shrink-0 opacity-60"
+                    aria-hidden
+                  />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+                  <ChevronRight
+                    className="h-3.5 w-3.5 shrink-0 opacity-60"
+                    aria-hidden
+                  />
                 )}
               </button>
               {isExpanded && (
@@ -326,7 +365,8 @@ export function DashboardNavLinks({
                 >
                   {item.children.map((child) => {
                     const isChildActive =
-                      pathname === child.href || pathname.startsWith(`${child.href}/`)
+                      pathname === child.href ||
+                      pathname.startsWith(`${child.href}/`);
                     return (
                       <Link
                         key={child.name}
@@ -336,21 +376,21 @@ export function DashboardNavLinks({
                           "flex items-center rounded-md px-2 py-1.5 text-sm transition-colors",
                           isChildActive
                             ? "bg-primary/10 font-medium text-primary dark:bg-primary/20"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >
                         <child.icon className="mr-2 h-3.5 w-3.5 shrink-0" />
                         {child.name}
                       </Link>
-                    )
+                    );
                   })}
                 </div>
               )}
             </div>
-          )
+          );
         }
         const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`)
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
           <Link
             key={item.name}
@@ -362,14 +402,16 @@ export function DashboardNavLinks({
               collapsed ? "justify-center py-2.5" : "px-3 py-2",
               isActive
                 ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <item.icon className={cn("h-4 w-4 shrink-0", !collapsed && "mr-3")} />
+            <item.icon
+              className={cn("h-4 w-4 shrink-0", !collapsed && "mr-3")}
+            />
             {!collapsed && item.name}
           </Link>
-        )
+        );
       })}
     </nav>
-  )
+  );
 }

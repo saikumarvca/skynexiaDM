@@ -27,7 +27,9 @@ export async function GET(request: NextRequest) {
       authorName: m.authorName,
       body: m.body,
       createdAt:
-        m.createdAt instanceof Date ? m.createdAt.toISOString() : String(m.createdAt),
+        m.createdAt instanceof Date
+          ? m.createdAt.toISOString()
+          : String(m.createdAt),
     }));
 
     return NextResponse.json({ messages });
@@ -36,14 +38,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("connect-wall GET:", error);
-    return NextResponse.json({ error: "Failed to load messages" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load messages" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const user = await requireUserFromRequest(request);
-    const body = (await request.json()) as { channelId?: string; body?: string };
+    const body = (await request.json()) as {
+      channelId?: string;
+      body?: string;
+    };
     const channelId = (body.channelId ?? "").trim();
     const text = (body.body ?? "").trim();
 
@@ -51,7 +59,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid channel" }, { status: 400 });
     }
     if (!text) {
-      return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Message cannot be empty" },
+        { status: 400 },
+      );
     }
     if (text.length > 8000) {
       return NextResponse.json({ error: "Message too long" }, { status: 400 });
@@ -80,6 +91,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("connect-wall POST:", error);
-    return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send message" },
+      { status: 500 },
+    );
   }
 }

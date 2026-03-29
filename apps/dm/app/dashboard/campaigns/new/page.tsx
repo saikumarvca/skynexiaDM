@@ -1,44 +1,44 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { CampaignForm } from "@/components/campaign-form"
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { CampaignForm } from "@/components/campaign-form";
 
-import { serverFetch } from "@/lib/server-fetch"
-import { parseFlexibleDateParam } from "@/lib/date-format"
+import { serverFetch } from "@/lib/server-fetch";
+import { parseFlexibleDateParam } from "@/lib/date-format";
 
 async function getClients() {
   try {
-    const res = await serverFetch("/api/clients?limit=500")
-    if (!res.ok) return []
-    return await res.json()
+    const res = await serverFetch("/api/clients?limit=500");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
-    return []
+    return [];
   }
 }
 
 export default async function NewCampaignPage({
   searchParams,
 }: {
-  searchParams: Promise<{ clientId?: string }>
+  searchParams: Promise<{ clientId?: string }>;
 }) {
-  const params = await searchParams
-  const clients = await getClients()
+  const params = await searchParams;
+  const clients = await getClients();
 
   async function createCampaign(formData: FormData) {
-    "use server"
-    const clientId = formData.get("clientId") as string
-    const campaignName = formData.get("campaignName") as string
-    const platform = formData.get("platform") as string
+    "use server";
+    const clientId = formData.get("clientId") as string;
+    const campaignName = formData.get("campaignName") as string;
+    const platform = formData.get("platform") as string;
     if (!clientId || !campaignName || !platform) {
-      throw new Error("Client, campaign name, and platform are required")
+      throw new Error("Client, campaign name, and platform are required");
     }
-    const budget = formData.get("budget")
-    const startRaw = ((formData.get("startDate") as string) ?? "").trim()
-    const endRaw = ((formData.get("endDate") as string) ?? "").trim()
-    const startIsoDay = parseFlexibleDateParam(startRaw)
-    const endIsoDay = parseFlexibleDateParam(endRaw)
+    const budget = formData.get("budget");
+    const startRaw = ((formData.get("startDate") as string) ?? "").trim();
+    const endRaw = ((formData.get("endDate") as string) ?? "").trim();
+    const startIsoDay = parseFlexibleDateParam(startRaw);
+    const endIsoDay = parseFlexibleDateParam(endRaw);
     const res = await serverFetch("/api/campaigns", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -48,17 +48,21 @@ export default async function NewCampaignPage({
         platform,
         objective: (formData.get("objective") as string) || undefined,
         budget: budget ? Number(budget) : undefined,
-        startDate: startIsoDay ? new Date(`${startIsoDay}T12:00:00.000Z`).toISOString() : undefined,
-        endDate: endIsoDay ? new Date(`${endIsoDay}T12:00:00.000Z`).toISOString() : undefined,
+        startDate: startIsoDay
+          ? new Date(`${startIsoDay}T12:00:00.000Z`).toISOString()
+          : undefined,
+        endDate: endIsoDay
+          ? new Date(`${endIsoDay}T12:00:00.000Z`).toISOString()
+          : undefined,
         status: (formData.get("status") as string) || "PLANNED",
         notes: (formData.get("notes") as string) || undefined,
       }),
-    })
+    });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || "Failed to create campaign")
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to create campaign");
     }
-    redirect("/dashboard/campaigns?created=1")
+    redirect("/dashboard/campaigns?created=1");
   }
 
   return (
@@ -87,5 +91,5 @@ export default async function NewCampaignPage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

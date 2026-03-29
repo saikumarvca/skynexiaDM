@@ -1,6 +1,6 @@
-import dbConnect from '@/lib/mongodb';
-import ReviewActivityLog from '@/models/ReviewActivityLog';
-import type { EntityType } from '@/types/reviews';
+import dbConnect from "@/lib/mongodb";
+import ReviewActivityLog from "@/models/ReviewActivityLog";
+import type { EntityType } from "@/types/reviews";
 
 export interface LogActivityParams {
   entityType: EntityType;
@@ -27,9 +27,9 @@ export async function logActivity({
       action,
       oldValue,
       newValue,
-      performedBy: performedBy || 'system',
+      performedBy: performedBy || "system",
     });
   } catch (error) {
-    console.error('Failed to log activity:', error);
+    console.error("Failed to log activity:", error);
   }
 }

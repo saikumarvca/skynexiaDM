@@ -1,61 +1,79 @@
-"use client"
+"use client";
 
-import { useMemo, useState, useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ClientFormData } from "@/types"
-import { parseFlexibleDateParam, toDdMmYyyyDisplay } from "@/lib/date-format"
+import { useMemo, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ClientFormData } from "@/types";
+import { parseFlexibleDateParam, toDdMmYyyyDisplay } from "@/lib/date-format";
 
 function isoSliceToDdMm(iso?: string | null): string {
-  if (!iso) return ""
-  const day = iso.slice(0, 10)
-  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? toDdMmYyyyDisplay(day) : ""
+  if (!iso) return "";
+  const day = iso.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? toDdMmYyyyDisplay(day) : "";
 }
 
 interface ClientFormProps {
-  initialData?: Partial<ClientFormData>
-  onSubmit: (data: ClientFormData) => Promise<void>
-  redirectTo?: string
+  initialData?: Partial<ClientFormData>;
+  onSubmit: (data: ClientFormData) => Promise<void>;
+  redirectTo?: string;
   /** Optional team members for assigned manager select */
-  managers?: { _id: string; name: string }[]
+  managers?: { _id: string; name: string }[];
   /** If editing an existing client, pass its id to exclude from duplicate checks */
-  editingId?: string
+  editingId?: string;
 }
 
-export function ClientForm({ initialData, onSubmit, redirectTo, managers, editingId }: ClientFormProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [dupWarnings, setDupWarnings] = useState<{ email?: boolean; businessName?: boolean }>({})
-  const dupAbortRef = useRef<AbortController | null>(null)
+export function ClientForm({
+  initialData,
+  onSubmit,
+  redirectTo,
+  managers,
+  editingId,
+}: ClientFormProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [dupWarnings, setDupWarnings] = useState<{
+    email?: boolean;
+    businessName?: boolean;
+  }>({});
+  const dupAbortRef = useRef<AbortController | null>(null);
 
   const checkDuplicate = useCallback(
     async (field: "email" | "businessName", value: string) => {
       if (!value.trim()) {
-        setDupWarnings((w) => ({ ...w, [field]: false }))
-        return
+        setDupWarnings((w) => ({ ...w, [field]: false }));
+        return;
       }
       try {
-        if (dupAbortRef.current) dupAbortRef.current.abort()
-        dupAbortRef.current = new AbortController()
+        if (dupAbortRef.current) dupAbortRef.current.abort();
+        dupAbortRef.current = new AbortController();
         const res = await fetch("/api/clients/check-duplicate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ [field]: value.trim(), excludeId: editingId }),
           signal: dupAbortRef.current.signal,
-        })
-        if (!res.ok) return
-        const data = (await res.json()) as { email?: boolean; businessName?: boolean }
-        setDupWarnings((w) => ({ ...w, [field]: data[field] ?? false }))
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          email?: boolean;
+          businessName?: boolean;
+        };
+        setDupWarnings((w) => ({ ...w, [field]: data[field] ?? false }));
       } catch {
         // ignore abort or network errors silently
       }
     },
-    [editingId]
-  )
+    [editingId],
+  );
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     businessName: initialData?.businessName || "",
@@ -72,23 +90,26 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
     contractStartInput: isoSliceToDdMm(initialData?.contractStart),
     contractEndInput: isoSliceToDdMm(initialData?.contractEnd),
     monthlyBudgetInput:
-      initialData?.monthlyBudget !== undefined && initialData?.monthlyBudget !== null
+      initialData?.monthlyBudget !== undefined &&
+      initialData?.monthlyBudget !== null
         ? String(initialData.monthlyBudget)
         : "",
     assignedManagerId: initialData?.assignedManagerId || "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
     try {
       const channels = formData.marketingChannelsInput
         .split(",")
         .map((s) => s.trim())
-        .filter(Boolean)
-      const contractStart = parseFlexibleDateParam(formData.contractStartInput) ?? null
-      const contractEnd = parseFlexibleDateParam(formData.contractEndInput) ?? null
-      const budgetTrim = formData.monthlyBudgetInput.trim()
+        .filter(Boolean);
+      const contractStart =
+        parseFlexibleDateParam(formData.contractStartInput) ?? null;
+      const contractEnd =
+        parseFlexibleDateParam(formData.contractEndInput) ?? null;
+      const budgetTrim = formData.monthlyBudgetInput.trim();
       const payload: ClientFormData = {
         name: formData.name,
         businessName: formData.businessName,
@@ -106,37 +127,48 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
         contractEnd,
         monthlyBudget: budgetTrim === "" ? null : Number(budgetTrim),
         assignedManagerId: formData.assignedManagerId.trim() || null,
+      };
+      if (
+        payload.monthlyBudget !== null &&
+        Number.isNaN(payload.monthlyBudget)
+      ) {
+        throw new Error("Invalid monthly budget");
       }
-      if (payload.monthlyBudget !== null && Number.isNaN(payload.monthlyBudget)) {
-        throw new Error("Invalid monthly budget")
-      }
-      await onSubmit(payload)
-      toast.success(initialData ? "Changes saved" : "Client created")
-      router.push(redirectTo ?? "/clients")
+      await onSubmit(payload);
+      toast.success(initialData ? "Changes saved" : "Client created");
+      router.push(redirectTo ?? "/clients");
     } catch (error) {
-      console.error("Error submitting form:", error)
-      toast.error(error instanceof Error ? error.message : "Something went wrong")
+      console.error("Error submitting form:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const managerChoices = useMemo(() => {
-    const m = managers ?? []
-    const id = formData.assignedManagerId.trim()
-    if (!id || m.some((x) => x._id === id)) return m
-    return [...m, { _id: id, name: `${id.length > 14 ? `${id.slice(0, 14)}…` : id}` }]
-  }, [managers, formData.assignedManagerId])
+    const m = managers ?? [];
+    const id = formData.assignedManagerId.trim();
+    if (!id || m.some((x) => x._id === id)) return m;
+    return [
+      ...m,
+      { _id: id, name: `${id.length > 14 ? `${id.slice(0, 14)}…` : id}` },
+    ];
+  }, [managers, formData.assignedManagerId]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Client Name
           </label>
           <Input
@@ -147,7 +179,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="businessName"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Business Name
           </label>
           <Input
@@ -164,7 +199,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           )}
         </div>
         <div>
-          <label htmlFor="brandName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="brandName"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Brand Name
           </label>
           <Input
@@ -175,7 +213,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="contactName"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Contact Name
           </label>
           <Input
@@ -186,7 +227,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Phone
           </label>
           <Input
@@ -198,7 +242,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Email
           </label>
           <Input
@@ -216,12 +263,17 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           )}
         </div>
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Status
           </label>
           <Select
             value={formData.status}
-            onValueChange={(value) => handleChange("status", value as ClientFormData["status"])}
+            onValueChange={(value) =>
+              handleChange("status", value as ClientFormData["status"])
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -234,7 +286,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           </Select>
         </div>
         <div>
-          <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="website"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Website
           </label>
           <Input
@@ -246,7 +301,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="industry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="industry"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Industry
           </label>
           <Input
@@ -256,7 +314,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="location"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Location
           </label>
           <Input
@@ -275,13 +336,20 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           <Input
             id="marketingChannelsInput"
             value={formData.marketingChannelsInput}
-            onChange={(e) => handleChange("marketingChannelsInput", e.target.value)}
+            onChange={(e) =>
+              handleChange("marketingChannelsInput", e.target.value)
+            }
             placeholder="e.g. Instagram, Google Ads, Email"
           />
-          <p className="mt-1 text-xs text-muted-foreground">Comma-separated list</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Comma-separated list
+          </p>
         </div>
         <div>
-          <label htmlFor="contractStartInput" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="contractStartInput"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Contract start
           </label>
           <Input
@@ -292,7 +360,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="contractEndInput" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="contractEndInput"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Contract end
           </label>
           <Input
@@ -303,7 +374,10 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           />
         </div>
         <div>
-          <label htmlFor="monthlyBudgetInput" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="monthlyBudgetInput"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Monthly budget
           </label>
           <Input
@@ -326,7 +400,9 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
           {managerChoices.length > 0 ? (
             <Select
               value={formData.assignedManagerId || "__none__"}
-              onValueChange={(v) => handleChange("assignedManagerId", v === "__none__" ? "" : v)}
+              onValueChange={(v) =>
+                handleChange("assignedManagerId", v === "__none__" ? "" : v)
+              }
             >
               <SelectTrigger id="assignedManagerId">
                 <SelectValue placeholder="None" />
@@ -344,14 +420,19 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
             <Input
               id="assignedManagerId"
               value={formData.assignedManagerId}
-              onChange={(e) => handleChange("assignedManagerId", e.target.value)}
+              onChange={(e) =>
+                handleChange("assignedManagerId", e.target.value)
+              }
               placeholder="Team member ID (optional)"
             />
           )}
         </div>
       </div>
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          htmlFor="notes"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Notes
         </label>
         <Textarea
@@ -370,5 +451,5 @@ export function ClientForm({ initialData, onSubmit, redirectTo, managers, editin
         </Button>
       </div>
     </form>
-  )
+  );
 }

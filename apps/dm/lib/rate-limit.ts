@@ -8,7 +8,10 @@ interface AttemptRecord {
 
 const attempts = new Map<string, AttemptRecord>();
 
-export function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+export function checkRateLimit(ip: string): {
+  allowed: boolean;
+  retryAfter?: number;
+} {
   const now = Date.now();
   const record = attempts.get(ip);
 

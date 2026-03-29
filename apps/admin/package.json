@@ -1,12 +1,13 @@
 {
   "name": "admin",
   "version": "0.1.0",
+  "description": "UI playground using @repo/ui. The main product is apps/dm (http://localhost:3152). Use port 3153 here so both can run locally.",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3152",
+    "dev": "next dev --port 3153",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 3153",
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit"
   },

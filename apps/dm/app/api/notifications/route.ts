@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(notifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
-    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch notifications" },
+      { status: 500 },
+    );
   }
 }
 
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (denied) return denied;
 
     await dbConnect();
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       userId?: unknown;
       type?: unknown;
       title?: unknown;
@@ -49,15 +52,24 @@ export async function POST(request: NextRequest) {
     if (!userId || !type || !title || !message) {
       return NextResponse.json(
         { error: "Missing required fields: userId, type, title, message" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const notification = new Notification({ userId, type, title, message, href });
+    const notification = new Notification({
+      userId,
+      type,
+      title,
+      message,
+      href,
+    });
     await notification.save();
     return NextResponse.json(notification, { status: 201 });
   } catch (error) {
     console.error("Error creating notification:", error);
-    return NextResponse.json({ error: "Failed to create notification" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create notification" },
+      { status: 500 },
+    );
   }
 }

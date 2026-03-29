@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     const result = await Notification.updateMany(
       { userId: user.userId, isRead: false },
-      { isRead: true }
+      { isRead: true },
     );
 
     return NextResponse.json({ updated: result.modifiedCount });
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     console.error("Error marking all notifications as read:", error);
     return NextResponse.json(
       { error: "Failed to mark all notifications as read" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

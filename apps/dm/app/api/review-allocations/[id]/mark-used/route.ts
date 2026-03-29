@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import ReviewAllocation from '@/models/ReviewAllocation';
-import ReviewDraft from '@/models/ReviewDraft';
-import PostedReview from '@/models/PostedReview';
-import { logActivity } from '@/lib/review-activity';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import ReviewAllocation from "@/models/ReviewAllocation";
+import ReviewDraft from "@/models/ReviewDraft";
+import PostedReview from "@/models/PostedReview";
+import { logActivity } from "@/lib/review-activity";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -11,6 +12,9 @@ interface RouteParams {
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { id } = await params;
@@ -23,28 +27,40 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       postedDate,
       markedUsedBy,
       remarks,
-      performedBy = 'system',
+      performedBy = "system",
     } = body;
 
     if (!postedByName || !postedByName.trim()) {
       return NextResponse.json(
-        { error: 'Posted by name (customer name) is required' },
-        { status: 400 }
+        { error: "Posted by name (customer name) is required" },
+        { status: 400 },
       );
     }
     if (!platform || !platform.trim()) {
-      return NextResponse.json({ error: 'Platform is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Platform is required" },
+        { status: 400 },
+      );
     }
     if (!reviewLink || !reviewLink.trim()) {
-      return NextResponse.json({ error: 'Review link is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Review link is required" },
+        { status: 400 },
+      );
     }
     if (!postedDate) {
-      return NextResponse.json({ error: 'Posted date is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Posted date is required" },
+        { status: 400 },
+      );
     }
 
     const existing = await ReviewAllocation.findById(id);
     if (!existing) {
-      return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Allocation not found" },
+        { status: 404 },
+      );
     }
 
     let postedReview = await PostedReview.findOne({ allocationId: id });
@@ -65,36 +81,36 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const now = new Date();
     await ReviewAllocation.findByIdAndUpdate(id, {
-      allocationStatus: 'Used',
+      allocationStatus: "Used",
       postedDate: postedReview.postedDate,
       usedDate: now,
       updatedAt: now,
     });
 
     await ReviewDraft.findByIdAndUpdate(existing.draftId, {
-      status: 'Used',
+      status: "Used",
       updatedAt: now,
     });
 
     await logActivity({
-      entityType: 'POSTED_REVIEW',
+      entityType: "POSTED_REVIEW",
       entityId: postedReview._id.toString(),
-      action: 'MARK_USED',
+      action: "MARK_USED",
       newValue: { usedDate: now },
       performedBy: markedUsedBy || performedBy,
     });
 
     await logActivity({
-      entityType: 'ALLOCATION',
+      entityType: "ALLOCATION",
       entityId: id,
-      action: 'MARK_USED',
-      newValue: { allocationStatus: 'Used', usedDate: now },
+      action: "MARK_USED",
+      newValue: { allocationStatus: "Used", usedDate: now },
       performedBy: markedUsedBy || performedBy,
     });
 
     const allocation = await ReviewAllocation.findById(id).populate(
-      'draftId',
-      'subject reviewText clientName'
+      "draftId",
+      "subject reviewText clientName",
     );
 
     return NextResponse.json({
@@ -102,10 +118,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       postedReview: await PostedReview.findById(postedReview._id),
     });
   } catch (error) {
-    console.error('Error marking allocation as used:', error);
+    console.error("Error marking allocation as used:", error);
     return NextResponse.json(
-      { error: 'Failed to mark as used' },
-      { status: 500 }
+      { error: "Failed to mark as used" },
+      { status: 500 },
     );
   }
 }

@@ -1,22 +1,22 @@
-import { redirect } from "next/navigation"
-import { getCachedUser } from "@/lib/auth"
-import { Sidebar } from "@/components/sidebar"
-import { Header } from "@/components/header"
+import { redirect } from "next/navigation";
+import { getCachedUser } from "@/lib/auth";
+import { Sidebar } from "@/components/sidebar";
+import { Header } from "@/components/header";
 
 interface DashboardLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export async function DashboardLayout({ children }: DashboardLayoutProps) {
-  let user: Awaited<ReturnType<typeof getCachedUser>>
+  let user: Awaited<ReturnType<typeof getCachedUser>>;
   try {
-    user = await getCachedUser()
+    user = await getCachedUser();
   } catch {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const isAdmin = user.role === "ADMIN"
-  const sessionUser = { name: user.name, email: user.email }
+  const isAdmin = user.role === "ADMIN";
+  const sessionUser = { name: user.name, email: user.email };
 
   return (
     <div className="flex min-h-dvh items-stretch bg-background">
@@ -28,7 +28,11 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
       </a>
       <Sidebar isAdmin={isAdmin} />
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col overflow-hidden">
-        <Header sessionUser={sessionUser} showAdminLinks={isAdmin} isAdmin={isAdmin} />
+        <Header
+          sessionUser={sessionUser}
+          showAdminLinks={isAdmin}
+          isAdmin={isAdmin}
+        />
         <main
           id="main-content"
           className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 scroll-mt-4 outline-none focus:outline-none"
@@ -38,5 +42,5 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
         </main>
       </div>
     </div>
-  )
+  );
 }

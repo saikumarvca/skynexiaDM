@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireSessionApi } from '@/lib/require-session-api';
-import dbConnect from '@/lib/mongodb';
-import ExternalReview from '@/models/ExternalReview';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import ExternalReview from "@/models/ExternalReview";
 
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
+    const clientId = searchParams.get("clientId");
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     const reviews = await ExternalReview.find(query).sort({ reviewDate: -1 });
     return NextResponse.json(reviews);
   } catch (error) {
-    console.error('Error fetching external reviews:', error);
+    console.error("Error fetching external reviews:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch external reviews' },
-      { status: 500 }
+      { error: "Failed to fetch external reviews" },
+      { status: 500 },
     );
   }
 }
@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'Google Places API key not configured. Set GOOGLE_PLACES_API_KEY environment variable or provide apiKey in the request.',
+              "Google Places API key not configured. Set GOOGLE_PLACES_API_KEY environment variable or provide apiKey in the request.",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -70,14 +70,20 @@ export async function POST(request: NextRequest) {
       if (!gRes.ok) {
         return NextResponse.json(
           { error: `Google Places API error: ${gRes.statusText}` },
-          { status: 502 }
+          { status: 502 },
         );
       }
-      const gData = await gRes.json() as { status: string; result?: { reviews?: GooglePlaceReview[] }; error_message?: string };
-      if (gData.status !== 'OK') {
+      const gData = (await gRes.json()) as {
+        status: string;
+        result?: { reviews?: GooglePlaceReview[] };
+        error_message?: string;
+      };
+      if (gData.status !== "OK") {
         return NextResponse.json(
-          { error: `Google Places API error: ${gData.status} - ${gData.error_message ?? ''}` },
-          { status: 400 }
+          {
+            error: `Google Places API error: ${gData.status} - ${gData.error_message ?? ""}`,
+          },
+          { status: 400 },
         );
       }
 
@@ -85,7 +91,10 @@ export async function POST(request: NextRequest) {
 
       if (body.preview) {
         // Return preview without saving
-        return NextResponse.json({ reviews: googleReviews, count: googleReviews.length });
+        return NextResponse.json({
+          reviews: googleReviews,
+          count: googleReviews.length,
+        });
       }
 
       // Save to database
@@ -93,17 +102,17 @@ export async function POST(request: NextRequest) {
       for (const gr of googleReviews) {
         const existing = await ExternalReview.findOne({
           clientId: body.clientId,
-          platform: 'GOOGLE',
+          platform: "GOOGLE",
           authorName: gr.author_name,
           text: gr.text,
         });
         if (!existing) {
           const rev = new ExternalReview({
             clientId: body.clientId,
-            platform: 'GOOGLE',
+            platform: "GOOGLE",
             authorName: gr.author_name,
             rating: gr.rating ?? 0,
-            text: gr.text ?? '',
+            text: gr.text ?? "",
             reviewDate: gr.time ? new Date(gr.time * 1000) : undefined,
             lastSyncedAt: new Date(),
           });
@@ -112,7 +121,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({ imported: saved.length, total: googleReviews.length }, { status: 201 });
+      return NextResponse.json(
+        { imported: saved.length, total: googleReviews.length },
+        { status: 201 },
+      );
     }
 
     // Handle manual import (array of reviews)
@@ -120,10 +132,10 @@ export async function POST(request: NextRequest) {
       const reviews: ManualReview[] = body.reviews;
       const saved = [];
       for (const r of reviews) {
-        if (!r.text || typeof r.rating !== 'number') continue;
+        if (!r.text || typeof r.rating !== "number") continue;
         const rev = new ExternalReview({
           clientId: body.clientId,
-          platform: body.platform ?? 'OTHER',
+          platform: body.platform ?? "OTHER",
           authorName: r.author,
           rating: r.rating,
           text: r.text,
@@ -141,10 +153,10 @@ export async function POST(request: NextRequest) {
     await review.save();
     return NextResponse.json(review, { status: 201 });
   } catch (error) {
-    console.error('Error creating external review:', error);
+    console.error("Error creating external review:", error);
     return NextResponse.json(
-      { error: 'Failed to create external review' },
-      { status: 500 }
+      { error: "Failed to create external review" },
+      { status: 500 },
     );
   }
 }

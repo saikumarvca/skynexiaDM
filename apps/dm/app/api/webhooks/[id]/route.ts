@@ -16,7 +16,7 @@ function authError(error: unknown) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireUserFromRequest(request);
@@ -37,13 +37,16 @@ export async function GET(
     const res = authError(error);
     if (res) return res;
     console.error("Error fetching webhook:", error);
-    return NextResponse.json({ error: "Failed to fetch webhook" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch webhook" },
+      { status: 500 },
+    );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireUserFromRequest(request);
@@ -55,7 +58,10 @@ export async function PATCH(
     }
 
     await dbConnect();
-    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const body = (await request.json().catch(() => ({}))) as Record<
+      string,
+      unknown
+    >;
 
     const set: Record<string, unknown> = {};
 
@@ -67,20 +73,30 @@ export async function PATCH(
         new URL(body.url.trim());
         set.url = body.url.trim();
       } catch {
-        return NextResponse.json({ error: "url must be a valid URL" }, { status: 400 });
+        return NextResponse.json(
+          { error: "url must be a valid URL" },
+          { status: 400 },
+        );
       }
     }
     if (Array.isArray(body.events)) {
       set.events = body.events;
     }
     if (body.secret !== undefined) {
-      set.secret = typeof body.secret === "string" && body.secret.trim() ? body.secret.trim() : undefined;
+      set.secret =
+        typeof body.secret === "string" && body.secret.trim()
+          ? body.secret.trim()
+          : undefined;
     }
     if (typeof body.isActive === "boolean") {
       set.isActive = body.isActive;
     }
 
-    const updated = await Webhook.findByIdAndUpdate(id, { $set: set }, { new: true });
+    const updated = await Webhook.findByIdAndUpdate(
+      id,
+      { $set: set },
+      { new: true },
+    );
     if (!updated) {
       return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
     }
@@ -90,13 +106,16 @@ export async function PATCH(
     const res = authError(error);
     if (res) return res;
     console.error("Error updating webhook:", error);
-    return NextResponse.json({ error: "Failed to update webhook" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update webhook" },
+      { status: 500 },
+    );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireUserFromRequest(request);
@@ -111,7 +130,7 @@ export async function DELETE(
     const updated = await Webhook.findByIdAndUpdate(
       id,
       { $set: { isActive: false } },
-      { new: true }
+      { new: true },
     );
     if (!updated) {
       return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
@@ -122,6 +141,9 @@ export async function DELETE(
     const res = authError(error);
     if (res) return res;
     console.error("Error disabling webhook:", error);
-    return NextResponse.json({ error: "Failed to disable webhook" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to disable webhook" },
+      { status: 500 },
+    );
   }
 }

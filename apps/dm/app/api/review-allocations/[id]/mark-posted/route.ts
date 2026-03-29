@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import ReviewAllocation from '@/models/ReviewAllocation';
-import ReviewDraft from '@/models/ReviewDraft';
-import PostedReview from '@/models/PostedReview';
-import { logActivity } from '@/lib/review-activity';
-import { parseWithSchema, apiError } from '@/lib/api/validation';
-import { markPostedSchema } from '@/lib/api/schemas';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import ReviewAllocation from "@/models/ReviewAllocation";
+import ReviewDraft from "@/models/ReviewDraft";
+import PostedReview from "@/models/PostedReview";
+import { logActivity } from "@/lib/review-activity";
+import { parseWithSchema, apiError } from "@/lib/api/validation";
+import { markPostedSchema } from "@/lib/api/schemas";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -13,6 +14,9 @@ interface RouteParams {
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { id } = await params;
@@ -27,12 +31,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       postedDate,
       markedUsedBy,
       remarks,
-      performedBy = 'system',
+      performedBy = "system",
     } = body;
 
     const existing = await ReviewAllocation.findById(id);
     if (!existing) {
-      return apiError(404, 'Allocation not found', 'NOT_FOUND');
+      return apiError(404, "Allocation not found", "NOT_FOUND");
     }
 
     const postedReview = new PostedReview({
@@ -50,36 +54,36 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const now = new Date();
     await ReviewAllocation.findByIdAndUpdate(id, {
-      allocationStatus: 'Posted',
+      allocationStatus: "Posted",
       postedDate: now,
       usedDate: now,
       updatedAt: now,
     });
 
     await ReviewDraft.findByIdAndUpdate(existing.draftId, {
-      status: 'Used',
+      status: "Used",
       updatedAt: now,
     });
 
     await logActivity({
-      entityType: 'POSTED_REVIEW',
+      entityType: "POSTED_REVIEW",
       entityId: postedReview._id.toString(),
-      action: 'CREATE',
+      action: "CREATE",
       newValue: postedReview.toObject(),
       performedBy: markedUsedBy || performedBy,
     });
 
     await logActivity({
-      entityType: 'ALLOCATION',
+      entityType: "ALLOCATION",
       entityId: id,
-      action: 'MARK_POSTED',
-      newValue: { allocationStatus: 'Posted', postedDate: now },
+      action: "MARK_POSTED",
+      newValue: { allocationStatus: "Posted", postedDate: now },
       performedBy: markedUsedBy || performedBy,
     });
 
     const allocation = await ReviewAllocation.findById(id).populate(
-      'draftId',
-      'subject reviewText clientName'
+      "draftId",
+      "subject reviewText clientName",
     );
 
     return NextResponse.json({
@@ -87,8 +91,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       postedReview: await PostedReview.findById(postedReview._id),
     });
   } catch (error) {
-    console.error('Error marking allocation as posted:', error);
-    const msg = error instanceof Error ? error.message : 'Failed to mark as posted';
-    return apiError(500, msg, 'INTERNAL_ERROR');
+    console.error("Error marking allocation as posted:", error);
+    const msg =
+      error instanceof Error ? error.message : "Failed to mark as posted";
+    return apiError(500, msg, "INTERNAL_ERROR");
   }
 }

@@ -1,29 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { toast } from "sonner"
-import { Mail, Send, CheckCircle, XCircle, Loader2 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { Mail, Send, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface EmailConfigData {
-  provider: string
-  configured: boolean
+  provider: string;
+  configured: boolean;
 }
 
 interface EmailConfigCardProps {
-  isAdmin: boolean
+  isAdmin: boolean;
 }
 
-function ProviderBadge({ provider, configured }: { provider: string; configured: boolean }) {
+function ProviderBadge({
+  provider,
+  configured,
+}: {
+  provider: string;
+  configured: boolean;
+}) {
   if (provider === "none" || provider === "") {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
         <XCircle className="h-3.5 w-3.5" />
         Not configured (console only)
       </span>
-    )
+    );
   }
 
   const label =
@@ -31,7 +37,7 @@ function ProviderBadge({ provider, configured }: { provider: string; configured:
       ? "Configured (SMTP)"
       : provider === "resend"
         ? "Configured (Resend)"
-        : `Configured (${provider})`
+        : `Configured (${provider})`;
 
   if (configured) {
     return (
@@ -39,7 +45,7 @@ function ProviderBadge({ provider, configured }: { provider: string; configured:
         <CheckCircle className="h-3.5 w-3.5" />
         {label}
       </span>
-    )
+    );
   }
 
   return (
@@ -47,32 +53,32 @@ function ProviderBadge({ provider, configured }: { provider: string; configured:
       <XCircle className="h-3.5 w-3.5" />
       {label} (missing credentials)
     </span>
-  )
+  );
 }
 
 export function EmailConfigCard({ isAdmin }: EmailConfigCardProps) {
-  const [config, setConfig] = useState<EmailConfigData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [testEmail, setTestEmail] = useState("")
-  const [sending, setSending] = useState(false)
+  const [config, setConfig] = useState<EmailConfigData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [testEmail, setTestEmail] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) return
+    if (!isAdmin) return;
     fetch("/api/settings/email-config")
       .then((r) => r.json())
       .then((data: EmailConfigData) => setConfig(data))
       .catch(() => setConfig({ provider: "none", configured: false }))
-      .finally(() => setLoading(false))
-  }, [isAdmin])
+      .finally(() => setLoading(false));
+  }, [isAdmin]);
 
   async function handleSendTest(e: React.FormEvent) {
-    e.preventDefault()
-    const addr = testEmail.trim()
+    e.preventDefault();
+    const addr = testEmail.trim();
     if (!addr) {
-      toast.error("Enter a recipient email address")
-      return
+      toast.error("Enter a recipient email address");
+      return;
     }
-    setSending(true)
+    setSending(true);
     try {
       const res = await fetch("/api/email/send", {
         method: "POST",
@@ -83,22 +89,22 @@ export function EmailConfigCard({ isAdmin }: EmailConfigCardProps) {
           html: "<p>This is a test email sent from DM Dashboard. If you received this, your email integration is working correctly.</p>",
           text: "This is a test email sent from DM Dashboard.",
         }),
-      })
-      const data = await res.json() as { success?: boolean; error?: string }
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
       if (!res.ok || !data.success) {
-        toast.error(data.error ?? "Failed to send test email")
+        toast.error(data.error ?? "Failed to send test email");
       } else {
-        toast.success("Test email sent successfully")
-        setTestEmail("")
+        toast.success("Test email sent successfully");
+        setTestEmail("");
       }
     } catch {
-      toast.error("An unexpected error occurred")
+      toast.error("An unexpected error occurred");
     } finally {
-      setSending(false)
+      setSending(false);
     }
   }
 
-  if (!isAdmin) return null
+  if (!isAdmin) return null;
 
   return (
     <Card>
@@ -117,12 +123,23 @@ export function EmailConfigCard({ isAdmin }: EmailConfigCardProps) {
         ) : config ? (
           <>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Status</p>
-              <ProviderBadge provider={config.provider} configured={config.configured} />
+              <p className="text-sm font-medium text-muted-foreground">
+                Status
+              </p>
+              <ProviderBadge
+                provider={config.provider}
+                configured={config.configured}
+              />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Provider</p>
-              <p className="text-sm capitalize">{config.provider === "none" ? "None (console logging)" : config.provider.toUpperCase()}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Provider
+              </p>
+              <p className="text-sm capitalize">
+                {config.provider === "none"
+                  ? "None (console logging)"
+                  : config.provider.toUpperCase()}
+              </p>
             </div>
             <form onSubmit={handleSendTest} className="space-y-3 pt-2 border-t">
               <p className="text-sm font-medium">Send test email</p>
@@ -145,14 +162,20 @@ export function EmailConfigCard({ isAdmin }: EmailConfigCardProps) {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Configure <code className="font-mono bg-muted px-1 rounded">EMAIL_PROVIDER</code> in your environment variables to enable email delivery.
+                Configure{" "}
+                <code className="font-mono bg-muted px-1 rounded">
+                  EMAIL_PROVIDER
+                </code>{" "}
+                in your environment variables to enable email delivery.
               </p>
             </form>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">Could not load email configuration.</p>
+          <p className="text-sm text-muted-foreground">
+            Could not load email configuration.
+          </p>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

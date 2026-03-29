@@ -1,7 +1,13 @@
-import Link from "next/link"
-import { StatsCard } from "@/components/stats-card"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link";
+import { StatsCard } from "@/components/stats-card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ClipboardCheck,
   FileText,
@@ -9,9 +15,9 @@ import {
   UserPlus,
   BarChart3,
   ArrowRight,
-} from "lucide-react"
-import { ReviewBalanceBar } from "@/components/dashboard/review-balance-bar"
-import type { DashboardPageData } from "@/types"
+} from "lucide-react";
+import { ReviewBalanceBar } from "@/components/dashboard/review-balance-bar";
+import type { DashboardPageData } from "@/types";
 
 export function ContentReviewsView({ data }: { data: DashboardPageData }) {
   return (
@@ -56,7 +62,9 @@ export function ContentReviewsView({ data }: { data: DashboardPageData }) {
           />
           <Card className="border-border/80">
             <CardHeader>
-              <CardTitle className="text-base">Content & review workflows</CardTitle>
+              <CardTitle className="text-base">
+                Content & review workflows
+              </CardTitle>
               <CardDescription>Where to go next</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
@@ -99,19 +107,27 @@ export function ContentReviewsView({ data }: { data: DashboardPageData }) {
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between border-b border-border/60 pb-2">
               <span className="text-muted-foreground">Unused reviews</span>
-              <span className="font-mono font-medium tabular-nums">{data.unusedReviews}</span>
+              <span className="font-mono font-medium tabular-nums">
+                {data.unusedReviews}
+              </span>
             </div>
             <div className="flex justify-between border-b border-border/60 pb-2">
               <span className="text-muted-foreground">Used reviews</span>
-              <span className="font-mono font-medium tabular-nums">{data.usedReviews}</span>
+              <span className="font-mono font-medium tabular-nums">
+                {data.usedReviews}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Scheduled posts today</span>
-              <span className="font-mono font-medium tabular-nums">{data.scheduledToday}</span>
+              <span className="text-muted-foreground">
+                Scheduled posts today
+              </span>
+              <span className="font-mono font-medium tabular-nums">
+                {data.scheduledToday}
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
     </>
-  )
+  );
 }

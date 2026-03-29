@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(requests);
   } catch (error) {
     console.error("Error fetching review requests:", error);
-    return NextResponse.json({ error: "Failed to fetch review requests" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch review requests" },
+      { status: 500 },
+    );
   }
 }
 
@@ -56,16 +59,35 @@ export async function POST(request: NextRequest) {
     };
 
     if (!body.clientId || !mongoose.Types.ObjectId.isValid(body.clientId)) {
-      return NextResponse.json({ error: "Valid clientId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Valid clientId is required" },
+        { status: 400 },
+      );
     }
-    if (!body.recipientName || typeof body.recipientName !== "string" || !body.recipientName.trim()) {
-      return NextResponse.json({ error: "recipientName is required" }, { status: 400 });
+    if (
+      !body.recipientName ||
+      typeof body.recipientName !== "string" ||
+      !body.recipientName.trim()
+    ) {
+      return NextResponse.json(
+        { error: "recipientName is required" },
+        { status: 400 },
+      );
     }
-    if (!body.recipientEmail || typeof body.recipientEmail !== "string" || !body.recipientEmail.trim()) {
-      return NextResponse.json({ error: "recipientEmail is required" }, { status: 400 });
+    if (
+      !body.recipientEmail ||
+      typeof body.recipientEmail !== "string" ||
+      !body.recipientEmail.trim()
+    ) {
+      return NextResponse.json(
+        { error: "recipientEmail is required" },
+        { status: 400 },
+      );
     }
 
-    const client = await Client.findById(body.clientId).select("name businessName").lean() as { name: string; businessName: string } | null;
+    const client = (await Client.findById(body.clientId)
+      .select("name businessName")
+      .lean()) as { name: string; businessName: string } | null;
     if (!client) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
@@ -114,6 +136,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(populated, { status: 201 });
   } catch (error) {
     console.error("Error creating review request:", error);
-    return NextResponse.json({ error: "Failed to create review request" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create review request" },
+      { status: 500 },
+    );
   }
 }

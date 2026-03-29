@@ -1,17 +1,21 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Client } from "@/types"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Client } from "@/types";
 
 interface KeywordFormProps {
-  clients: Client[]
-  action: (formData: FormData) => Promise<void>
-  defaultClientId?: string
+  clients: Client[];
+  action: (formData: FormData) => Promise<void>;
+  defaultClientId?: string;
 }
 
-export function KeywordForm({ clients, action, defaultClientId }: KeywordFormProps) {
+export function KeywordForm({
+  clients,
+  action,
+  defaultClientId,
+}: KeywordFormProps) {
   return (
     <Card>
       <CardHeader>
@@ -66,7 +70,10 @@ export function KeywordForm({ clients, action, defaultClientId }: KeywordFormPro
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="searchVolume" className="block text-sm font-medium">
+              <label
+                htmlFor="searchVolume"
+                className="block text-sm font-medium"
+              >
                 Search volume
               </label>
               <Input
@@ -105,7 +112,10 @@ export function KeywordForm({ clients, action, defaultClientId }: KeywordFormPro
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="competitorUrls" className="block text-sm font-medium">
+            <label
+              htmlFor="competitorUrls"
+              className="block text-sm font-medium"
+            >
               Competitor URLs (comma-separated)
             </label>
             <Input
@@ -124,5 +134,5 @@ export function KeywordForm({ clients, action, defaultClientId }: KeywordFormPro
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

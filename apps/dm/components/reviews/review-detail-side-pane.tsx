@@ -47,12 +47,16 @@ export function ReviewDetailSidePane({
   const [customerName, setCustomerName] = useState("");
   const [customerContact, setCustomerContact] = useState("");
   const [platform, setPlatform] = useState("");
-  const [sentDate, setSentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [sentDate, setSentDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
   const [postedByName, setPostedByName] = useState("");
   const [postedPlatform, setPostedPlatform] = useState("Google");
   const [reviewLink, setReviewLink] = useState("");
   const [proofUrl, setProofUrl] = useState("");
-  const [postedDate, setPostedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [postedDate, setPostedDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
   const [markedUsedBy, setMarkedUsedBy] = useState("");
   const [remarks, setRemarks] = useState("");
 
@@ -64,7 +68,7 @@ export function ReviewDetailSidePane({
       setSentDate(
         allocation.sentDate
           ? new Date(allocation.sentDate).toISOString().slice(0, 10)
-          : new Date().toISOString().slice(0, 10)
+          : new Date().toISOString().slice(0, 10),
       );
       setPostedByName(allocation.customerName ?? "");
       setPostedPlatform(allocation.platform ?? "Google");
@@ -77,7 +81,8 @@ export function ReviewDetailSidePane({
   const { subject, description } = getDraftInfo(allocation);
   const canMarkShared = allocation.allocationStatus === "Assigned";
   const canMarkPosted =
-    allocation.allocationStatus === "Assigned" || allocation.allocationStatus === "Shared with Customer";
+    allocation.allocationStatus === "Assigned" ||
+    allocation.allocationStatus === "Shared with Customer";
 
   const handleCopy = async () => {
     const text = `Subject: ${subject}\n\nDescription:\n${description}`;
@@ -127,7 +132,10 @@ export function ReviewDetailSidePane({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="flex flex-col overflow-hidden sm:max-w-lg">
+      <SheetContent
+        side="right"
+        className="flex flex-col overflow-hidden sm:max-w-lg"
+      >
         <SheetHeader className="flex-shrink-0 pr-8 pb-4 border-b">
           <div className="flex items-start justify-between gap-2">
             <SheetTitle className="text-base font-semibold leading-snug pr-6">
@@ -154,10 +162,14 @@ export function ReviewDetailSidePane({
         <div className="flex-1 overflow-y-auto py-5 space-y-5 pr-1 scrollbar-thin">
           {canMarkShared && (
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Mark as Shared</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Mark as Shared
+              </h3>
               <form onSubmit={handleMarkShared} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Customer Name <span className="text-destructive">*</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Customer Name <span className="text-destructive">*</span>
+                  </label>
                   <Input
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
@@ -166,7 +178,9 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Customer Contact</label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Customer Contact
+                  </label>
                   <Input
                     value={customerContact}
                     onChange={(e) => setCustomerContact(e.target.value)}
@@ -174,7 +188,9 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Platform</label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Platform
+                  </label>
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value)}
@@ -189,7 +205,9 @@ export function ReviewDetailSidePane({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Sent Date <span className="text-destructive">*</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Sent Date <span className="text-destructive">*</span>
+                  </label>
                   <Input
                     type="date"
                     value={sentDate}
@@ -197,7 +215,11 @@ export function ReviewDetailSidePane({
                     required
                   />
                 </div>
-                <Button type="submit" disabled={isLoading} className="w-full mt-1">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-1"
+                >
                   {isLoading ? "Saving..." : "Mark Shared"}
                 </Button>
               </form>
@@ -206,10 +228,15 @@ export function ReviewDetailSidePane({
 
           {canMarkPosted && !canMarkShared && (
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Mark as Posted & Used</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Mark as Posted & Used
+              </h3>
               <form onSubmit={handleMarkPosted} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Posted By (Customer Name) <span className="text-destructive">*</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Posted By (Customer Name){" "}
+                    <span className="text-destructive">*</span>
+                  </label>
                   <Input
                     value={postedByName}
                     onChange={(e) => setPostedByName(e.target.value)}
@@ -218,7 +245,9 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Platform <span className="text-destructive">*</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Platform <span className="text-destructive">*</span>
+                  </label>
                   <select
                     value={postedPlatform}
                     onChange={(e) => setPostedPlatform(e.target.value)}
@@ -233,7 +262,9 @@ export function ReviewDetailSidePane({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Review Link <span className="text-destructive">*</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Review Link <span className="text-destructive">*</span>
+                  </label>
                   <Input
                     value={reviewLink}
                     onChange={(e) => setReviewLink(e.target.value)}
@@ -242,7 +273,12 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Proof URL <span className="text-xs font-normal text-muted-foreground">(screenshot)</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Proof URL{" "}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      (screenshot)
+                    </span>
+                  </label>
                   <Input
                     value={proofUrl}
                     onChange={(e) => setProofUrl(e.target.value)}
@@ -250,7 +286,9 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Posted Date <span className="text-destructive">*</span></label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Posted Date <span className="text-destructive">*</span>
+                  </label>
                   <Input
                     type="date"
                     value={postedDate}
@@ -259,7 +297,9 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Marked Used By</label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Marked Used By
+                  </label>
                   <Input
                     value={markedUsedBy}
                     onChange={(e) => setMarkedUsedBy(e.target.value)}
@@ -267,28 +307,39 @@ export function ReviewDetailSidePane({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Remarks</label>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Remarks
+                  </label>
                   <Input
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     placeholder="Optional notes"
                   />
                 </div>
-                <Button type="submit" disabled={isLoading} className="w-full mt-1">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-1"
+                >
                   {isLoading ? "Saving..." : "Mark Posted & Used"}
                 </Button>
               </form>
             </section>
           )}
 
-          {(allocation.allocationStatus === "Posted" || allocation.allocationStatus === "Used") && (
+          {(allocation.allocationStatus === "Posted" ||
+            allocation.allocationStatus === "Used") && (
             <div className="flex items-center gap-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-4">
               <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
                 <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Review Completed</p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">This review has been marked as used.</p>
+                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                  Review Completed
+                </p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">
+                  This review has been marked as used.
+                </p>
               </div>
             </div>
           )}

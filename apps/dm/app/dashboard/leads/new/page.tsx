@@ -1,46 +1,49 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { LeadForm } from "@/components/lead-form"
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { LeadForm } from "@/components/lead-form";
 
-import { serverFetch } from "@/lib/server-fetch"
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getClients() {
   try {
-    const res = await serverFetch("/api/clients?limit=500")
-    if (!res.ok) return []
-    return await res.json()
+    const res = await serverFetch("/api/clients?limit=500");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
-    return []
+    return [];
   }
 }
 
 async function getCampaigns() {
   try {
-    const res = await serverFetch("/api/campaigns")
-    if (!res.ok) return []
-    return await res.json()
+    const res = await serverFetch("/api/campaigns");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
-    return []
+    return [];
   }
 }
 
 export default async function NewLeadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ clientId?: string }>
+  searchParams: Promise<{ clientId?: string }>;
 }) {
-  const params = await searchParams
-  const [clients, campaigns] = await Promise.all([getClients(), getCampaigns()])
+  const params = await searchParams;
+  const [clients, campaigns] = await Promise.all([
+    getClients(),
+    getCampaigns(),
+  ]);
 
   async function createLead(formData: FormData) {
-    "use server"
-    const clientId = formData.get("clientId") as string
-    const name = (formData.get("name") as string)?.trim()
-    if (!clientId || !name) throw new Error("Client and name are required")
-    const campaignId = formData.get("campaignId") as string
+    "use server";
+    const clientId = formData.get("clientId") as string;
+    const name = (formData.get("name") as string)?.trim();
+    if (!clientId || !name) throw new Error("Client and name are required");
+    const campaignId = formData.get("campaignId") as string;
     const res = await serverFetch("/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -54,12 +57,12 @@ export default async function NewLeadPage({
         status: (formData.get("status") as string) || "NEW",
         notes: (formData.get("notes") as string)?.trim() || undefined,
       }),
-    })
+    });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || "Failed to add lead")
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to add lead");
     }
-    redirect("/dashboard/leads?created=1")
+    redirect("/dashboard/leads?created=1");
   }
 
   return (
@@ -89,5 +92,5 @@ export default async function NewLeadPage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

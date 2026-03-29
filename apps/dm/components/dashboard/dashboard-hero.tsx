@@ -1,10 +1,10 @@
-import { Sparkles } from "lucide-react"
-import type { DashboardViewId } from "@/lib/dashboard/views-config"
+import { Sparkles } from "lucide-react";
+import type { DashboardViewId } from "@/lib/dashboard/views-config";
 
 function firstName(displayName: string) {
-  const t = displayName.trim()
-  if (!t) return "there"
-  return t.split(/\s+/)[0] ?? "there"
+  const t = displayName.trim();
+  if (!t) return "there";
+  return t.split(/\s+/)[0] ?? "there";
 }
 
 const HERO_COPY: Record<
@@ -41,22 +41,22 @@ const HERO_COPY: Record<
     subtitle:
       "Document counts and environment metadata for administrators. No secrets are exposed here.",
   },
-}
+};
 
 export function DashboardHero({
   userName,
   view,
 }: {
-  userName: string
-  view: DashboardViewId
+  userName: string;
+  view: DashboardViewId;
 }) {
-  const copy = HERO_COPY[view]
+  const copy = HERO_COPY[view];
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-  })
+  });
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card px-6 py-8 shadow-sm sm:px-8 sm:py-10">
@@ -92,5 +92,5 @@ export function DashboardHero({
         </div>
       </div>
     </div>
-  )
+  );
 }

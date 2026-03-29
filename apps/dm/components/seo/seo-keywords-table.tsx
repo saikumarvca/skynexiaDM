@@ -1,87 +1,102 @@
-'use client'
+"use client";
 
-import { Fragment, useState } from 'react'
-import Link from 'next/link'
-import { ExternalLink, TrendingUp, ChevronDown, ChevronUp, History, Archive } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { RankHistoryChart } from './rank-history-chart'
-import { Keyword } from '@/types'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { Fragment, useState } from "react";
+import Link from "next/link";
+import {
+  ExternalLink,
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  History,
+  Archive,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { RankHistoryChart } from "./rank-history-chart";
+import { Keyword } from "@/types";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface SeoKeywordsTableProps {
-  keywords: Keyword[]
+  keywords: Keyword[];
 }
 
 function getClientName(k: Keyword): string {
-  const id = typeof k.clientId === 'object' ? k.clientId : null
-  if (id && 'businessName' in id)
-    return (id as { businessName?: string }).businessName ?? (id as { name?: string }).name ?? '—'
-  return '—'
+  const id = typeof k.clientId === "object" ? k.clientId : null;
+  if (id && "businessName" in id)
+    return (
+      (id as { businessName?: string }).businessName ??
+      (id as { name?: string }).name ??
+      "—"
+    );
+  return "—";
 }
 
 function getClientId(k: Keyword): string {
-  return typeof k.clientId === 'object'
+  return typeof k.clientId === "object"
     ? (k.clientId as { _id: string })._id
-    : (k.clientId as string)
+    : (k.clientId as string);
 }
 
 export function SeoKeywordsTable({ keywords }: SeoKeywordsTableProps) {
-  const router = useRouter()
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [showArchived, setShowArchived] = useState(false)
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const router = useRouter();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id))
-  }
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
 
   const visibleKeywords = showArchived
     ? keywords
-    : keywords.filter((k) => k.status !== 'ARCHIVED')
+    : keywords.filter((k) => k.status !== "ARCHIVED");
 
   const handleArchive = async (id: string) => {
-    if (!confirm('Archive this keyword?')) return
-    setUpdatingId(id)
+    if (!confirm("Archive this keyword?")) return;
+    setUpdatingId(id);
     try {
       const res = await fetch(`/api/keywords/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'ARCHIVED' }),
-      })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ARCHIVED" }),
+      });
       if (!res.ok) {
-        const d = (await res.json()) as { error?: string }
-        throw new Error(d.error || 'Failed to archive')
+        const d = (await res.json()) as { error?: string };
+        throw new Error(d.error || "Failed to archive");
       }
-      toast.success('Keyword archived')
-      router.refresh()
+      toast.success("Keyword archived");
+      router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to archive keyword')
+      toast.error(
+        err instanceof Error ? err.message : "Failed to archive keyword",
+      );
     } finally {
-      setUpdatingId(null)
+      setUpdatingId(null);
     }
-  }
+  };
 
   const handleUnarchive = async (id: string) => {
-    setUpdatingId(id)
+    setUpdatingId(id);
     try {
       const res = await fetch(`/api/keywords/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'ACTIVE' }),
-      })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ACTIVE" }),
+      });
       if (!res.ok) {
-        const d = (await res.json()) as { error?: string }
-        throw new Error(d.error || 'Failed to unarchive')
+        const d = (await res.json()) as { error?: string };
+        throw new Error(d.error || "Failed to unarchive");
       }
-      toast.success('Keyword unarchived')
-      router.refresh()
+      toast.success("Keyword unarchived");
+      router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to unarchive keyword')
+      toast.error(
+        err instanceof Error ? err.message : "Failed to unarchive keyword",
+      );
     } finally {
-      setUpdatingId(null)
+      setUpdatingId(null);
     }
-  }
+  };
 
   return (
     <div className="space-y-3">
@@ -93,7 +108,10 @@ export function SeoKeywordsTable({ keywords }: SeoKeywordsTableProps) {
           onChange={(e) => setShowArchived(e.target.checked)}
           className="h-4 w-4 cursor-pointer rounded border-input"
         />
-        <label htmlFor="show-archived-keywords" className="text-sm text-muted-foreground cursor-pointer select-none">
+        <label
+          htmlFor="show-archived-keywords"
+          className="text-sm text-muted-foreground cursor-pointer select-none"
+        >
           Show archived keywords
         </label>
       </div>
@@ -113,11 +131,13 @@ export function SeoKeywordsTable({ keywords }: SeoKeywordsTableProps) {
           </thead>
           <tbody>
             {visibleKeywords.map((k) => {
-              const isExpanded = expandedId === k._id
-              const isArchived = k.status === 'ARCHIVED'
+              const isExpanded = expandedId === k._id;
+              const isArchived = k.status === "ARCHIVED";
               return (
                 <Fragment key={k._id}>
-                  <tr className={`border-b last:border-0 ${isArchived ? 'opacity-60' : ''}`}>
+                  <tr
+                    className={`border-b last:border-0 ${isArchived ? "opacity-60" : ""}`}
+                  >
                     <td className="py-3 font-medium">{k.keyword}</td>
                     <td className="py-3">
                       <Link
@@ -134,37 +154,41 @@ export function SeoKeywordsTable({ keywords }: SeoKeywordsTableProps) {
                           {k.rank}
                         </span>
                       ) : (
-                        '—'
+                        "—"
                       )}
                     </td>
                     <td className="py-3">
-                      {k.searchVolume != null ? k.searchVolume.toLocaleString() : '—'}
+                      {k.searchVolume != null
+                        ? k.searchVolume.toLocaleString()
+                        : "—"}
                     </td>
                     <td className="py-3">
                       {k.difficulty != null ? (
                         <span
                           className={
                             k.difficulty >= 70
-                              ? 'text-red-600'
+                              ? "text-red-600"
                               : k.difficulty >= 40
-                                ? 'text-amber-600'
-                                : 'text-green-600'
+                                ? "text-amber-600"
+                                : "text-green-600"
                           }
                         >
                           {k.difficulty}
                         </span>
                       ) : (
-                        '—'
+                        "—"
                       )}
                     </td>
                     <td
                       className="max-w-[180px] truncate py-3 text-muted-foreground"
                       title={k.targetUrl}
                     >
-                      {k.targetUrl ?? '—'}
+                      {k.targetUrl ?? "—"}
                     </td>
                     <td className="py-3 text-muted-foreground">
-                      {k.lastUpdated ? new Date(k.lastUpdated).toLocaleDateString() : '—'}
+                      {k.lastUpdated
+                        ? new Date(k.lastUpdated).toLocaleDateString()
+                        : "—"}
                     </td>
                     <td className="py-3">
                       <div className="flex items-center gap-1">
@@ -220,16 +244,19 @@ export function SeoKeywordsTable({ keywords }: SeoKeywordsTableProps) {
                   {isExpanded && (
                     <tr className="border-b bg-muted/30">
                       <td colSpan={8} className="px-4 py-4">
-                        <RankHistoryChart keywordId={k._id} keyword={k.keyword} />
+                        <RankHistoryChart
+                          keywordId={k._id}
+                          keyword={k.keyword}
+                        />
                       </td>
                     </tr>
                   )}
                 </Fragment>
-              )
+              );
             })}
           </tbody>
         </table>
       </div>
     </div>
-  )
+  );
 }

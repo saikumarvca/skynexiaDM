@@ -1,29 +1,40 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Client } from "@/types"
-import { TaskStatus, TaskPriority } from "@/types"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Client } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types";
 
 interface UserOption {
-  _id: string
-  name: string
-  email?: string
+  _id: string;
+  name: string;
+  email?: string;
 }
 
 interface TaskFormProps {
-  clients: Client[]
-  users: UserOption[]
-  action: (formData: FormData) => Promise<void>
-  defaultClientId?: string
+  clients: Client[];
+  users: UserOption[];
+  action: (formData: FormData) => Promise<void>;
+  defaultClientId?: string;
 }
 
-const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
-const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+const STATUSES: TaskStatus[] = [
+  "TODO",
+  "IN_PROGRESS",
+  "BLOCKED",
+  "DONE",
+  "ARCHIVED",
+];
+const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
-export function TaskForm({ clients, users, action, defaultClientId }: TaskFormProps) {
+export function TaskForm({
+  clients,
+  users,
+  action,
+  defaultClientId,
+}: TaskFormProps) {
   return (
     <Card>
       <CardHeader>
@@ -74,12 +85,7 @@ export function TaskForm({ clients, users, action, defaultClientId }: TaskFormPr
             <label htmlFor="title" className="block text-sm font-medium">
               Title *
             </label>
-            <Input
-              id="title"
-              name="title"
-              placeholder="Task title"
-              required
-            />
+            <Input id="title" name="title" placeholder="Task title" required />
           </div>
 
           <div className="space-y-2">
@@ -136,11 +142,7 @@ export function TaskForm({ clients, users, action, defaultClientId }: TaskFormPr
             <label htmlFor="deadline" className="block text-sm font-medium">
               Deadline
             </label>
-            <Input
-              id="deadline"
-              name="deadline"
-              type="date"
-            />
+            <Input id="deadline" name="deadline" type="date" />
           </div>
 
           <div className="flex gap-3">
@@ -152,5 +154,5 @@ export function TaskForm({ clients, users, action, defaultClientId }: TaskFormPr
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

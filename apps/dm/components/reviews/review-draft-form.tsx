@@ -23,7 +23,14 @@ interface ReviewDraftFormProps {
   draft?: ReviewDraft | null;
 }
 
-const PLATFORMS = ["Google", "Facebook", "Justdial", "Website", "LinkedIn", "Other"];
+const PLATFORMS = [
+  "Google",
+  "Facebook",
+  "Justdial",
+  "Website",
+  "LinkedIn",
+  "Other",
+];
 const TONES = ["Professional", "Friendly", "Formal", "Casual"];
 
 export function ReviewDraftForm({
@@ -37,11 +44,15 @@ export function ReviewDraftForm({
   const [formData, setFormData] = useState<ReviewDraftFormData>({
     subject: draft?.subject ?? "",
     reviewText: draft?.reviewText ?? "",
-    clientId: (typeof draft?.clientId === "object" ? draft?.clientId?._id : draft?.clientId) ?? "",
+    clientId:
+      (typeof draft?.clientId === "object"
+        ? draft?.clientId?._id
+        : draft?.clientId) ?? "",
     clientName:
-      (typeof draft?.clientId === "object" && "businessName" in (draft.clientId || {}))
-        ? (draft.clientId as { businessName?: string }).businessName ?? ""
-        : draft?.clientName ?? "",
+      typeof draft?.clientId === "object" &&
+      "businessName" in (draft.clientId || {})
+        ? ((draft.clientId as { businessName?: string }).businessName ?? "")
+        : (draft?.clientName ?? ""),
     category: draft?.category ?? "",
     language: draft?.language ?? "English",
     suggestedRating: draft?.suggestedRating ?? "5",
@@ -55,11 +66,16 @@ export function ReviewDraftForm({
       setFormData({
         subject: draft.subject ?? "",
         reviewText: draft.reviewText ?? "",
-        clientId: (typeof draft.clientId === "object" ? draft.clientId?._id : draft.clientId) ?? "",
+        clientId:
+          (typeof draft.clientId === "object"
+            ? draft.clientId?._id
+            : draft.clientId) ?? "",
         clientName:
-          (typeof draft.clientId === "object" && draft.clientId && "businessName" in draft.clientId)
-            ? (draft.clientId as { businessName?: string }).businessName ?? ""
-            : draft.clientName ?? "",
+          typeof draft.clientId === "object" &&
+          draft.clientId &&
+          "businessName" in draft.clientId
+            ? ((draft.clientId as { businessName?: string }).businessName ?? "")
+            : (draft.clientName ?? ""),
         category: draft.category ?? "",
         language: draft.language ?? "English",
         suggestedRating: draft.suggestedRating ?? "5",
@@ -107,7 +123,9 @@ export function ReviewDraftForm({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{draft ? "Edit Review Draft" : "Create Review Draft"}</DialogTitle>
+          <DialogTitle>
+            {draft ? "Edit Review Draft" : "Create Review Draft"}
+          </DialogTitle>
           <DialogDescription>
             Fill the review draft details. Required fields are marked with *.
           </DialogDescription>
@@ -117,16 +135,22 @@ export function ReviewDraftForm({
             <label className="block text-sm font-medium mb-1">Subject *</label>
             <Input
               value={formData.subject}
-              onChange={(e) => setFormData((p) => ({ ...p, subject: e.target.value }))}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, subject: e.target.value }))
+              }
               placeholder="e.g. Excellent GST Filing Support"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Review Text *</label>
+            <label className="block text-sm font-medium mb-1">
+              Review Text *
+            </label>
             <Textarea
               value={formData.reviewText}
-              onChange={(e) => setFormData((p) => ({ ...p, reviewText: e.target.value }))}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, reviewText: e.target.value }))
+              }
               placeholder="Enter the suggested review comment..."
               rows={5}
               required
@@ -151,19 +175,27 @@ export function ReviewDraftForm({
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium mb-1">Category *</label>
+              <label className="block text-sm font-medium mb-1">
+                Category *
+              </label>
               <Input
                 value={formData.category}
-                onChange={(e) => setFormData((p) => ({ ...p, category: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, category: e.target.value }))
+                }
                 placeholder="e.g. Service"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Language *</label>
+              <label className="block text-sm font-medium mb-1">
+                Language *
+              </label>
               <Input
                 value={formData.language}
-                onChange={(e) => setFormData((p) => ({ ...p, language: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, language: e.target.value }))
+                }
                 placeholder="e.g. English"
                 required
               />
@@ -171,10 +203,17 @@ export function ReviewDraftForm({
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium mb-1">Suggested Rating</label>
+              <label className="block text-sm font-medium mb-1">
+                Suggested Rating
+              </label>
               <select
                 value={formData.suggestedRating}
-                onChange={(e) => setFormData((p) => ({ ...p, suggestedRating: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((p) => ({
+                    ...p,
+                    suggestedRating: e.target.value,
+                  }))
+                }
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
               >
                 {["3", "4", "5"].map((r) => (
@@ -188,7 +227,9 @@ export function ReviewDraftForm({
               <label className="block text-sm font-medium mb-1">Tone</label>
               <select
                 value={formData.tone}
-                onChange={(e) => setFormData((p) => ({ ...p, tone: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, tone: e.target.value }))
+                }
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
               >
                 {TONES.map((t) => (
@@ -204,7 +245,9 @@ export function ReviewDraftForm({
               type="checkbox"
               id="reusable"
               checked={formData.reusable}
-              onChange={(e) => setFormData((p) => ({ ...p, reusable: e.target.checked }))}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, reusable: e.target.checked }))
+              }
               className="rounded border-input"
             />
             <label htmlFor="reusable" className="text-sm font-medium">
@@ -215,7 +258,9 @@ export function ReviewDraftForm({
             <label className="block text-sm font-medium mb-1">Notes</label>
             <Textarea
               value={formData.notes ?? ""}
-              onChange={(e) => setFormData((p) => ({ ...p, notes: e.target.value }))}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, notes: e.target.value }))
+              }
               placeholder="Optional notes"
               rows={2}
               className="resize-none"

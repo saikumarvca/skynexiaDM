@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StatsCard } from "@/components/stats-card"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatsCard } from "@/components/stats-card";
 import {
   FileText,
   CheckCircle,
@@ -10,81 +10,78 @@ import {
   Share2,
   Upload,
   Archive,
-} from "lucide-react"
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MonthlyTrend {
-  month: string
-  used: number
-  drafted: number
+  month: string;
+  used: number;
+  drafted: number;
 }
 
 interface PlatformBreakdown {
-  platform: string
-  count: number
+  platform: string;
+  count: number;
 }
 
 interface TopReviewer {
-  name: string
-  count: number
+  name: string;
+  count: number;
 }
 
 interface ReviewAnalyticsData {
-  totalDrafts: number
-  available: number
-  allocated: number
-  shared: number
-  used: number
-  teamUsage: { name: string; count: number }[]
-  platformUsage: { platform: string; count: number }[]
-  statusDistribution: Record<string, number>
-  dailyTrend: { date: string; count: number }[]
-  monthlyTrends: MonthlyTrend[]
-  platformBreakdown: PlatformBreakdown[]
-  topReviewers: TopReviewer[]
-  responseRate: number
+  totalDrafts: number;
+  available: number;
+  allocated: number;
+  shared: number;
+  used: number;
+  teamUsage: { name: string; count: number }[];
+  platformUsage: { platform: string; count: number }[];
+  statusDistribution: Record<string, number>;
+  dailyTrend: { date: string; count: number }[];
+  monthlyTrends: MonthlyTrend[];
+  platformBreakdown: PlatformBreakdown[];
+  topReviewers: TopReviewer[];
+  responseRate: number;
 }
 
 // ─── SVG Helpers ──────────────────────────────────────────────────────────────
 
 // Dual-line chart for monthly trends
-function MonthlyTrendsChart({
-  data,
-}: {
-  data: MonthlyTrend[]
-}) {
-  const W = 400
-  const H = 140
-  const PAD = { top: 20, right: 20, bottom: 36, left: 32 }
-  const chartW = W - PAD.left - PAD.right
-  const chartH = H - PAD.top - PAD.bottom
+function MonthlyTrendsChart({ data }: { data: MonthlyTrend[] }) {
+  const W = 400;
+  const H = 140;
+  const PAD = { top: 20, right: 20, bottom: 36, left: 32 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
 
-  const n = data.length
-  if (n === 0) return <p className="text-sm text-muted-foreground">No data yet.</p>
+  const n = data.length;
+  if (n === 0)
+    return <p className="text-sm text-muted-foreground">No data yet.</p>;
 
-  const allVals = data.flatMap((d) => [d.used, d.drafted])
-  const maxVal = Math.max(...allVals, 1)
+  const allVals = data.flatMap((d) => [d.used, d.drafted]);
+  const maxVal = Math.max(...allVals, 1);
 
   function toPoint(i: number, val: number) {
-    const x = PAD.left + (i / Math.max(n - 1, 1)) * chartW
-    const y = PAD.top + chartH - (val / maxVal) * chartH
-    return { x, y }
+    const x = PAD.left + (i / Math.max(n - 1, 1)) * chartW;
+    const y = PAD.top + chartH - (val / maxVal) * chartH;
+    return { x, y };
   }
 
-  const usedPts = data.map((d, i) => toPoint(i, d.used))
-  const draftedPts = data.map((d, i) => toPoint(i, d.drafted))
+  const usedPts = data.map((d, i) => toPoint(i, d.used));
+  const draftedPts = data.map((d, i) => toPoint(i, d.drafted));
 
   const toPolyline = (pts: { x: number; y: number }[]) =>
-    pts.map((p) => `${p.x},${p.y}`).join(" ")
+    pts.map((p) => `${p.x},${p.y}`).join(" ");
 
   // short month label
   const label = (m: string) => {
-    const [, mo] = m.split("-")
+    const [, mo] = m.split("-");
     return new Date(2000, Number(mo) - 1, 1).toLocaleString("en", {
       month: "short",
-    })
-  }
+    });
+  };
 
   return (
     <svg
@@ -96,14 +93,22 @@ function MonthlyTrendsChart({
     >
       {/* axes */}
       <line
-        x1={PAD.left} y1={PAD.top}
-        x2={PAD.left} y2={PAD.top + chartH}
-        stroke="currentColor" strokeOpacity={0.15} strokeWidth={1}
+        x1={PAD.left}
+        y1={PAD.top}
+        x2={PAD.left}
+        y2={PAD.top + chartH}
+        stroke="currentColor"
+        strokeOpacity={0.15}
+        strokeWidth={1}
       />
       <line
-        x1={PAD.left} y1={PAD.top + chartH}
-        x2={PAD.left + chartW} y2={PAD.top + chartH}
-        stroke="currentColor" strokeOpacity={0.15} strokeWidth={1}
+        x1={PAD.left}
+        y1={PAD.top + chartH}
+        x2={PAD.left + chartW}
+        y2={PAD.top + chartH}
+        stroke="currentColor"
+        strokeOpacity={0.15}
+        strokeWidth={1}
       />
 
       {/* drafted line (blue) */}
@@ -127,9 +132,9 @@ function MonthlyTrendsChart({
 
       {/* dots + x labels */}
       {data.map((d, i) => {
-        const up = usedPts[i]
-        const dp = draftedPts[i]
-        if (!dp || !up) return null
+        const up = usedPts[i];
+        const dp = draftedPts[i];
+        if (!dp || !up) return null;
         return (
           <g key={d.month}>
             <circle cx={dp.x} cy={dp.y} r={3} fill="#3b82f6" />
@@ -145,7 +150,7 @@ function MonthlyTrendsChart({
               {label(d.month)}
             </text>
           </g>
-        )
+        );
       })}
 
       {/* Y max */}
@@ -160,27 +165,35 @@ function MonthlyTrendsChart({
         {maxVal}
       </text>
     </svg>
-  )
+  );
 }
 
 // Horizontal bar chart for platform breakdown
 const PLATFORM_COLORS = [
-  "#6366f1", "#3b82f6", "#22c55e", "#f59e0b",
-  "#ef4444", "#14b8a6", "#ec4899", "#8b5cf6",
-]
+  "#6366f1",
+  "#3b82f6",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#14b8a6",
+  "#ec4899",
+  "#8b5cf6",
+];
 
 function PlatformHorizontalBars({ data }: { data: PlatformBreakdown[] }) {
   if (data.length === 0) {
-    return <p className="text-sm text-muted-foreground">No platform data yet.</p>
+    return (
+      <p className="text-sm text-muted-foreground">No platform data yet.</p>
+    );
   }
 
-  const W = 300
-  const ROW_H = 28
-  const LABEL_W = 90
-  const COUNT_W = 30
-  const BAR_AREA = W - LABEL_W - COUNT_W - 8
-  const H = data.length * ROW_H + 8
-  const maxVal = Math.max(...data.map((d) => d.count), 1)
+  const W = 300;
+  const ROW_H = 28;
+  const LABEL_W = 90;
+  const COUNT_W = 30;
+  const BAR_AREA = W - LABEL_W - COUNT_W - 8;
+  const H = data.length * ROW_H + 8;
+  const maxVal = Math.max(...data.map((d) => d.count), 1);
 
   return (
     <svg
@@ -190,15 +203,18 @@ function PlatformHorizontalBars({ data }: { data: PlatformBreakdown[] }) {
       role="img"
     >
       {data.map((d, i) => {
-        const barW = (d.count / maxVal) * BAR_AREA
-        const y = i * ROW_H + 4
-        const color = PLATFORM_COLORS[i % PLATFORM_COLORS.length]
+        const barW = (d.count / maxVal) * BAR_AREA;
+        const y = i * ROW_H + 4;
+        const color = PLATFORM_COLORS[i % PLATFORM_COLORS.length];
 
         return (
           <g key={d.platform}>
             <text
-              x={0} y={y + ROW_H / 2 + 4}
-              fontSize={11} fill="currentColor" fillOpacity={0.8}
+              x={0}
+              y={y + ROW_H / 2 + 4}
+              fontSize={11}
+              fill="currentColor"
+              fillOpacity={0.8}
             >
               {d.platform.length > 11
                 ? d.platform.slice(0, 10) + "…"
@@ -206,37 +222,46 @@ function PlatformHorizontalBars({ data }: { data: PlatformBreakdown[] }) {
             </text>
             {/* track */}
             <rect
-              x={LABEL_W} y={y + 6}
-              width={BAR_AREA} height={ROW_H - 12}
-              fill="currentColor" fillOpacity={0.07} rx={3}
+              x={LABEL_W}
+              y={y + 6}
+              width={BAR_AREA}
+              height={ROW_H - 12}
+              fill="currentColor"
+              fillOpacity={0.07}
+              rx={3}
             />
             {/* bar */}
             <rect
-              x={LABEL_W} y={y + 6}
-              width={barW} height={ROW_H - 12}
-              fill={color} rx={3}
+              x={LABEL_W}
+              y={y + 6}
+              width={barW}
+              height={ROW_H - 12}
+              fill={color}
+              rx={3}
             />
             <text
               x={LABEL_W + BAR_AREA + 6}
               y={y + ROW_H / 2 + 4}
-              fontSize={11} fill="currentColor" fillOpacity={0.7}
+              fontSize={11}
+              fill="currentColor"
+              fillOpacity={0.7}
             >
               {d.count}
             </text>
           </g>
-        )
+        );
       })}
     </svg>
-  )
+  );
 }
 
 // Circular progress (SVG stroke-dasharray) for response rate
 function CircularProgress({ pct }: { pct: number }) {
-  const R = 52
-  const CX = 60
-  const CY = 60
-  const CIRCUMFERENCE = 2 * Math.PI * R
-  const dash = (pct / 100) * CIRCUMFERENCE
+  const R = 52;
+  const CX = 60;
+  const CY = 60;
+  const CIRCUMFERENCE = 2 * Math.PI * R;
+  const dash = (pct / 100) * CIRCUMFERENCE;
 
   return (
     <svg
@@ -248,7 +273,9 @@ function CircularProgress({ pct }: { pct: number }) {
     >
       {/* track */}
       <circle
-        cx={CX} cy={CY} r={R}
+        cx={CX}
+        cy={CY}
+        r={R}
         fill="none"
         stroke="currentColor"
         strokeOpacity={0.1}
@@ -256,7 +283,9 @@ function CircularProgress({ pct }: { pct: number }) {
       />
       {/* progress */}
       <circle
-        cx={CX} cy={CY} r={R}
+        cx={CX}
+        cy={CY}
+        r={R}
         fill="none"
         stroke="#22c55e"
         strokeWidth={10}
@@ -268,7 +297,8 @@ function CircularProgress({ pct }: { pct: number }) {
       />
       {/* label */}
       <text
-        x={CX} y={CY}
+        x={CX}
+        y={CY}
         textAnchor="middle"
         dominantBaseline="central"
         fontSize={20}
@@ -278,35 +308,37 @@ function CircularProgress({ pct }: { pct: number }) {
         {pct}%
       </text>
     </svg>
-  )
+  );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface Props {
-  initialData?: ReviewAnalyticsData | null
+  initialData?: ReviewAnalyticsData | null;
 }
 
 export function ReviewAnalyticsClient({ initialData }: Props) {
-  const [data, setData] = useState<ReviewAnalyticsData | null>(initialData ?? null)
-  const [loading, setLoading] = useState(!initialData)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<ReviewAnalyticsData | null>(
+    initialData ?? null,
+  );
+  const [loading, setLoading] = useState(!initialData);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialData) return
+    if (initialData) return;
     async function load() {
       try {
-        const res = await fetch("/api/review-analytics")
-        if (!res.ok) throw new Error("Failed to fetch analytics")
-        setData(await res.json())
+        const res = await fetch("/api/review-analytics");
+        if (!res.ok) throw new Error("Failed to fetch analytics");
+        setData(await res.json());
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error")
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    load()
-  }, [initialData])
+    load();
+  }, [initialData]);
 
   if (loading) {
     return (
@@ -315,7 +347,7 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
           Loading analytics…
         </span>
       </div>
-    )
+    );
   }
 
   if (error || !data) {
@@ -323,11 +355,11 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
       <p className="text-sm text-muted-foreground">
         {error ?? "No analytics data available."}
       </p>
-    )
+    );
   }
 
-  const totalDrafts = data.totalDrafts ?? 0
-  const statusDistribution = data.statusDistribution ?? {}
+  const totalDrafts = data.totalDrafts ?? 0;
+  const statusDistribution = data.statusDistribution ?? {};
 
   return (
     <div className="space-y-6">
@@ -403,7 +435,10 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
             ) : (
               <div className="space-y-3">
                 {data.platformUsage.map(({ platform, count }) => (
-                  <div key={platform} className="flex items-center justify-between">
+                  <div
+                    key={platform}
+                    className="flex items-center justify-between"
+                  >
                     <span className="font-medium">{platform}</span>
                     <span className="text-muted-foreground">{count}</span>
                   </div>
@@ -421,8 +456,8 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
         <CardContent>
           <div className="space-y-3">
             {Object.entries(statusDistribution).map(([status, count]) => {
-              const total = totalDrafts || 1
-              const pct = Math.round((Number(count) / total) * 100)
+              const total = totalDrafts || 1;
+              const pct = Math.round((Number(count) / total) * 100);
               return (
                 <div key={status}>
                   <div className="flex justify-between text-sm mb-1">
@@ -438,7 +473,7 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
                     />
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </CardContent>
@@ -525,7 +560,9 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
                       {idx + 1}
                     </span>
-                    <span className="flex-1 font-medium truncate">{r.name}</span>
+                    <span className="flex-1 font-medium truncate">
+                      {r.name}
+                    </span>
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                       {r.count}
                     </span>
@@ -550,5 +587,5 @@ export function ReviewAnalyticsClient({ initialData }: Props) {
         </Card>
       </div>
     </div>
-  )
+  );
 }

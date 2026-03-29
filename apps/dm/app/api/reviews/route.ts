@@ -1,61 +1,71 @@
-import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/mongodb'
-import Review from '@/models/Review'
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import Review from "@/models/Review";
 
 export async function GET(request: NextRequest) {
   try {
-    await dbConnect()
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
 
-    const { searchParams } = new URL(request.url)
-    const clientId = searchParams.get('clientId')
-    const status = searchParams.get('status')
-    const search = searchParams.get('search')
-    const category = searchParams.get('category')
-    const language = searchParams.get('language')
+    await dbConnect();
 
-    const query: Record<string, unknown> = {}
-    if (clientId) query.clientId = clientId
-    if (status && status !== 'ALL') query.status = status
-    if (category) query.category = category
-    if (language) query.language = language
+    const { searchParams } = new URL(request.url);
+    const clientId = searchParams.get("clientId");
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
+    const category = searchParams.get("category");
+    const language = searchParams.get("language");
+
+    const query: Record<string, unknown> = {};
+    if (clientId) query.clientId = clientId;
+    if (status && status !== "ALL") query.status = status;
+    if (category) query.category = category;
+    if (language) query.language = language;
     if (search) {
       query.$or = [
-        { shortLabel: { $regex: search, $options: 'i' } },
-        { reviewText: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-      ]
+        { shortLabel: { $regex: search, $options: "i" } },
+        { reviewText: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+      ];
     }
 
     const reviews = await Review.find(query)
-      .populate('clientId', 'name businessName')
-      .sort({ createdAt: -1 })
+      .populate("clientId", "name businessName")
+      .sort({ createdAt: -1 });
 
-    return NextResponse.json(reviews)
+    return NextResponse.json(reviews);
   } catch (error) {
-    console.error('Error fetching reviews:', error)
+    console.error("Error fetching reviews:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch reviews' },
-      { status: 500 }
-    )
+      { error: "Failed to fetch reviews" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect()
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
 
-    const body = await request.json()
-    const review = new Review(body)
-    await review.save()
+    await dbConnect();
 
-    const populatedReview = await Review.findOne({ _id: review._id }).populate('clientId', 'name businessName')
+    const body = await request.json();
+    const review = new Review(body);
+    await review.save();
 
-    return NextResponse.json(populatedReview, { status: 201 })
+    const populatedReview = await Review.findOne({ _id: review._id }).populate(
+      "clientId",
+      "name businessName",
+    );
+
+    return NextResponse.json(populatedReview, { status: 201 });
   } catch (error) {
-    console.error('Error creating review:', error)
+    console.error("Error creating review:", error);
     return NextResponse.json(
-      { error: 'Failed to create review' },
-      { status: 500 }
-    )
+      { error: "Failed to create review" },
+      { status: 500 },
+    );
   }
 }

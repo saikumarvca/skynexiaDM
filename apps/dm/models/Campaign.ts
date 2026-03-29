@@ -1,12 +1,12 @@
 import * as mongoose from "mongoose";
 
 export type CampaignStatus =
-  | 'PLANNED'
-  | 'ACTIVE'
-  | 'PAUSED'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'ARCHIVED';
+  | "PLANNED"
+  | "ACTIVE"
+  | "PAUSED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "ARCHIVED";
 
 export interface ICampaignMetrics {
   impressions?: number;
@@ -35,7 +35,11 @@ export interface ICampaign extends mongoose.Document {
 
 const CampaignSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
+    },
     campaignName: { type: String, required: true },
     platform: { type: String, required: true },
     objective: { type: String },
@@ -44,8 +48,15 @@ const CampaignSchema: mongoose.Schema = new mongoose.Schema(
     endDate: { type: Date },
     status: {
       type: String,
-      enum: ['PLANNED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED', 'ARCHIVED'],
-      default: 'PLANNED',
+      enum: [
+        "PLANNED",
+        "ACTIVE",
+        "PAUSED",
+        "COMPLETED",
+        "CANCELLED",
+        "ARCHIVED",
+      ],
+      default: "PLANNED",
     },
     metrics: {
       impressions: { type: Number, default: 0 },
@@ -60,7 +71,7 @@ const CampaignSchema: mongoose.Schema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 CampaignSchema.index({ clientId: 1, platform: 1, status: 1 });
@@ -68,7 +79,6 @@ CampaignSchema.index({ startDate: 1, endDate: 1 });
 
 const Campaign =
   (mongoose.models.Campaign as mongoose.Model<ICampaign> | undefined) ||
-  mongoose.model<ICampaign>('Campaign', CampaignSchema);
+  mongoose.model<ICampaign>("Campaign", CampaignSchema);
 
 export default Campaign;
-

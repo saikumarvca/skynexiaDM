@@ -1,37 +1,43 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BulkReviewFormData } from "@/types"
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { BulkReviewFormData } from "@/types";
 
 interface BulkReviewFormProps {
-  clientId: string
-  onSubmit: (data: BulkReviewFormData) => Promise<void>
+  clientId: string;
+  onSubmit: (data: BulkReviewFormData) => Promise<void>;
 }
 
 export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<BulkReviewFormData>({
     clientId,
     reviews: "",
     category: "",
     language: "English",
     ratingStyle: "5-star",
-  })
+  });
 
-  const [isPreviewOnly, setIsPreviewOnly] = useState(false)
+  const [isPreviewOnly, setIsPreviewOnly] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (isPreviewOnly) {
-      return
+      return;
     }
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await onSubmit(formData)
+      await onSubmit(formData);
       // Reset form
       setFormData({
         clientId,
@@ -39,17 +45,17 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
         category: "",
         language: "English",
         ratingStyle: "5-star",
-      })
+      });
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Error submitting form:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: keyof BulkReviewFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const parsedReviews = useMemo(() => {
     return formData.reviews
@@ -60,14 +66,17 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
         index: index + 1,
         text,
         isTooShort: text.length < 20,
-      }))
-  }, [formData.reviews])
+      }));
+  }, [formData.reviews]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Category
           </label>
           <Input
@@ -79,10 +88,16 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
           />
         </div>
         <div>
-          <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="language"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Language
           </label>
-          <Select value={formData.language} onValueChange={(value) => handleChange("language", value)}>
+          <Select
+            value={formData.language}
+            onValueChange={(value) => handleChange("language", value)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -96,10 +111,16 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
           </Select>
         </div>
         <div>
-          <label htmlFor="ratingStyle" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="ratingStyle"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Rating Style
           </label>
-          <Select value={formData.ratingStyle} onValueChange={(value) => handleChange("ratingStyle", value)}>
+          <Select
+            value={formData.ratingStyle}
+            onValueChange={(value) => handleChange("ratingStyle", value)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -114,7 +135,10 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
         </div>
       </div>
       <div>
-        <label htmlFor="reviews" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          htmlFor="reviews"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Reviews (one per line or separated by paragraphs)
         </label>
         <Textarea
@@ -131,14 +155,21 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
       </div>
       {parsedReviews.length > 0 && (
         <div className="rounded-md border p-4 space-y-2">
-          <p className="text-sm font-medium">Preview ({parsedReviews.length} reviews)</p>
+          <p className="text-sm font-medium">
+            Preview ({parsedReviews.length} reviews)
+          </p>
           <ul className="max-h-64 overflow-auto space-y-1 text-sm">
             {parsedReviews.map((item) => (
-              <li key={item.index} className={item.isTooShort ? "text-red-500" : ""}>
+              <li
+                key={item.index}
+                className={item.isTooShort ? "text-red-500" : ""}
+              >
                 <span className="font-mono mr-2">#{item.index}</span>
                 <span>{item.text}</span>
                 {item.isTooShort && (
-                  <span className="ml-2 text-xs">(very short – consider expanding)</span>
+                  <span className="ml-2 text-xs">
+                    (very short – consider expanding)
+                  </span>
                 )}
               </li>
             ))}
@@ -151,5 +182,5 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
         </Button>
       </div>
     </form>
-  )
+  );
 }

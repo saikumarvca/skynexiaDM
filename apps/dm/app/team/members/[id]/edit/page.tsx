@@ -8,20 +8,34 @@ import User from "@/models/User";
 
 export const dynamic = "force-dynamic";
 
-interface PageProps { params: Promise<{ id: string }>; }
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
 export default async function EditMemberPage({ params }: PageProps) {
   const { id } = await params;
   await dbConnect();
   const [memberDoc, roles] = await Promise.all([
     TeamMember.findById(id).lean(),
-    TeamRole.find({ isDeleted: { $ne: true } }).sort({ roleName: 1 }).limit(100).lean(),
+    TeamRole.find({ isDeleted: { $ne: true } })
+      .sort({ roleName: 1 })
+      .limit(100)
+      .lean(),
   ]);
   const member = memberDoc ? JSON.parse(JSON.stringify(memberDoc)) : null;
   const rolesList = roles.map((r) => JSON.parse(JSON.stringify(r)));
 
   if (!member) {
-    return <DashboardLayout><div className="space-y-6"><h1 className="text-3xl font-bold">Member Not Found</h1><p className="text-muted-foreground">The requested member could not be found.</p></div></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <h1 className="text-3xl font-bold">Member Not Found</h1>
+          <p className="text-muted-foreground">
+            The requested member could not be found.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   const loginUser = await User.findOne({
@@ -39,9 +53,23 @@ export default async function EditMemberPage({ params }: PageProps) {
           <p className="text-muted-foreground">Update team member details.</p>
         </div>
         <Card>
-          <CardHeader><CardTitle>Member Details</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Member Details</CardTitle>
+          </CardHeader>
           <CardContent>
-            <TeamMemberForm memberId={id} hasLogin={hasLogin} initialData={{ name: member.name, email: member.email, phone: member.phone, roleId: member.roleId?._id ?? member.roleId ?? "", department: member.department, notes: member.notes }} roles={rolesList} />
+            <TeamMemberForm
+              memberId={id}
+              hasLogin={hasLogin}
+              initialData={{
+                name: member.name,
+                email: member.email,
+                phone: member.phone,
+                roleId: member.roleId?._id ?? member.roleId ?? "",
+                department: member.department,
+                notes: member.notes,
+              }}
+              roles={rolesList}
+            />
           </CardContent>
         </Card>
       </div>

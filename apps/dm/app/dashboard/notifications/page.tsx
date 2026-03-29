@@ -1,28 +1,28 @@
-import Link from "next/link"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { Bell } from "lucide-react"
-import { serverFetch } from "@/lib/server-fetch"
+import Link from "next/link";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { Bell } from "lucide-react";
+import { serverFetch } from "@/lib/server-fetch";
 import {
   NotificationsPageClient,
   type NotificationItem,
-} from "@/components/notifications-page-client"
+} from "@/components/notifications-page-client";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 async function getNotifications(): Promise<NotificationItem[]> {
   try {
-    const res = await serverFetch("/api/notifications")
-    if (!res.ok) return []
-    return (await res.json()) as NotificationItem[]
+    const res = await serverFetch("/api/notifications");
+    if (!res.ok) return [];
+    return (await res.json()) as NotificationItem[];
   } catch (e) {
-    console.error("Error fetching notifications:", e)
-    return []
+    console.error("Error fetching notifications:", e);
+    return [];
   }
 }
 
 export default async function DashboardNotificationsPage() {
-  const notifications = await getNotifications()
+  const notifications = await getNotifications();
 
   return (
     <DashboardLayout>
@@ -34,7 +34,8 @@ export default async function DashboardNotificationsPage() {
               Notifications
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Stay up to date with activity across tasks, reviews, campaigns, and leads.
+              Stay up to date with activity across tasks, reviews, campaigns,
+              and leads.
             </p>
           </div>
           <Link href="/dashboard">
@@ -45,5 +46,5 @@ export default async function DashboardNotificationsPage() {
         <NotificationsPageClient initialNotifications={notifications} />
       </div>
     </DashboardLayout>
-  )
+  );
 }

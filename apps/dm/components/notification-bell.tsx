@@ -1,107 +1,116 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Bell } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import * as Popover from "@radix-ui/react-popover"
-import { Button } from "@/components/ui/button"
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Bell } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import * as Popover from "@radix-ui/react-popover";
+import { Button } from "@/components/ui/button";
 
 interface Notification {
-  _id: string
-  type: string
-  title: string
-  message: string
-  href?: string
-  isRead: boolean
-  createdAt: string
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  href?: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
-const POLL_INTERVAL_MS = 60_000
-const PREVIEW_LIMIT = 10
+const POLL_INTERVAL_MS = 60_000;
+const PREVIEW_LIMIT = 10;
 
 export function NotificationBell() {
-  const router = useRouter()
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const router = useRouter();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const res = await fetch("/api/notifications/unread-count", { cache: "no-store" })
+      const res = await fetch("/api/notifications/unread-count", {
+        cache: "no-store",
+      });
       if (res.ok) {
-        const data = (await res.json()) as { count: number }
-        setUnreadCount(data.count)
+        const data = (await res.json()) as { count: number };
+        setUnreadCount(data.count);
       }
     } catch {
       // silently ignore network errors for polling
     }
-  }, [])
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch(`/api/notifications?limit=${PREVIEW_LIMIT}`, { cache: "no-store" })
+      const res = await fetch(`/api/notifications?limit=${PREVIEW_LIMIT}`, {
+        cache: "no-store",
+      });
       if (res.ok) {
-        const data = (await res.json()) as Notification[]
-        setNotifications(data.slice(0, PREVIEW_LIMIT))
+        const data = (await res.json()) as Notification[];
+        setNotifications(data.slice(0, PREVIEW_LIMIT));
       }
     } catch {
       // ignore
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   // Initial fetch + polling for unread count
   useEffect(() => {
-    void fetchUnreadCount()
+    void fetchUnreadCount();
     intervalRef.current = setInterval(() => {
-      void fetchUnreadCount()
-    }, POLL_INTERVAL_MS)
+      void fetchUnreadCount();
+    }, POLL_INTERVAL_MS);
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-  }, [fetchUnreadCount])
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchUnreadCount]);
 
   // Fetch notifications when popover opens
   useEffect(() => {
     if (open) {
-      void fetchNotifications()
+      void fetchNotifications();
     }
-  }, [open, fetchNotifications])
+  }, [open, fetchNotifications]);
 
   const handleMarkRead = async (notification: Notification) => {
     if (!notification.isRead) {
       try {
-        await fetch(`/api/notifications/${notification._id}/read`, { method: "POST" })
+        await fetch(`/api/notifications/${notification._id}/read`, {
+          method: "POST",
+        });
         setNotifications((prev) =>
-          prev.map((n) => (n._id === notification._id ? { ...n, isRead: true } : n))
-        )
-        setUnreadCount((c) => Math.max(0, c - 1))
+          prev.map((n) =>
+            n._id === notification._id ? { ...n, isRead: true } : n,
+          ),
+        );
+        setUnreadCount((c) => Math.max(0, c - 1));
       } catch {
         // ignore
       }
     }
     if (notification.href) {
-      setOpen(false)
-      router.push(notification.href)
+      setOpen(false);
+      router.push(notification.href);
     }
-  }
+  };
 
   const handleMarkAllRead = async () => {
     try {
-      await fetch("/api/notifications/read-all", { method: "POST" })
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
-      setUnreadCount(0)
+      await fetch("/api/notifications/read-all", { method: "POST" });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
     } catch {
       // ignore
     }
-  }
+  };
 
-  const displayCount = unreadCount > 99 ? "99+" : unreadCount > 0 ? String(unreadCount) : null
+  const displayCount =
+    unreadCount > 99 ? "99+" : unreadCount > 0 ? String(unreadCount) : null;
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -154,7 +163,9 @@ export function NotificationBell() {
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
                 <Bell className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">No notifications</p>
+                <p className="text-sm text-muted-foreground">
+                  No notifications
+                </p>
               </div>
             ) : (
               <ul className="divide-y">
@@ -169,16 +180,28 @@ export function NotificationBell() {
                     >
                       <div className="flex items-start gap-2">
                         {!n.isRead && (
-                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" aria-hidden />
+                          <span
+                            className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500"
+                            aria-hidden
+                          />
                         )}
-                        {n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0" aria-hidden />}
+                        {n.isRead && (
+                          <span
+                            className="mt-1.5 h-2 w-2 shrink-0"
+                            aria-hidden
+                          />
+                        )}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium leading-tight">{n.title}</p>
+                          <p className="truncate text-sm font-medium leading-tight">
+                            {n.title}
+                          </p>
                           <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                             {n.message}
                           </p>
                           <p className="mt-1 text-[11px] text-muted-foreground/70">
-                            {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(n.createdAt), {
+                              addSuffix: true,
+                            })}
                           </p>
                         </div>
                       </div>
@@ -196,8 +219,8 @@ export function NotificationBell() {
               size="sm"
               className="w-full text-xs text-muted-foreground hover:text-foreground"
               onClick={() => {
-                setOpen(false)
-                router.push("/dashboard/notifications")
+                setOpen(false);
+                router.push("/dashboard/notifications");
               }}
             >
               View all notifications
@@ -206,5 +229,5 @@ export function NotificationBell() {
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
-  )
+  );
 }

@@ -1,64 +1,82 @@
-import Link from "next/link"
-import { Suspense } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { QueryToast } from "@/components/query-toast"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, ClipboardList } from "lucide-react"
-import { Task, TaskStatus, TaskPriority, Client } from "@/types"
+import Link from "next/link";
+import { Suspense } from "react";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { QueryToast } from "@/components/query-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, ClipboardList } from "lucide-react";
+import { Task, TaskStatus, TaskPriority, Client } from "@/types";
 
-import { getBaseUrl, serverFetch } from "@/lib/server-fetch"
-import { TasksListClient } from "@/components/tasks/tasks-list-client"
+import { getBaseUrl, serverFetch } from "@/lib/server-fetch";
+import { TasksListClient } from "@/components/tasks/tasks-list-client";
 
 async function getTasks(filters: {
-  clientId?: string
-  status?: string
-  priority?: string
-  assignedTo?: string
+  clientId?: string;
+  status?: string;
+  priority?: string;
+  assignedTo?: string;
 }): Promise<Task[]> {
   try {
-    const url = new URL(`${getBaseUrl()}/api/tasks`)
-    if (filters.clientId) url.searchParams.set("clientId", filters.clientId)
-    if (filters.status) url.searchParams.set("status", filters.status)
-    if (filters.priority) url.searchParams.set("priority", filters.priority)
-    if (filters.assignedTo) url.searchParams.set("assignedTo", filters.assignedTo)
-    const res = await serverFetch(url.pathname + url.search)
-    if (!res.ok) throw new Error("Failed to fetch tasks")
-    return await res.json()
+    const url = new URL(`${getBaseUrl()}/api/tasks`);
+    if (filters.clientId) url.searchParams.set("clientId", filters.clientId);
+    if (filters.status) url.searchParams.set("status", filters.status);
+    if (filters.priority) url.searchParams.set("priority", filters.priority);
+    if (filters.assignedTo)
+      url.searchParams.set("assignedTo", filters.assignedTo);
+    const res = await serverFetch(url.pathname + url.search);
+    if (!res.ok) throw new Error("Failed to fetch tasks");
+    return await res.json();
   } catch (e) {
-    console.error("Error fetching tasks:", e)
-    return []
+    console.error("Error fetching tasks:", e);
+    return [];
   }
 }
 
 async function getClients(): Promise<Client[]> {
   try {
-    const res = await serverFetch("/api/clients?limit=500")
-    if (!res.ok) throw new Error("Failed to fetch clients")
-    return await res.json()
+    const res = await serverFetch("/api/clients?limit=500");
+    if (!res.ok) throw new Error("Failed to fetch clients");
+    return await res.json();
   } catch (e) {
-    console.error("Error fetching clients:", e)
-    return []
+    console.error("Error fetching clients:", e);
+    return [];
   }
 }
 
-const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
-const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+const STATUSES: TaskStatus[] = [
+  "TODO",
+  "IN_PROGRESS",
+  "BLOCKED",
+  "DONE",
+  "ARCHIVED",
+];
+const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
 interface PageProps {
-  searchParams: Promise<{ clientId?: string; status?: string; priority?: string }>
+  searchParams: Promise<{
+    clientId?: string;
+    status?: string;
+    priority?: string;
+  }>;
 }
 
 export default async function DashboardTasksPage({ searchParams }: PageProps) {
-  const params = await searchParams
+  const params = await searchParams;
   const [tasks, clients] = await Promise.all([
     getTasks({
-      clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
-      status: params.status && params.status !== "ALL" ? params.status : undefined,
-      priority: params.priority && params.priority !== "ALL" ? params.priority : undefined,
+      clientId:
+        params.clientId && params.clientId !== "ALL"
+          ? params.clientId
+          : undefined,
+      status:
+        params.status && params.status !== "ALL" ? params.status : undefined,
+      priority:
+        params.priority && params.priority !== "ALL"
+          ? params.priority
+          : undefined,
     }),
     getClients(),
-  ])
+  ]);
 
   return (
     <DashboardLayout>
@@ -86,9 +104,14 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
             <CardTitle className="text-base">Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <form method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <form
+              method="get"
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Client</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Client
+                </label>
                 <select
                   name="clientId"
                   defaultValue={params.clientId ?? "ALL"}
@@ -103,7 +126,9 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Status</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Status
+                </label>
                 <select
                   name="status"
                   defaultValue={params.status ?? "ALL"}
@@ -118,7 +143,9 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Priority</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Priority
+                </label>
                 <select
                   name="priority"
                   defaultValue={params.priority ?? "ALL"}
@@ -154,5 +181,5 @@ export default async function DashboardTasksPage({ searchParams }: PageProps) {
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

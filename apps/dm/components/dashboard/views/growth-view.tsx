@@ -1,24 +1,51 @@
-import Link from "next/link"
-import { StatsCard } from "@/components/stats-card"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Target, TrendingUp, Users, ClipboardList, ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { DashboardPageData } from "@/types"
+import Link from "next/link";
+import { StatsCard } from "@/components/stats-card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Target,
+  TrendingUp,
+  Users,
+  ClipboardList,
+  ArrowRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { DashboardPageData } from "@/types";
 
 const FUNNEL_STAGES: { key: string; label: string; color: string }[] = [
   { key: "NEW", label: "New", color: "bg-sky-500/90 dark:bg-sky-500/80" },
-  { key: "CONTACTED", label: "Contacted", color: "bg-cyan-500/90 dark:bg-cyan-500/80" },
-  { key: "QUALIFIED", label: "Qualified", color: "bg-emerald-500/90 dark:bg-emerald-500/80" },
-  { key: "CLOSED_WON", label: "Won", color: "bg-green-600/90 dark:bg-green-600/80" },
+  {
+    key: "CONTACTED",
+    label: "Contacted",
+    color: "bg-cyan-500/90 dark:bg-cyan-500/80",
+  },
+  {
+    key: "QUALIFIED",
+    label: "Qualified",
+    color: "bg-emerald-500/90 dark:bg-emerald-500/80",
+  },
+  {
+    key: "CLOSED_WON",
+    label: "Won",
+    color: "bg-green-600/90 dark:bg-green-600/80",
+  },
   { key: "CLOSED_LOST", label: "Lost", color: "bg-muted-foreground/50" },
-]
+];
 
 export function GrowthView({ data }: { data: DashboardPageData }) {
   const total = Math.max(
     1,
-    FUNNEL_STAGES.reduce((s, { key }) => s + (data.leadStatusBreakdown[key] ?? 0), 0)
-  )
+    FUNNEL_STAGES.reduce(
+      (s, { key }) => s + (data.leadStatusBreakdown[key] ?? 0),
+      0,
+    ),
+  );
 
   return (
     <>
@@ -62,9 +89,9 @@ export function GrowthView({ data }: { data: DashboardPageData }) {
           <CardContent className="space-y-4">
             <div className="flex h-4 overflow-hidden rounded-full bg-muted">
               {FUNNEL_STAGES.map(({ key, color }) => {
-                const n = data.leadStatusBreakdown[key] ?? 0
-                if (n <= 0) return null
-                const pct = (n / total) * 100
+                const n = data.leadStatusBreakdown[key] ?? 0;
+                if (n <= 0) return null;
+                const pct = (n / total) * 100;
                 return (
                   <div
                     key={key}
@@ -72,12 +99,12 @@ export function GrowthView({ data }: { data: DashboardPageData }) {
                     style={{ width: `${pct}%` }}
                     title={`${key}: ${n}`}
                   />
-                )
+                );
               })}
             </div>
             <ul className="grid gap-2 sm:grid-cols-2">
               {FUNNEL_STAGES.map(({ key, label, color }) => {
-                const n = data.leadStatusBreakdown[key] ?? 0
+                const n = data.leadStatusBreakdown[key] ?? 0;
                 return (
                   <li
                     key={key}
@@ -87,9 +114,11 @@ export function GrowthView({ data }: { data: DashboardPageData }) {
                       <span className={cn("h-2 w-2 rounded-full", color)} />
                       {label}
                     </span>
-                    <span className="font-mono tabular-nums text-muted-foreground">{n}</span>
+                    <span className="font-mono tabular-nums text-muted-foreground">
+                      {n}
+                    </span>
                   </li>
-                )
+                );
               })}
             </ul>
           </CardContent>
@@ -116,5 +145,5 @@ export function GrowthView({ data }: { data: DashboardPageData }) {
         </Card>
       </div>
     </>
-  )
+  );
 }

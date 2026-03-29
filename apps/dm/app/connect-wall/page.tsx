@@ -13,7 +13,8 @@ export default async function ConnectWallPage() {
         <div className="mb-4">
           <h1 className="text-2xl font-semibold tracking-tight">Connect</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Slack-style spaces for your team — shared channels and real-time-friendly threads.
+            Slack-style spaces for your team — shared channels and
+            real-time-friendly threads.
           </p>
         </div>
         <ConnectWallApp currentUserId={user.userId} />

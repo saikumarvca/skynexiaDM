@@ -14,7 +14,11 @@ export interface IReviewRequest extends mongoose.Document {
 
 const ReviewRequestSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
+    },
     recipientName: { type: String, required: true },
     recipientEmail: { type: String, required: true },
     message: { type: String },
@@ -26,14 +30,16 @@ const ReviewRequestSchema: mongoose.Schema = new mongoose.Schema(
     sentAt: { type: Date },
     reviewSubmitted: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ReviewRequestSchema.index({ clientId: 1, createdAt: -1 });
 ReviewRequestSchema.index({ status: 1 });
 
 const ReviewRequest =
-  (mongoose.models.ReviewRequest as mongoose.Model<IReviewRequest> | undefined) ||
+  (mongoose.models.ReviewRequest as
+    | mongoose.Model<IReviewRequest>
+    | undefined) ||
   mongoose.model<IReviewRequest>("ReviewRequest", ReviewRequestSchema);
 
 export default ReviewRequest;

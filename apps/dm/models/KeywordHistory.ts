@@ -1,4 +1,4 @@
-import * as mongoose from 'mongoose';
+import * as mongoose from "mongoose";
 
 export interface IKeywordHistory extends mongoose.Document {
   keywordId: mongoose.Types.ObjectId;
@@ -11,7 +11,7 @@ const KeywordHistorySchema: mongoose.Schema = new mongoose.Schema(
   {
     keywordId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Keyword',
+      ref: "Keyword",
       required: true,
     },
     rank: { type: Number, required: true },
@@ -20,13 +20,15 @@ const KeywordHistorySchema: mongoose.Schema = new mongoose.Schema(
   },
   {
     timestamps: false,
-  }
+  },
 );
 
 KeywordHistorySchema.index({ keywordId: 1, recordedAt: -1 });
 
 const KeywordHistory =
-  (mongoose.models.KeywordHistory as mongoose.Model<IKeywordHistory> | undefined) ||
-  mongoose.model<IKeywordHistory>('KeywordHistory', KeywordHistorySchema);
+  (mongoose.models.KeywordHistory as
+    | mongoose.Model<IKeywordHistory>
+    | undefined) ||
+  mongoose.model<IKeywordHistory>("KeywordHistory", KeywordHistorySchema);
 
 export default KeywordHistory;

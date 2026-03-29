@@ -20,19 +20,22 @@ function truncate(s: string, len: number) {
 
 function getDraftSubject(pr: PostedReview) {
   const d = pr.draftId;
-  if (typeof d === "object" && d && "subject" in d) return (d as { subject?: string }).subject ?? "—";
+  if (typeof d === "object" && d && "subject" in d)
+    return (d as { subject?: string }).subject ?? "—";
   return "—";
 }
 
 function getDraftPreview(pr: PostedReview) {
   const d = pr.draftId;
-  if (typeof d === "object" && d && "reviewText" in d) return (d as { reviewText?: string }).reviewText ?? "—";
+  if (typeof d === "object" && d && "reviewText" in d)
+    return (d as { reviewText?: string }).reviewText ?? "—";
   return "—";
 }
 
 function getAssignedTo(pr: PostedReview) {
   const a = pr.allocationId;
-  if (typeof a === "object" && a && "assignedToUserName" in a) return (a as { assignedToUserName?: string }).assignedToUserName ?? "—";
+  if (typeof a === "object" && a && "assignedToUserName" in a)
+    return (a as { assignedToUserName?: string }).assignedToUserName ?? "—";
   return "—";
 }
 
@@ -41,15 +44,21 @@ interface UsedReviewsTableProps {
 }
 
 export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
-  const [activityPosted, setActivityPosted] = useState<PostedReview | null>(null);
-  const [detail, setDetail] = useState<{ posted: PostedReview; activity: { action: string; performedBy: string; performedAt: string }[] } | null>(null);
+  const [activityPosted, setActivityPosted] = useState<PostedReview | null>(
+    null,
+  );
+  const [detail, setDetail] = useState<{
+    posted: PostedReview;
+    activity: { action: string; performedBy: string; performedAt: string }[];
+  } | null>(null);
 
   const openHistory = async (pr: PostedReview) => {
     setActivityPosted(pr);
-    const res = await fetch(
-      `/api/posted-reviews/${pr._id}`
-    );
-    if (!res.ok) { setDetail({ posted: pr, activity: [] }); return; }
+    const res = await fetch(`/api/posted-reviews/${pr._id}`);
+    if (!res.ok) {
+      setDetail({ posted: pr, activity: [] });
+      return;
+    }
     const data = await res.json();
     setDetail({ posted: data.posted ?? pr, activity: data.activity ?? [] });
   };
@@ -76,8 +85,13 @@ export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
           <TableBody>
             {posted.map((pr) => (
               <TableRow key={pr._id}>
-                <TableCell className="font-medium">{getDraftSubject(pr)}</TableCell>
-                <TableCell className="max-w-[200px] truncate" title={getDraftPreview(pr)}>
+                <TableCell className="font-medium">
+                  {getDraftSubject(pr)}
+                </TableCell>
+                <TableCell
+                  className="max-w-[200px] truncate"
+                  title={getDraftPreview(pr)}
+                >
                   {truncate(getDraftPreview(pr), 60)}
                 </TableCell>
                 <TableCell>{getAssignedTo(pr)}</TableCell>
@@ -97,7 +111,9 @@ export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
                     "—"
                   )}
                 </TableCell>
-                <TableCell>{new Date(pr.postedDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {new Date(pr.postedDate).toLocaleDateString()}
+                </TableCell>
                 <TableCell>
                   {pr.proofUrl ? (
                     <a
@@ -113,7 +129,11 @@ export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => openHistory(pr)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openHistory(pr)}
+                  >
                     View
                   </Button>
                 </TableCell>
@@ -124,12 +144,17 @@ export function UsedReviewsTable({ posted }: UsedReviewsTableProps) {
       </div>
 
       {posted.length === 0 && (
-        <p className="text-center py-8 text-muted-foreground">No used reviews yet.</p>
+        <p className="text-center py-8 text-muted-foreground">
+          No used reviews yet.
+        </p>
       )}
 
       <ReviewActivityTimeline
         isOpen={!!activityPosted}
-        onClose={() => { setActivityPosted(null); setDetail(null); }}
+        onClose={() => {
+          setActivityPosted(null);
+          setDetail(null);
+        }}
         activity={activity}
         title="Posted Review History"
       />

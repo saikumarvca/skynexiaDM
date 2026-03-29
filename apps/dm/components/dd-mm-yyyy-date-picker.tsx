@@ -1,29 +1,33 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import * as React from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
-import { parseFlexibleDateParam } from "@/lib/date-format"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { parseFlexibleDateParam } from "@/lib/date-format";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 function parseDefaultToDate(value: string | undefined): Date | undefined {
-  if (!value?.trim()) return undefined
-  const iso = parseFlexibleDateParam(value.trim())
-  if (!iso) return undefined
-  const d = new Date(`${iso}T12:00:00.000Z`)
-  return Number.isNaN(d.getTime()) ? undefined : d
+  if (!value?.trim()) return undefined;
+  const iso = parseFlexibleDateParam(value.trim());
+  if (!iso) return undefined;
+  const d = new Date(`${iso}T12:00:00.000Z`);
+  return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
 export interface DdMmYyyyDatePickerProps {
-  name: string
-  id?: string
-  defaultValue?: string
-  placeholder?: string
-  className?: string
+  name: string;
+  id?: string;
+  defaultValue?: string;
+  placeholder?: string;
+  className?: string;
 }
 
 /**
@@ -36,10 +40,12 @@ export function DdMmYyyyDatePicker({
   placeholder = "dd-mm-yyyy",
   className,
 }: DdMmYyyyDatePickerProps) {
-  const [open, setOpen] = React.useState(false)
-  const [date, setDate] = React.useState<Date | undefined>(() => parseDefaultToDate(defaultValue))
+  const [open, setOpen] = React.useState(false);
+  const [date, setDate] = React.useState<Date | undefined>(() =>
+    parseDefaultToDate(defaultValue),
+  );
 
-  const valueStr = date ? format(date, "dd-MM-yyyy") : ""
+  const valueStr = date ? format(date, "dd-MM-yyyy") : "";
 
   return (
     <div className={cn("w-full", className)}>
@@ -52,7 +58,7 @@ export function DdMmYyyyDatePicker({
             variant="outline"
             className={cn(
               "h-9 w-full justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !date && "text-muted-foreground",
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4 shrink-0 opacity-70" />
@@ -64,13 +70,13 @@ export function DdMmYyyyDatePicker({
             mode="single"
             selected={date}
             onSelect={(d) => {
-              setDate(d)
-              setOpen(false)
+              setDate(d);
+              setOpen(false);
             }}
             defaultMonth={date}
           />
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

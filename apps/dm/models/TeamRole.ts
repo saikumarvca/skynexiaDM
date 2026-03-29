@@ -18,7 +18,7 @@ const TeamRoleSchema: mongoose.Schema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 TeamRoleSchema.index({ roleName: 1 }, { unique: true });
@@ -26,6 +26,6 @@ TeamRoleSchema.index({ isDeleted: 1 });
 
 const TeamRole =
   (mongoose.models.TeamRole as mongoose.Model<ITeamRole> | undefined) ||
-  mongoose.model<ITeamRole>('TeamRole', TeamRoleSchema);
+  mongoose.model<ITeamRole>("TeamRole", TeamRoleSchema);
 
 export default TeamRole;

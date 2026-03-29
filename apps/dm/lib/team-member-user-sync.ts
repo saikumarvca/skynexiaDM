@@ -13,7 +13,7 @@ export function teamRoleNameToAppUserRole(roleName?: string): UserRole {
 }
 
 async function findLinkedUser(
-  member: Pick<ITeamMember, "userId" | "email">
+  member: Pick<ITeamMember, "userId" | "email">,
 ): Promise<HydratedDocument<IUser> | null> {
   const emailNorm = member.email.trim().toLowerCase();
   if (member.userId) {
@@ -30,7 +30,7 @@ async function findLinkedUser(
  */
 export async function syncLoginUserFromTeamMember(
   member: HydratedDocument<ITeamMember>,
-  options: { password?: string } = {}
+  options: { password?: string } = {},
 ): Promise<void> {
   const emailNorm = member.email.trim().toLowerCase();
   const appRole = teamRoleNameToAppUserRole(member.roleName);

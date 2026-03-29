@@ -7,7 +7,7 @@ import Webhook from "@/models/Webhook";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireUserFromRequest(request);
@@ -47,7 +47,9 @@ export async function POST(
 
     try {
       const res = await fetch(webhook.url, { method: "POST", headers, body });
-      await Webhook.findByIdAndUpdate(webhook._id, { lastTriggeredAt: new Date() });
+      await Webhook.findByIdAndUpdate(webhook._id, {
+        lastTriggeredAt: new Date(),
+      });
       return NextResponse.json({ success: res.ok, statusCode: res.status });
     } catch (fetchErr) {
       console.error("[webhook test] fetch error:", fetchErr);
@@ -61,6 +63,9 @@ export async function POST(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     console.error("Error testing webhook:", error);
-    return NextResponse.json({ error: "Failed to test webhook" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to test webhook" },
+      { status: 500 },
+    );
   }
 }

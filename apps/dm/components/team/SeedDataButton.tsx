@@ -21,7 +21,9 @@ export function SeedDataButton() {
       router.refresh();
     } catch (e) {
       console.error(e);
-      alert("Seed failed. Team data may already exist. Use force: true to reseed.");
+      alert(
+        "Seed failed. Team data may already exist. Use force: true to reseed.",
+      );
     } finally {
       setLoading(false);
     }

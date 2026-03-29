@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
         {
           status: 429,
           headers: { "Retry-After": String(retryAfter) },
-        }
+        },
       );
     }
 
@@ -27,23 +27,40 @@ export async function POST(req: NextRequest) {
     const password = body.password ?? "";
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email and password are required" },
+        { status: 400 },
+      );
     }
 
     await dbConnect();
-    const user = await User.findOne({ email }).select("_id email name role passwordHash isActive");
+    const user = await User.findOne({ email }).select(
+      "_id email name role passwordHash isActive",
+    );
     if (!user || !user.isActive || !user.passwordHash) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 },
+      );
     }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    if (!ok)
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 },
+      );
 
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14; // 14 days
     const token = createSessionToken({ uid: user._id.toString(), exp });
 
     const res = NextResponse.json({
-      user: { _id: user._id.toString(), email: user.email, name: user.name, role: user.role },
+      user: {
+        _id: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     });
     res.cookies.set(getSessionCookieName(), token, {
       httpOnly: true,
@@ -58,4 +75,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
 }
-

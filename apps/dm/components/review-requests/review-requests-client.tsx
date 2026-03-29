@@ -12,7 +12,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 type ClientOption = { _id: string; name: string; businessName: string };
@@ -61,7 +67,12 @@ export function ReviewRequestsClient({
   });
 
   const openCreate = () => {
-    setForm({ clientId: "", recipientName: "", recipientEmail: "", message: "" });
+    setForm({
+      clientId: "",
+      recipientName: "",
+      recipientEmail: "",
+      message: "",
+    });
     setFormError(null);
     setDialogOpen(true);
   };
@@ -69,9 +80,18 @@ export function ReviewRequestsClient({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    if (!form.clientId) { setFormError("Select a client"); return; }
-    if (!form.recipientName.trim()) { setFormError("Recipient name is required"); return; }
-    if (!form.recipientEmail.trim()) { setFormError("Recipient email is required"); return; }
+    if (!form.clientId) {
+      setFormError("Select a client");
+      return;
+    }
+    if (!form.recipientName.trim()) {
+      setFormError("Recipient name is required");
+      return;
+    }
+    if (!form.recipientEmail.trim()) {
+      setFormError("Recipient email is required");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -85,15 +105,17 @@ export function ReviewRequestsClient({
           message: form.message.trim() || undefined,
         }),
       });
-      const data = (await res.json()) as { error?: string } & Partial<ReviewRequestRow>;
+      const data = (await res.json()) as {
+        error?: string;
+      } & Partial<ReviewRequestRow>;
       if (!res.ok) throw new Error(data.error || "Failed to send request");
       setRequests((prev) => [data as ReviewRequestRow, ...prev]);
       toast.success(
         data.status === "SENT"
           ? "Review request sent!"
           : data.status === "FAILED"
-          ? "Request created but email delivery failed"
-          : "Review request created"
+            ? "Request created but email delivery failed"
+            : "Review request created",
       );
       setDialogOpen(false);
     } catch (err) {
@@ -110,10 +132,14 @@ export function ReviewRequestsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reviewSubmitted: !current }),
       });
-      const data = (await res.json()) as { error?: string } & Partial<ReviewRequestRow>;
+      const data = (await res.json()) as {
+        error?: string;
+      } & Partial<ReviewRequestRow>;
       if (!res.ok) throw new Error(data.error || "Failed to update");
       setRequests((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, reviewSubmitted: !current } : r))
+        prev.map((r) =>
+          r._id === id ? { ...r, reviewSubmitted: !current } : r,
+        ),
       );
       toast.success(!current ? "Marked as reviewed" : "Marked as pending");
     } catch (err) {
@@ -129,10 +155,12 @@ export function ReviewRequestsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "ARCHIVED" }),
       });
-      const data = (await res.json()) as { error?: string } & Partial<ReviewRequestRow>;
+      const data = (await res.json()) as {
+        error?: string;
+      } & Partial<ReviewRequestRow>;
       if (!res.ok) throw new Error(data.error || "Failed to archive");
       setRequests((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, status: "ARCHIVED" } : r))
+        prev.map((r) => (r._id === id ? { ...r, status: "ARCHIVED" } : r)),
       );
       toast.success("Request archived");
     } catch (err) {
@@ -149,7 +177,8 @@ export function ReviewRequestsClient({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            {visibleRequests.length} review request{visibleRequests.length !== 1 ? "s" : ""}
+            {visibleRequests.length} review request
+            {visibleRequests.length !== 1 ? "s" : ""}
           </p>
           <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
             <input
@@ -167,7 +196,9 @@ export function ReviewRequestsClient({
       {visibleRequests.length === 0 ? (
         <div className="rounded-lg border bg-card p-8 text-center">
           <p className="text-muted-foreground">No review requests yet.</p>
-          <Button className="mt-4" onClick={openCreate}>Send your first request</Button>
+          <Button className="mt-4" onClick={openCreate}>
+            Send your first request
+          </Button>
         </div>
       ) : (
         <div className="overflow-auto rounded-lg border bg-card">
@@ -178,22 +209,37 @@ export function ReviewRequestsClient({
                 <th className="px-4 py-2.5 text-left font-medium">Client</th>
                 <th className="px-4 py-2.5 text-left font-medium">Status</th>
                 <th className="px-4 py-2.5 text-left font-medium">Sent</th>
-                <th className="px-4 py-2.5 text-left font-medium">Review submitted</th>
+                <th className="px-4 py-2.5 text-left font-medium">
+                  Review submitted
+                </th>
                 <th className="px-4 py-2.5 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {visibleRequests.map((r) => (
-                <tr key={r._id} className={`border-t ${r.status === "ARCHIVED" ? "opacity-60" : ""}`}>
+                <tr
+                  key={r._id}
+                  className={`border-t ${r.status === "ARCHIVED" ? "opacity-60" : ""}`}
+                >
                   <td className="px-4 py-2.5">
                     <div className="font-medium">{r.recipientName}</div>
-                    <div className="text-xs text-muted-foreground">{r.recipientEmail}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {r.recipientEmail}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">
                     {clientLabel(r.clientId)}
                   </td>
                   <td className="px-4 py-2.5">
-                    <Badge variant={STATUS_COLORS[r.status] as "default" | "secondary" | "destructive" | "outline"}>
+                    <Badge
+                      variant={
+                        STATUS_COLORS[r.status] as
+                          | "default"
+                          | "secondary"
+                          | "destructive"
+                          | "outline"
+                      }
+                    >
                       {r.status}
                     </Badge>
                   </td>
@@ -203,7 +249,9 @@ export function ReviewRequestsClient({
                   <td className="px-4 py-2.5">
                     <button
                       type="button"
-                      onClick={() => handleMarkSubmitted(r._id, r.reviewSubmitted)}
+                      onClick={() =>
+                        handleMarkSubmitted(r._id, r.reviewSubmitted)
+                      }
                       className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         r.reviewSubmitted
                           ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -258,7 +306,9 @@ export function ReviewRequestsClient({
               <label className="text-sm font-medium">Recipient name</label>
               <Input
                 value={form.recipientName}
-                onChange={(e) => setForm((f) => ({ ...f, recipientName: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, recipientName: e.target.value }))
+                }
                 placeholder="Jane Doe"
                 required
               />
@@ -268,7 +318,9 @@ export function ReviewRequestsClient({
               <Input
                 type="email"
                 value={form.recipientEmail}
-                onChange={(e) => setForm((f) => ({ ...f, recipientEmail: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, recipientEmail: e.target.value }))
+                }
                 placeholder="jane@example.com"
                 required
               />
@@ -276,18 +328,28 @@ export function ReviewRequestsClient({
             <div className="space-y-1">
               <label className="text-sm font-medium">
                 Custom message{" "}
-                <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  (optional)
+                </span>
               </label>
               <Textarea
                 value={form.message}
-                onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, message: e.target.value }))
+                }
                 placeholder="Add a personal note to the email…"
                 rows={3}
               />
             </div>
-            {formError && <p className="text-sm text-destructive">{formError}</p>}
+            {formError && (
+              <p className="text-sm text-destructive">{formError}</p>
+            )}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>

@@ -1,6 +1,6 @@
 import * as mongoose from "mongoose";
 
-export type EntityType = 'DRAFT' | 'ALLOCATION' | 'POSTED_REVIEW';
+export type EntityType = "DRAFT" | "ALLOCATION" | "POSTED_REVIEW";
 
 export interface IReviewActivityLog extends mongoose.Document {
   entityType: EntityType;
@@ -15,7 +15,7 @@ export interface IReviewActivityLog extends mongoose.Document {
 const ReviewActivityLogSchema: mongoose.Schema = new mongoose.Schema({
   entityType: {
     type: String,
-    enum: ['DRAFT', 'ALLOCATION', 'POSTED_REVIEW'],
+    enum: ["DRAFT", "ALLOCATION", "POSTED_REVIEW"],
     required: true,
   },
   entityId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -29,7 +29,12 @@ const ReviewActivityLogSchema: mongoose.Schema = new mongoose.Schema({
 ReviewActivityLogSchema.index({ entityType: 1, entityId: 1, performedAt: -1 });
 
 const ReviewActivityLog =
-  (mongoose.models.ReviewActivityLog as mongoose.Model<IReviewActivityLog> | undefined) ||
-  mongoose.model<IReviewActivityLog>('ReviewActivityLog', ReviewActivityLogSchema);
+  (mongoose.models.ReviewActivityLog as
+    | mongoose.Model<IReviewActivityLog>
+    | undefined) ||
+  mongoose.model<IReviewActivityLog>(
+    "ReviewActivityLog",
+    ReviewActivityLogSchema,
+  );
 
 export default ReviewActivityLog;

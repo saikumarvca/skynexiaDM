@@ -9,11 +9,20 @@ import { ReviewDraftForm } from "./review-draft-form";
 import { AssignDraftModal } from "./assign-draft-modal";
 import { ReviewActivityTimeline } from "./review-activity-timeline";
 import { ReviewDraftDetailsPane } from "./review-draft-details-pane";
-import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/types/reviews";
+import type {
+  ReviewDraft,
+  ReviewDraftFormData,
+  AssignDraftFormData,
+} from "@/types/reviews";
 import type { Client } from "@/types";
 import { cn } from "@/lib/utils";
 import { Archive, LayoutGrid, Rows3 } from "lucide-react";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface User {
@@ -32,7 +41,6 @@ interface ReviewDraftTableProps {
   onAssign: (id: string, data: AssignDraftFormData) => Promise<void>;
   onArchive: (id: string) => Promise<void>;
 }
-
 
 function truncate(s: string, len: number) {
   if (!s) return "—";
@@ -65,13 +73,17 @@ export function ReviewDraftTable({
   const [editDraft, setEditDraft] = useState<ReviewDraft | null>(null);
   const [assignDraft, setAssignDraft] = useState<ReviewDraft | null>(null);
   const [activityDraft, setActivityDraft] = useState<ReviewDraft | null>(null);
-  const [activity, setActivity] = useState<{ action: string; performedBy: string; performedAt: string }[]>([]);
+  const [activity, setActivity] = useState<
+    { action: string; performedBy: string; performedAt: string }[]
+  >([]);
   const [importLoading, setImportLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const paneRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
-  const [allocationsByDraftId, setAllocationsByDraftId] = useState<Record<string, string>>({});
+  const [allocationsByDraftId, setAllocationsByDraftId] = useState<
+    Record<string, string>
+  >({});
   const [paneOpen, setPaneOpen] = useState(false);
   const [paneTop, setPaneTop] = useState<number>(96);
   const isLg = useMediaQuery("(min-width: 1024px)");
@@ -88,15 +100,15 @@ export function ReviewDraftTable({
         }
         const url = new URL("/api/review-allocations", window.location.origin);
         url.searchParams.set("draftIds", draftIds.join(","));
-        const res = await fetch(url.pathname + url.search, { cache: "no-store" });
+        const res = await fetch(url.pathname + url.search, {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error("Failed to load allocations");
         const list = (await res.json()) as AllocationLite[];
         const map: Record<string, string> = {};
         for (const a of list) {
           const id =
-            typeof a.draftId === "string"
-              ? a.draftId
-              : (a.draftId?._id ?? "");
+            typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
           if (!id) continue;
           // API sorts by createdAt desc, so first hit per draft is latest.
           if (map[id]) continue;
@@ -114,7 +126,15 @@ export function ReviewDraftTable({
     };
   }, [draftIds]);
 
-  const parseCSV = (text: string): { subject: string; reviewText: string; category?: string; language?: string; suggestedRating?: string }[] => {
+  const parseCSV = (
+    text: string,
+  ): {
+    subject: string;
+    reviewText: string;
+    category?: string;
+    language?: string;
+    suggestedRating?: string;
+  }[] => {
     const parseRow = (line: string): string[] => {
       const out: string[] = [];
       let cur = "";
@@ -132,14 +152,18 @@ export function ReviewDraftTable({
     };
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) return [];
-    const headers = parseRow(lines[0]!).map((h) => h.toLowerCase().replace(/\s+/g, " "));
+    const headers = parseRow(lines[0]!).map((h) =>
+      h.toLowerCase().replace(/\s+/g, " "),
+    );
     const rows: Record<string, string>[] = [];
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
       if (!line) continue;
       const vals = parseRow(line);
       const row: Record<string, string> = {};
-      headers.forEach((h, j) => { row[h] = vals[j] ?? ""; });
+      headers.forEach((h, j) => {
+        row[h] = vals[j] ?? "";
+      });
       rows.push(row);
     }
     return rows
@@ -148,7 +172,13 @@ export function ReviewDraftTable({
         reviewText: (r.reviewtext ?? r["review text"] ?? "").trim(),
         category: (r.category ?? "").trim() || undefined,
         language: (r.language ?? "").trim() || undefined,
-        suggestedRating: (r.suggestedrating ?? r.rating ?? r["suggested rating"] ?? "").trim() || undefined,
+        suggestedRating:
+          (
+            r.suggestedrating ??
+            r.rating ??
+            r["suggested rating"] ??
+            ""
+          ).trim() || undefined,
       }))
       .filter((d) => d.subject || d.reviewText);
   };
@@ -164,7 +194,7 @@ export function ReviewDraftTable({
         const parsed = parseCSV(text);
         if (parsed.length === 0) {
           toast.error(
-            "No valid rows found. CSV needs subject and reviewText (or review text), plus optional columns."
+            "No valid rows found. CSV needs subject and reviewText (or review text), plus optional columns.",
           );
           return;
         }
@@ -173,7 +203,10 @@ export function ReviewDraftTable({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             drafts: parsed,
-            clientId: selectedClientId && selectedClientId !== "ALL" ? selectedClientId : undefined,
+            clientId:
+              selectedClientId && selectedClientId !== "ALL"
+                ? selectedClientId
+                : undefined,
             createdBy: "system",
           }),
         });
@@ -187,7 +220,7 @@ export function ReviewDraftTable({
         toast.error(
           err instanceof Error
             ? err.message
-            : "Import failed. Check CSV columns and that at least one client exists."
+            : "Import failed. Check CSV columns and that at least one client exists.",
         );
       } finally {
         setImportLoading(false);
@@ -209,7 +242,8 @@ export function ReviewDraftTable({
 
   const clientName = (d: ReviewDraft) => {
     const c = d.clientId;
-    if (typeof c === "object" && c && "businessName" in c) return (c as { businessName?: string }).businessName ?? "—";
+    if (typeof c === "object" && c && "businessName" in c)
+      return (c as { businessName?: string }).businessName ?? "—";
     return d.clientName ?? "—";
   };
 
@@ -222,7 +256,9 @@ export function ReviewDraftTable({
   };
 
   const handleFetchActivity = async (entityType: string, entityId: string) => {
-    const res = await fetch(`/api/review-activity?entityType=${entityType}&entityId=${entityId}`);
+    const res = await fetch(
+      `/api/review-activity?entityType=${entityType}&entityId=${entityId}`,
+    );
     if (!res.ok) return [];
     return res.json();
   };
@@ -254,7 +290,10 @@ export function ReviewDraftTable({
     setSelectedDraftId(d._id);
     setPaneOpen(true);
     requestAnimationFrame(() => {
-      if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+      if (
+        typeof window !== "undefined" &&
+        window.matchMedia("(min-width: 1024px)").matches
+      ) {
         computePaneTop(d._id);
       }
     });
@@ -287,7 +326,9 @@ export function ReviewDraftTable({
       draft={selectedDraft}
       clients={clients}
       users={users}
-      assignedToName={selectedDraftId ? allocationsByDraftId[selectedDraftId] : undefined}
+      assignedToName={
+        selectedDraftId ? allocationsByDraftId[selectedDraftId] : undefined
+      }
       onClose={closeDetailsPane}
       onEdit={(draft) => {
         setEditDraft(draft);
@@ -299,7 +340,9 @@ export function ReviewDraftTable({
           toast.success("Draft duplicated");
           router.refresh();
         } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Failed to duplicate draft");
+          toast.error(
+            e instanceof Error ? e.message : "Failed to duplicate draft",
+          );
         }
       }}
       onCopy={handleCopy}
@@ -322,7 +365,7 @@ export function ReviewDraftTable({
         }}
         className={cn(
           "group relative rounded-lg border bg-card text-card-foreground shadow-md/40 transition-all hover:shadow-lg/35",
-          selected && "border-primary/50 ring-2 ring-ring"
+          selected && "border-primary/50 ring-2 ring-ring",
         )}
       >
         {canArchive && (
@@ -355,36 +398,71 @@ export function ReviewDraftTable({
           className={cn(
             "w-full cursor-pointer text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
             mode === "grid"
-              ? cn("p-4 flex flex-col hover:-translate-y-0.5", canArchive && "pt-12")
+              ? cn(
+                  "p-4 flex flex-col hover:-translate-y-0.5",
+                  canArchive && "pt-12",
+                )
               : cn(
                   "flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)] md:items-start",
-                  canArchive ? "p-4 pt-12 md:p-5 md:pt-12" : "p-4 md:p-5"
-                )
+                  canArchive ? "p-4 pt-12 md:p-5 md:pt-12" : "p-4 md:p-5",
+                ),
           )}
           aria-label={`Open details for ${d.subject}`}
         >
-        <div className="min-w-0">
-          <div
-            className={cn(
-              "flex items-start justify-between gap-3",
-              canArchive && "pr-10"
-            )}
-          >
-            <div className="min-w-0">
-              <p className="font-semibold leading-snug truncate group-hover:text-foreground" title={d.subject}>
-                {d.subject}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground truncate" title={clientName(d)}>
-                {clientName(d)}
-              </p>
+          <div className="min-w-0">
+            <div
+              className={cn(
+                "flex items-start justify-between gap-3",
+                canArchive && "pr-10",
+              )}
+            >
+              <div className="min-w-0">
+                <p
+                  className="font-semibold leading-snug truncate group-hover:text-foreground"
+                  title={d.subject}
+                >
+                  {d.subject}
+                </p>
+                <p
+                  className="mt-1 text-xs text-muted-foreground truncate"
+                  title={clientName(d)}
+                >
+                  {clientName(d)}
+                </p>
+              </div>
+              <span className="shrink-0 inline-flex rounded-full border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {d.language || "—"}
+              </span>
             </div>
-            <span className="shrink-0 inline-flex rounded-full border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-              {d.language || "—"}
-            </span>
+
+            {mode === "grid" && (
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                {d.category ? (
+                  <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                    {d.category}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">No category</span>
+                )}
+                <span className="ml-auto inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+                  {d.status}
+                </span>
+              </div>
+            )}
           </div>
 
-          {mode === "grid" && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+          <p
+            className={cn(
+              "text-sm text-muted-foreground",
+              mode === "grid" ? "mt-3" : "md:mt-0",
+            )}
+            title={d.reviewText}
+          >
+            {truncate(d.reviewText, mode === "grid" ? 110 : 220)}
+          </p>
+
+          {mode === "row" && (
+            <div className="flex flex-wrap items-center gap-2 text-xs md:justify-end md:self-center">
               {d.category ? (
                 <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
                   {d.category}
@@ -392,62 +470,36 @@ export function ReviewDraftTable({
               ) : (
                 <span className="text-muted-foreground">No category</span>
               )}
-              <span className="ml-auto inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+              <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                 {d.status}
               </span>
+              <span className="text-muted-foreground">Assigned to</span>
+              {assignedToName ? (
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
+                  {assignedToName}
+                </span>
+              ) : (
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
+                  Unassigned
+                </span>
+              )}
             </div>
           )}
-        </div>
 
-        <p
-          className={cn(
-            "text-sm text-muted-foreground",
-            mode === "grid" ? "mt-3" : "md:mt-0"
+          {mode === "grid" && (
+            <div className="mt-4 pt-3 border-t flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Assigned to</span>
+              {assignedToName ? (
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
+                  {assignedToName}
+                </span>
+              ) : (
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
+                  Unassigned
+                </span>
+              )}
+            </div>
           )}
-          title={d.reviewText}
-        >
-          {truncate(d.reviewText, mode === "grid" ? 110 : 220)}
-        </p>
-
-        {mode === "row" && (
-          <div className="flex flex-wrap items-center gap-2 text-xs md:justify-end md:self-center">
-            {d.category ? (
-              <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-                {d.category}
-              </span>
-            ) : (
-              <span className="text-muted-foreground">No category</span>
-            )}
-            <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
-              {d.status}
-            </span>
-            <span className="text-muted-foreground">Assigned to</span>
-            {assignedToName ? (
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
-                {assignedToName}
-              </span>
-            ) : (
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
-                Unassigned
-              </span>
-            )}
-          </div>
-        )}
-
-        {mode === "grid" && (
-          <div className="mt-4 pt-3 border-t flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Assigned to</span>
-            {assignedToName ? (
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">
-                {assignedToName}
-              </span>
-            ) : (
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border">
-                Unassigned
-              </span>
-            )}
-          </div>
-        )}
         </div>
       </div>
     );
@@ -485,10 +537,18 @@ export function ReviewDraftTable({
               Grid
             </Button>
           </div>
-          <Button onClick={() => { setEditDraft(null); setFormOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditDraft(null);
+              setFormOpen(true);
+            }}
+          >
             Create Draft
           </Button>
-          <Button variant="outline" onClick={() => window.open(`/api/review-drafts/export`, "_blank")}>
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/api/review-drafts/export`, "_blank")}
+          >
             Export CSV
           </Button>
           <input
@@ -516,12 +576,17 @@ export function ReviewDraftTable({
             >
               <p className="font-medium">CSV format</p>
               <p className="mt-2">
-                Required: <code>subject</code>, <code>reviewText</code> (or <code>review text</code>)
+                Required: <code>subject</code>, <code>reviewText</code> (or{" "}
+                <code>review text</code>)
               </p>
               <p className="mt-1">
-                Optional: <code>category</code>, <code>language</code>, <code>suggestedRating</code> (or <code>rating</code>, <code>suggested rating</code>)
+                Optional: <code>category</code>, <code>language</code>,{" "}
+                <code>suggestedRating</code> (or <code>rating</code>,{" "}
+                <code>suggested rating</code>)
               </p>
-              <p className="mt-2 text-xs text-muted-foreground">Example header:</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Example header:
+              </p>
               <p className="mt-1 text-xs text-muted-foreground break-words">
                 subject,reviewText,category,language,suggestedRating
               </p>
@@ -540,7 +605,9 @@ export function ReviewDraftTable({
         )}
 
         {filtered.length === 0 && (
-          <p className="py-8 text-center text-muted-foreground">No drafts found.</p>
+          <p className="py-8 text-center text-muted-foreground">
+            No drafts found.
+          </p>
         )}
       </div>
 
@@ -572,16 +639,21 @@ export function ReviewDraftTable({
           "hidden lg:block fixed right-6 z-40 w-[420px] max-w-[calc(100vw-2rem)]",
           "rounded-lg border bg-background shadow-xl",
           "transition-transform duration-200 ease-out",
-          paneOpen && selectedDraftId ? "translate-x-0" : "translate-x-[460px]"
+          paneOpen && selectedDraftId ? "translate-x-0" : "translate-x-[460px]",
         )}
         style={{ top: paneTop }}
       >
-        <div className="h-[520px] overflow-hidden">{renderDraftDetailsPane()}</div>
+        <div className="h-[520px] overflow-hidden">
+          {renderDraftDetailsPane()}
+        </div>
       </div>
 
       <ReviewDraftForm
         isOpen={formOpen}
-        onClose={() => { setFormOpen(false); setEditDraft(null); }}
+        onClose={() => {
+          setFormOpen(false);
+          setEditDraft(null);
+        }}
         onSubmit={async (data) => {
           try {
             if (editDraft) {
@@ -593,7 +665,9 @@ export function ReviewDraftTable({
             }
             router.refresh();
           } catch (e) {
-            toast.error(e instanceof Error ? e.message : "Could not save draft");
+            toast.error(
+              e instanceof Error ? e.message : "Could not save draft",
+            );
             throw e;
           }
         }}
@@ -611,7 +685,9 @@ export function ReviewDraftTable({
             toast.success("Draft assigned");
             router.refresh();
           } catch (e) {
-            toast.error(e instanceof Error ? e.message : "Could not assign draft");
+            toast.error(
+              e instanceof Error ? e.message : "Could not assign draft",
+            );
             throw e;
           }
         }}
@@ -619,12 +695,19 @@ export function ReviewDraftTable({
         users={users}
         assignedByUserId={users[0]?._id ?? ""}
         assignedByUserName={users[0]?.name ?? "system"}
-        isNonReusableUsed={assignDraft ? !assignDraft.reusable && assignDraft.status === "Used" : false}
+        isNonReusableUsed={
+          assignDraft
+            ? !assignDraft.reusable && assignDraft.status === "Used"
+            : false
+        }
       />
 
       <ReviewActivityTimeline
         isOpen={!!activityDraft}
-        onClose={() => { setActivityDraft(null); setActivity([]); }}
+        onClose={() => {
+          setActivityDraft(null);
+          setActivity([]);
+        }}
         activity={activity}
       />
     </div>

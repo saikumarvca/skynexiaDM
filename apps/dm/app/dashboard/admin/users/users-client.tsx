@@ -6,11 +6,27 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { UserCheck, UserX } from "lucide-react";
 
-type UserRow = { _id: string; name: string; email: string; role: string; isActive: boolean };
+type UserRow = {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+};
 
-const ROLES = ["ADMIN", "MANAGER", "CONTENT_WRITER", "DESIGNER", "ANALYST"] as const;
+const ROLES = [
+  "ADMIN",
+  "MANAGER",
+  "CONTENT_WRITER",
+  "DESIGNER",
+  "ANALYST",
+] as const;
 
-export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) {
+export function AdminUsersClient({
+  initialUsers,
+}: {
+  initialUsers: UserRow[];
+}) {
   const [users, setUsers] = useState<UserRow[]>(initialUsers);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -24,7 +40,12 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
     if (!s) return users;
-    return users.filter((u) => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s) || u.role.toLowerCase().includes(s));
+    return users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(s) ||
+        u.email.toLowerCase().includes(s) ||
+        u.role.toLowerCase().includes(s),
+    );
   }, [users, search]);
 
   const onCreate = async (e: React.FormEvent) => {
@@ -71,10 +92,14 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
       const data = (await res.json()) as { error?: string } & Partial<UserRow>;
       if (!res.ok) throw new Error(data.error || "Failed to update user");
       setUsers((prev) =>
-        prev.map((u) => (u._id === id ? { ...u, isActive: data.isActive! } : u))
+        prev.map((u) =>
+          u._id === id ? { ...u, isActive: data.isActive! } : u,
+        ),
       );
     } catch (err) {
-      setListError(err instanceof Error ? err.message : "Failed to update user");
+      setListError(
+        err instanceof Error ? err.message : "Failed to update user",
+      );
     }
   }
 
@@ -84,18 +109,35 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
         <h2 className="text-base font-semibold">Create user</h2>
         <form onSubmit={onCreate} className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            <label className="text-sm font-medium text-muted-foreground">
+              Name
+            </label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Email</label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            <label className="text-sm font-medium text-muted-foreground">
+              Email
+            </label>
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              required
+            />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Role</label>
+            <label className="text-sm font-medium text-muted-foreground">
+              Role
+            </label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as (typeof ROLES)[number])}
+              onChange={(e) =>
+                setRole(e.target.value as (typeof ROLES)[number])
+              }
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
             >
               {ROLES.map((r) => (
@@ -106,11 +148,20 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Password</label>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            <label className="text-sm font-medium text-muted-foreground">
+              Password
+            </label>
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              required
+            />
           </div>
 
-          {error && <p className="md:col-span-2 text-sm text-destructive">{error}</p>}
+          {error && (
+            <p className="md:col-span-2 text-sm text-destructive">{error}</p>
+          )}
 
           <div className="md:col-span-2">
             <Button type="submit" disabled={loading}>
@@ -130,7 +181,9 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
             className="max-w-sm"
           />
         </div>
-        {listError && <p className="mt-2 text-sm text-destructive">{listError}</p>}
+        {listError && (
+          <p className="mt-2 text-sm text-destructive">{listError}</p>
+        )}
 
         <div className="mt-4 overflow-auto rounded-md border">
           <table className="min-w-[860px] w-full text-sm">
@@ -140,7 +193,9 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
                 <th className="px-3 py-2 text-left font-medium">Email</th>
                 <th className="px-3 py-2 text-left font-medium">Role</th>
                 <th className="px-3 py-2 text-left font-medium">Status</th>
-                <th className="px-3 py-2 text-right font-medium w-[120px]">Actions</th>
+                <th className="px-3 py-2 text-right font-medium w-[120px]">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -185,9 +240,10 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserRow[] }) 
           </table>
         </div>
 
-        {filtered.length === 0 && <p className="mt-4 text-sm text-muted-foreground">No users found.</p>}
+        {filtered.length === 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">No users found.</p>
+        )}
       </div>
     </div>
   );
 }
-

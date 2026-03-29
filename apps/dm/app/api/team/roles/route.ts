@@ -1,19 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import TeamRole from '@/models/TeamRole';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import TeamRole from "@/models/TeamRole";
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
-    const sortBy = searchParams.get('sortBy') || 'roleName';
-    const sortOrder = searchParams.get('sortOrder') === 'desc' ? -1 : 1;
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "20")),
+    );
+    const sortBy = searchParams.get("sortBy") || "roleName";
+    const sortOrder = searchParams.get("sortOrder") === "desc" ? -1 : 1;
 
     const query: Record<string, unknown> = { isDeleted: { $ne: true } };
-    const sortField = sortBy === 'createdAt' ? 'createdAt' : sortBy === 'name' ? 'roleName' : sortBy;
+    const sortField =
+      sortBy === "createdAt"
+        ? "createdAt"
+        : sortBy === "name"
+          ? "roleName"
+          : sortBy;
 
     const [items, total] = await Promise.all([
       TeamRole.find(query)
@@ -33,16 +45,19 @@ export async function GET(request: NextRequest) {
       totalPages,
     });
   } catch (error) {
-    console.error('Error fetching team roles:', error);
+    console.error("Error fetching team roles:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch team roles' },
-      { status: 500 }
+      { error: "Failed to fetch team roles" },
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const body = await request.json();
@@ -50,8 +65,8 @@ export async function POST(request: NextRequest) {
 
     if (!roleName) {
       return NextResponse.json(
-        { error: 'Role name is required' },
-        { status: 400 }
+        { error: "Role name is required" },
+        { status: 400 },
       );
     }
 
@@ -64,10 +79,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(role, { status: 201 });
   } catch (error) {
-    console.error('Error creating team role:', error);
+    console.error("Error creating team role:", error);
     return NextResponse.json(
-      { error: 'Failed to create team role' },
-      { status: 500 }
+      { error: "Failed to create team role" },
+      { status: 500 },
     );
   }
 }

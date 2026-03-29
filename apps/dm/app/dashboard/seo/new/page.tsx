@@ -1,43 +1,49 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { KeywordForm } from "@/components/keyword-form"
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { KeywordForm } from "@/components/keyword-form";
 
-import { serverFetch } from "@/lib/server-fetch"
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getClients() {
   try {
-    const res = await serverFetch("/api/clients?limit=500")
-    if (!res.ok) return []
-    return await res.json()
+    const res = await serverFetch("/api/clients?limit=500");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
-    return []
+    return [];
   }
 }
 
 export default async function NewKeywordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ clientId?: string }>
+  searchParams: Promise<{ clientId?: string }>;
 }) {
-  const params = await searchParams
-  const clients = await getClients()
+  const params = await searchParams;
+  const clients = await getClients();
 
   async function createKeyword(formData: FormData) {
-    "use server"
-    const clientId = formData.get("clientId") as string
-    const keyword = (formData.get("keyword") as string)?.trim()
-    if (!clientId || !keyword) throw new Error("Client and keyword are required")
-    const searchVolume = formData.get("searchVolume")
-    const difficulty = formData.get("difficulty")
-    const rank = formData.get("rank")
-    const targetUrl = (formData.get("targetUrl") as string)?.trim()
-    const competitorUrlsRaw = (formData.get("competitorUrls") as string)?.trim()
+    "use server";
+    const clientId = formData.get("clientId") as string;
+    const keyword = (formData.get("keyword") as string)?.trim();
+    if (!clientId || !keyword)
+      throw new Error("Client and keyword are required");
+    const searchVolume = formData.get("searchVolume");
+    const difficulty = formData.get("difficulty");
+    const rank = formData.get("rank");
+    const targetUrl = (formData.get("targetUrl") as string)?.trim();
+    const competitorUrlsRaw = (
+      formData.get("competitorUrls") as string
+    )?.trim();
     const competitorUrls = competitorUrlsRaw
-      ? competitorUrlsRaw.split(",").map((u) => u.trim()).filter(Boolean)
-      : undefined
+      ? competitorUrlsRaw
+          .split(",")
+          .map((u) => u.trim())
+          .filter(Boolean)
+      : undefined;
     const res = await serverFetch("/api/keywords", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -51,12 +57,12 @@ export default async function NewKeywordPage({
         competitorUrls,
         lastUpdated: new Date().toISOString(),
       }),
-    })
+    });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || "Failed to add keyword")
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to add keyword");
     }
-    redirect("/dashboard/seo?created=1")
+    redirect("/dashboard/seo?created=1");
   }
 
   return (
@@ -85,5 +91,5 @@ export default async function NewKeywordPage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

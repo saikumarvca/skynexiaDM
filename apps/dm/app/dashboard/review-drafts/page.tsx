@@ -2,7 +2,11 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { ReviewDraftTable } from "@/components/reviews/review-draft-table";
 import { Button } from "@/components/ui/button";
 import { Client } from "@/types";
-import type { ReviewDraft, ReviewDraftFormData, AssignDraftFormData } from "@/types/reviews";
+import type {
+  ReviewDraft,
+  ReviewDraftFormData,
+  AssignDraftFormData,
+} from "@/types/reviews";
 import dbConnect from "@/lib/mongodb";
 import ReviewDraftModel from "@/models/ReviewDraft";
 import ClientModel from "@/models/Client";
@@ -31,13 +35,19 @@ async function getDrafts(params: {
 
 async function getClients(): Promise<Client[]> {
   await dbConnect();
-  const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean();
+  const docs = await ClientModel.find({})
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .lean();
   return docs.map((c) => JSON.parse(JSON.stringify(c)));
 }
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
   await dbConnect();
-  const docs = await TeamMember.find({ status: "Active", isDeleted: { $ne: true } })
+  const docs = await TeamMember.find({
+    status: "Active",
+    isDeleted: { $ne: true },
+  })
     .select("name")
     .limit(100)
     .lean();
@@ -46,7 +56,7 @@ async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
 
 async function createDraft(data: ReviewDraftFormData & { createdBy?: string }) {
   "use server";
-  const res = await serverFetch('/api/review-drafts', {
+  const res = await serverFetch("/api/review-drafts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...data, createdBy: "system" }),
@@ -113,8 +123,12 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const [drafts, clients, teamMembers] = await Promise.all([
     getDrafts({
-      clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
-      status: params.status && params.status !== "ALL" ? params.status : undefined,
+      clientId:
+        params.clientId && params.clientId !== "ALL"
+          ? params.clientId
+          : undefined,
+      status:
+        params.status && params.status !== "ALL" ? params.status : undefined,
       category: params.category,
       language: params.language,
     }),
@@ -128,13 +142,20 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Review Drafts</h1>
           <p className="text-muted-foreground">
-            Manage your suggested review comment bank. Create, assign, and track drafts through the workflow.
+            Manage your suggested review comment bank. Create, assign, and track
+            drafts through the workflow.
           </p>
         </div>
 
-        <form method="get" action="/dashboard/review-drafts" className="flex flex-wrap gap-4">
+        <form
+          method="get"
+          action="/dashboard/review-drafts"
+          className="flex flex-wrap gap-4"
+        >
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Client</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Client
+            </label>
             <select
               name="clientId"
               defaultValue={params.clientId ?? "ALL"}
@@ -142,12 +163,16 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
             >
               <option value="ALL">All clients</option>
               {clients.map((c) => (
-                <option key={c._id} value={c._id}>{c.businessName}</option>
+                <option key={c._id} value={c._id}>
+                  {c.businessName}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Status</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Status
+            </label>
             <select
               name="status"
               defaultValue={params.status ?? "ALL"}
@@ -162,7 +187,9 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Category</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Category
+            </label>
             <input
               name="category"
               defaultValue={params.category ?? ""}
@@ -171,7 +198,9 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Language</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Language
+            </label>
             <input
               name="language"
               defaultValue={params.language ?? ""}
@@ -180,7 +209,9 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
             />
           </div>
           <div className="flex items-end">
-            <Button type="submit" variant="outline">Apply</Button>
+            <Button type="submit" variant="outline">
+              Apply
+            </Button>
           </div>
         </form>
 

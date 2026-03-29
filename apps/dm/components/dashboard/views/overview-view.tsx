@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { StatsCard } from "@/components/stats-card"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link";
+import { StatsCard } from "@/components/stats-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Users,
   FileText,
@@ -12,19 +12,19 @@ import {
   FileEdit,
   ArrowRight,
   Activity,
-} from "lucide-react"
-import { DashboardRecentClients } from "@/components/dashboard-recent-clients"
-import { ReviewBalanceBar } from "@/components/dashboard/review-balance-bar"
-import { DashboardExplore } from "@/components/dashboard/dashboard-explore"
-import { cn } from "@/lib/utils"
-import type { DashboardPageData } from "@/types"
+} from "lucide-react";
+import { DashboardRecentClients } from "@/components/dashboard-recent-clients";
+import { ReviewBalanceBar } from "@/components/dashboard/review-balance-bar";
+import { DashboardExplore } from "@/components/dashboard/dashboard-explore";
+import { cn } from "@/lib/utils";
+import type { DashboardPageData } from "@/types";
 
 export type DashboardRecentClientRow = {
-  _id: string
-  name: string
-  businessName: string
-  createdAt: string
-}
+  _id: string;
+  name: string;
+  businessName: string;
+  createdAt: string;
+};
 
 function AttentionTile({
   href,
@@ -34,28 +34,28 @@ function AttentionTile({
   icon: Icon,
   accentClass,
 }: {
-  href: string
-  value: number
-  label: string
-  hint: string
-  icon: typeof CalendarClock
-  accentClass: string
+  href: string;
+  value: number;
+  label: string;
+  hint: string;
+  icon: typeof CalendarClock;
+  accentClass: string;
 }) {
-  const isQuiet = value === 0
+  const isQuiet = value === 0;
   return (
     <Link
       href={href}
       className={cn(
         "group relative flex flex-col rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm transition-all duration-200",
         "hover:border-primary/35 hover:shadow-md",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <span
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
-            accentClass
+            accentClass,
           )}
         >
           <Icon className="h-5 w-5" aria-hidden />
@@ -68,7 +68,7 @@ function AttentionTile({
       <p
         className={cn(
           "mt-3 text-3xl font-bold tabular-nums tracking-tight",
-          isQuiet && "text-muted-foreground"
+          isQuiet && "text-muted-foreground",
         )}
       >
         {value}
@@ -76,18 +76,19 @@ function AttentionTile({
       <p className="text-sm font-medium text-foreground">{label}</p>
       <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
     </Link>
-  )
+  );
 }
 
 export function OverviewView({
   data,
   recentClients,
 }: {
-  data: DashboardPageData
-  recentClients: DashboardRecentClientRow[]
+  data: DashboardPageData;
+  recentClients: DashboardRecentClientRow[];
 }) {
-  const reviewTotal = Math.max(1, data.totalReviews)
-  const utilizationPct = Math.round((data.usedReviews / reviewTotal) * 1000) / 10
+  const reviewTotal = Math.max(1, data.totalReviews);
+  const utilizationPct =
+    Math.round((data.usedReviews / reviewTotal) * 1000) / 10;
 
   return (
     <>
@@ -128,8 +129,9 @@ export function OverviewView({
 
       {data.totalReviews > 0 && (
         <p className="text-center text-xs text-muted-foreground sm:text-left">
-          <span className="font-medium text-foreground">{utilizationPct}%</span> of your review
-          library is marked used — {data.unusedReviews} still available to deploy.
+          <span className="font-medium text-foreground">{utilizationPct}%</span>{" "}
+          of your review library is marked used — {data.unusedReviews} still
+          available to deploy.
         </p>
       )}
 
@@ -141,7 +143,9 @@ export function OverviewView({
                 <Activity className="h-4 w-4" aria-hidden />
               </span>
               <div>
-                <CardTitle className="text-base">Today &amp; attention</CardTitle>
+                <CardTitle className="text-base">
+                  Today &amp; attention
+                </CardTitle>
                 <p className="text-sm font-normal text-muted-foreground">
                   Live counts — open a list in one click
                 </p>
@@ -208,7 +212,9 @@ export function OverviewView({
           <Card className="border-border/80 overflow-hidden">
             <CardHeader className="border-b border-border/60 bg-muted/30 pb-4">
               <CardTitle className="text-base">Latest clients</CardTitle>
-              <p className="text-sm font-normal text-muted-foreground">Recently added to your roster</p>
+              <p className="text-sm font-normal text-muted-foreground">
+                Recently added to your roster
+              </p>
             </CardHeader>
             <CardContent className="pt-5">
               <DashboardRecentClients clients={recentClients} />
@@ -217,5 +223,5 @@ export function OverviewView({
         </div>
       </div>
     </>
-  )
+  );
 }

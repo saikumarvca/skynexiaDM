@@ -1,35 +1,35 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { ReviewForm } from "@/components/review-form"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { ReviewFormData } from "@/types"
-import { serverFetch } from "@/lib/server-fetch"
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { ReviewForm } from "@/components/review-form";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { ReviewFormData } from "@/types";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function createReview(data: ReviewFormData) {
-  'use server'
+  "use server";
 
-  const res = await serverFetch('/api/reviews', {
-    method: 'POST',
+  const res = await serverFetch("/api/reviews", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
 
   if (!res.ok) {
-    throw new Error('Failed to create review')
+    throw new Error("Failed to create review");
   }
 
-  return await res.json()
+  return await res.json();
 }
 
 interface NewReviewPageProps {
-  params: Promise<{ clientId: string }>
+  params: Promise<{ clientId: string }>;
 }
 
 export default async function NewReviewPage({ params }: NewReviewPageProps) {
-  const { clientId } = await params
+  const { clientId } = await params;
 
   return (
     <DashboardLayout>
@@ -42,7 +42,9 @@ export default async function NewReviewPage({ params }: NewReviewPageProps) {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Add New Review</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Add New Review
+            </h1>
             <p className="text-muted-foreground">
               Create a new review for this client.
             </p>
@@ -54,5 +56,5 @@ export default async function NewReviewPage({ params }: NewReviewPageProps) {
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

@@ -38,7 +38,7 @@ function formatTime(iso: string) {
 
 export function ConnectWallApp({ currentUserId }: Props) {
   const [channelId, setChannelId] = useState<ConnectWallChannel["id"]>(
-    CONNECT_WALL_CHANNELS[0]!.id
+    CONNECT_WALL_CHANNELS[0]!.id,
   );
   const [messages, setMessages] = useState<WallMessageDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +57,12 @@ export function ConnectWallApp({ currentUserId }: Props) {
     setError(null);
     try {
       const res = await fetch(
-        `/api/connect-wall/messages?channel=${encodeURIComponent(ch)}`
+        `/api/connect-wall/messages?channel=${encodeURIComponent(ch)}`,
       );
-      const data = (await res.json()) as { messages?: WallMessageDto[]; error?: string };
+      const data = (await res.json()) as {
+        messages?: WallMessageDto[];
+        error?: string;
+      };
       if (!res.ok) throw new Error(data.error ?? "Failed to load");
       setMessages(data.messages ?? []);
     } catch (e) {
@@ -89,7 +92,10 @@ export function ConnectWallApp({ currentUserId }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ channelId, body: text }),
       });
-      const data = (await res.json()) as { message?: WallMessageDto; error?: string };
+      const data = (await res.json()) as {
+        message?: WallMessageDto;
+        error?: string;
+      };
       if (!res.ok) throw new Error(data.error ?? "Failed to send");
       if (data.message) {
         setMessages((prev) => [...prev, data.message!]);
@@ -103,7 +109,8 @@ export function ConnectWallApp({ currentUserId }: Props) {
   };
 
   const activeChannel =
-    CONNECT_WALL_CHANNELS.find((c) => c.id === channelId) ?? CONNECT_WALL_CHANNELS[0]!;
+    CONNECT_WALL_CHANNELS.find((c) => c.id === channelId) ??
+    CONNECT_WALL_CHANNELS[0]!;
 
   return (
     <div className="flex min-h-[calc(100dvh-8.5rem)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm md:flex-row">
@@ -130,7 +137,7 @@ export function ConnectWallApp({ currentUserId }: Props) {
                 "flex shrink-0 items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors md:w-full",
                 channelId === ch.id
                   ? "bg-primary/15 font-medium text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <Hash className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
@@ -145,9 +152,13 @@ export function ConnectWallApp({ currentUserId }: Props) {
         <header className="border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <Hash className="h-4 w-4 text-muted-foreground" aria-hidden />
-            <h2 className="text-base font-semibold tracking-tight">{activeChannel.name}</h2>
+            <h2 className="text-base font-semibold tracking-tight">
+              {activeChannel.name}
+            </h2>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">{activeChannel.description}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {activeChannel.description}
+          </p>
         </header>
 
         {error && (
@@ -162,7 +173,10 @@ export function ConnectWallApp({ currentUserId }: Props) {
         >
           {loading ? (
             <div className="flex justify-center py-12 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin" aria-label="Loading messages" />
+              <Loader2
+                className="h-8 w-8 animate-spin"
+                aria-label="Loading messages"
+              />
             </div>
           ) : messages.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
@@ -178,11 +192,13 @@ export function ConnectWallApp({ currentUserId }: Props) {
                     "rounded-lg border px-3 py-2.5 text-sm shadow-sm",
                     mine
                       ? "ml-4 border-primary/25 bg-primary/5"
-                      : "mr-4 border-border bg-background"
+                      : "mr-4 border-border bg-background",
                   )}
                 >
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <span className="font-semibold text-foreground">{m.authorName}</span>
+                    <span className="font-semibold text-foreground">
+                      {m.authorName}
+                    </span>
                     <time
                       className="text-[11px] text-muted-foreground"
                       dateTime={m.createdAt}

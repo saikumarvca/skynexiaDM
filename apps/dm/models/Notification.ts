@@ -22,7 +22,13 @@ const NotificationSchema: mongoose.Schema = new mongoose.Schema(
     userId: { type: String, required: true },
     type: {
       type: String,
-      enum: ["TASK_ASSIGNED", "REVIEW_ASSIGNED", "CAMPAIGN_UPDATED", "LEAD_UPDATED", "SYSTEM"],
+      enum: [
+        "TASK_ASSIGNED",
+        "REVIEW_ASSIGNED",
+        "CAMPAIGN_UPDATED",
+        "LEAD_UPDATED",
+        "SYSTEM",
+      ],
       required: true,
     },
     title: { type: String, required: true },
@@ -30,7 +36,7 @@ const NotificationSchema: mongoose.Schema = new mongoose.Schema(
     href: { type: String },
     isRead: { type: Boolean, default: false },
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  { timestamps: { createdAt: true, updatedAt: false } },
 );
 
 NotificationSchema.index({ userId: 1, createdAt: -1 });

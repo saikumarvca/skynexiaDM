@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/mongodb";
+import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import { assertAdmin, requireUserFromCookieHeader, requireUserFromRequest } from "@/lib/auth";
+import {
+  assertAdmin,
+  requireUserFromCookieHeader,
+  requireUserFromRequest,
+} from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
     const users = await User.find({})
-      .select('_id name email role isActive')
+      .select("_id name email role isActive")
       .sort({ name: 1 });
     return NextResponse.json(users);
   } catch (error) {
@@ -21,10 +25,10 @@ export async function GET(request: NextRequest) {
       if (error.message === "FORBIDDEN")
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error('Error fetching users:', error);
+    console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
+      { error: "Failed to fetch users" },
+      { status: 500 },
     );
   }
 }
@@ -34,22 +38,40 @@ export async function POST(req: Request) {
     const user = await requireUserFromCookieHeader(req.headers.get("cookie"));
     assertAdmin(user);
 
-    const body = (await req.json()) as { name?: string; email?: string; role?: string; password?: string };
+    const body = (await req.json()) as {
+      name?: string;
+      email?: string;
+      role?: string;
+      password?: string;
+    };
     const name = (body.name ?? "").trim();
     const email = (body.email ?? "").trim().toLowerCase();
     const role = (body.role ?? "MANAGER").trim();
     const password = body.password ?? "";
 
     if (!name || !email || !password) {
-      return NextResponse.json({ error: "name, email, and password are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "name, email, and password are required" },
+        { status: 400 },
+      );
     }
 
     await dbConnect();
     const exists = await User.findOne({ email }).select("_id");
-    if (exists) return NextResponse.json({ error: "Email already exists" }, { status: 409 });
+    if (exists)
+      return NextResponse.json(
+        { error: "Email already exists" },
+        { status: 409 },
+      );
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const created = await User.create({ name, email, role, passwordHash, isActive: true });
+    const created = await User.create({
+      name,
+      email,
+      role,
+      passwordHash,
+      isActive: true,
+    });
     return NextResponse.json({
       _id: created._id.toString(),
       name: created.name,
@@ -65,6 +87,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Error creating user:", error);
-    return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create user" },
+      { status: 500 },
+    );
   }
 }

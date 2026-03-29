@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
+import { DM_SESSION_COOKIE_NAME } from "@/lib/session-cookie-name";
 
 export type SessionUser = {
   userId: string;
@@ -11,8 +12,6 @@ export type SessionUser = {
   name: string;
   role: string;
 };
-
-const COOKIE_NAME = "dm_session";
 
 function requireAuthSecret(): string {
   const secret = process.env.AUTH_SECRET;
@@ -29,13 +28,16 @@ function base64UrlEncode(buf: Buffer) {
 }
 
 function base64UrlDecode(s: string) {
-  const padded = s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
+  const padded =
+    s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
   return Buffer.from(padded, "base64");
 }
 
 function sign(input: string) {
   const secret = requireAuthSecret();
-  return base64UrlEncode(crypto.createHmac("sha256", secret).update(input).digest());
+  return base64UrlEncode(
+    crypto.createHmac("sha256", secret).update(input).digest(),
+  );
 }
 
 type SessionPayload = {
@@ -71,38 +73,44 @@ export function verifySessionToken(token: string): SessionPayload | null {
 }
 
 export function getSessionTokenFromRequest(req: NextRequest): string | null {
-  return req.cookies.get(COOKIE_NAME)?.value ?? null;
+  return req.cookies.get(DM_SESSION_COOKIE_NAME)?.value ?? null;
 }
 
 export async function getSessionTokenFromCookies(): Promise<string | null> {
   const jar = await cookies();
-  return jar.get(COOKIE_NAME)?.value ?? null;
+  return jar.get(DM_SESSION_COOKIE_NAME)?.value ?? null;
 }
 
-function getSessionTokenFromCookieHeader(cookieHeader: string | null): string | null {
+function getSessionTokenFromCookieHeader(
+  cookieHeader: string | null,
+): string | null {
   if (!cookieHeader) return null;
   // Very small cookie parser (enough for our single cookie).
   const parts = cookieHeader.split(";");
   for (const p of parts) {
     const [k, ...rest] = p.trim().split("=");
     if (!k) continue;
-    if (k === COOKIE_NAME) return rest.join("=");
+    if (k === DM_SESSION_COOKIE_NAME) return rest.join("=");
   }
   return null;
 }
 
 export function getSessionCookieName() {
-  return COOKIE_NAME;
+  return DM_SESSION_COOKIE_NAME;
 }
 
-export async function requireUserFromRequest(req: NextRequest): Promise<SessionUser> {
+export async function requireUserFromRequest(
+  req: NextRequest,
+): Promise<SessionUser> {
   const token = getSessionTokenFromRequest(req);
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = verifySessionToken(token);
   if (!payload) throw new Error("UNAUTHENTICATED");
 
   await dbConnect();
-  const user = await User.findById(payload.uid).select("_id email name role isActive");
+  const user = await User.findById(payload.uid).select(
+    "_id email name role isActive",
+  );
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
 
   return {
@@ -113,14 +121,18 @@ export async function requireUserFromRequest(req: NextRequest): Promise<SessionU
   };
 }
 
-export async function requireUserFromCookieHeader(cookieHeader: string | null): Promise<SessionUser> {
+export async function requireUserFromCookieHeader(
+  cookieHeader: string | null,
+): Promise<SessionUser> {
   const token = getSessionTokenFromCookieHeader(cookieHeader);
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = verifySessionToken(token);
   if (!payload) throw new Error("UNAUTHENTICATED");
 
   await dbConnect();
-  const user = await User.findById(payload.uid).select("_id email name role isActive");
+  const user = await User.findById(payload.uid).select(
+    "_id email name role isActive",
+  );
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
 
   return {
@@ -138,7 +150,9 @@ export async function requireUser(): Promise<SessionUser> {
   if (!payload) throw new Error("UNAUTHENTICATED");
 
   await dbConnect();
-  const user = await User.findById(payload.uid).select("_id email name role isActive");
+  const user = await User.findById(payload.uid).select(
+    "_id email name role isActive",
+  );
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
 
   return {
@@ -155,4 +169,3 @@ export const getCachedUser = cache(requireUser);
 export function assertAdmin(user: SessionUser) {
   if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
 }
-

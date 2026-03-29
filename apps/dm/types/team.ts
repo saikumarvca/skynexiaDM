@@ -1,42 +1,46 @@
 // Centralized enums and constants - do not scatter string literals across the module
 
-export type TeamMemberStatus = 'Active' | 'Inactive';
+export type TeamMemberStatus = "Active" | "Inactive";
 
-export type AssignmentStatus = 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
+export type AssignmentStatus =
+  | "Pending"
+  | "In Progress"
+  | "Completed"
+  | "Cancelled";
 
-export type AssignmentPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+export type AssignmentPriority = "Low" | "Medium" | "High" | "Urgent";
 
 export type AssignmentType =
-  | 'review'
-  | 'lead'
-  | 'task'
-  | 'campaign'
-  | 'client'
-  | 'other';
+  | "review"
+  | "lead"
+  | "task"
+  | "campaign"
+  | "client"
+  | "other";
 
 export type SourceModule =
-  | 'reviews'
-  | 'leads'
-  | 'tasks'
-  | 'campaigns'
-  | 'clients';
+  | "reviews"
+  | "leads"
+  | "tasks"
+  | "campaigns"
+  | "clients";
 
-export type WorkloadStatus = 'Available' | 'Balanced' | 'Busy' | 'Overloaded';
+export type WorkloadStatus = "Available" | "Balanced" | "Busy" | "Overloaded";
 
 export const PERMISSION_LIST = [
-  'manage_clients',
-  'manage_campaigns',
-  'manage_content',
-  'manage_seo',
-  'manage_leads',
-  'manage_tasks',
-  'manage_reviews',
-  'manage_team',
-  'manage_roles',
-  'view_analytics',
-  'assign_reviews',
-  'assign_tasks',
-  'manage_settings',
+  "manage_clients",
+  "manage_campaigns",
+  "manage_content",
+  "manage_seo",
+  "manage_leads",
+  "manage_tasks",
+  "manage_reviews",
+  "manage_team",
+  "manage_roles",
+  "view_analytics",
+  "assign_reviews",
+  "assign_tasks",
+  "manage_settings",
 ] as const;
 
 export type Permission = (typeof PERMISSION_LIST)[number];

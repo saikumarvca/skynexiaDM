@@ -1,24 +1,24 @@
-import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { TemplateForm } from "@/components/template-form"
-import { serverFetch } from "@/lib/server-fetch"
-import { ReviewTemplate } from "@/types"
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { TemplateForm } from "@/components/template-form";
+import { serverFetch } from "@/lib/server-fetch";
+import { ReviewTemplate } from "@/types";
 
 async function getTemplate(id: string): Promise<ReviewTemplate | null> {
-  const res = await serverFetch(`/api/templates/${id}`)
-  if (!res.ok) return null
-  return res.json()
+  const res = await serverFetch(`/api/templates/${id}`);
+  if (!res.ok) return null;
+  return res.json();
 }
 
 function formDataToTemplateBody(formData: FormData) {
   const g = (k: string) => {
-    const v = formData.get(k)
-    return typeof v === "string" ? v.trim() : ""
-  }
+    const v = formData.get(k);
+    return typeof v === "string" ? v.trim() : "";
+  };
   return {
     name: g("name"),
     description: g("description") || undefined,
@@ -28,33 +28,35 @@ function formDataToTemplateBody(formData: FormData) {
     suggestedCategory: g("suggestedCategory") || undefined,
     suggestedLanguage: g("suggestedLanguage") || undefined,
     suggestedRatingStyle: g("suggestedRatingStyle") || undefined,
-  }
+  };
 }
 
 export default async function EditReviewTemplatePage({
   params,
 }: {
-  params: Promise<{ templateId: string }>
+  params: Promise<{ templateId: string }>;
 }) {
-  const { templateId } = await params
-  const template = await getTemplate(templateId)
-  if (!template) notFound()
+  const { templateId } = await params;
+  const template = await getTemplate(templateId);
+  if (!template) notFound();
 
   async function updateTemplate(formData: FormData) {
-    "use server"
-    const body = formDataToTemplateBody(formData)
-    if (!body.name) throw new Error("Name is required")
+    "use server";
+    const body = formDataToTemplateBody(formData);
+    if (!body.name) throw new Error("Name is required");
     const res = await serverFetch(`/api/templates/${templateId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    })
+    });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error((err as { error?: string }).error || "Failed to update template")
+      const err = await res.json().catch(() => ({}));
+      throw new Error(
+        (err as { error?: string }).error || "Failed to update template",
+      );
     }
-    revalidatePath("/dashboard/review-templates")
-    redirect("/dashboard/review-templates")
+    revalidatePath("/dashboard/review-templates");
+    redirect("/dashboard/review-templates");
   }
 
   return (
@@ -82,5 +84,5 @@ export default async function EditReviewTemplatePage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

@@ -6,11 +6,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Upload, Archive, ExternalLink, FileText, Image, Video,
-  File, Search, X, Plus,
+  Upload,
+  Archive,
+  ExternalLink,
+  FileText,
+  Image,
+  Video,
+  File,
+  Search,
+  X,
+  Plus,
 } from "lucide-react";
 
-type FileCategory = "LOGO" | "IMAGE" | "VIDEO" | "BANNER" | "CREATIVE" | "DOC" | "OTHER";
+type FileCategory =
+  | "LOGO"
+  | "IMAGE"
+  | "VIDEO"
+  | "BANNER"
+  | "CREATIVE"
+  | "DOC"
+  | "OTHER";
 
 interface FileAsset {
   _id: string;
@@ -28,22 +43,35 @@ interface Props {
   initialFiles: FileAsset[];
 }
 
-const CATEGORIES: FileCategory[] = ["LOGO", "IMAGE", "VIDEO", "BANNER", "CREATIVE", "DOC", "OTHER"];
+const CATEGORIES: FileCategory[] = [
+  "LOGO",
+  "IMAGE",
+  "VIDEO",
+  "BANNER",
+  "CREATIVE",
+  "DOC",
+  "OTHER",
+];
 
 const CATEGORY_COLORS: Record<FileCategory, string> = {
-  LOGO:     "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  IMAGE:    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  VIDEO:    "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300",
-  BANNER:   "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
-  CREATIVE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-  DOC:      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-  OTHER:    "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  LOGO: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  IMAGE: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  VIDEO: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300",
+  BANNER:
+    "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  CREATIVE:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  DOC: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  OTHER: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 };
 
 function fileIcon(fileType: string) {
-  if (fileType.startsWith("image/")) return <Image className="h-8 w-8 text-blue-400" />;
-  if (fileType.startsWith("video/")) return <Video className="h-8 w-8 text-pink-400" />;
-  if (fileType.includes("pdf") || fileType.includes("doc")) return <FileText className="h-8 w-8 text-yellow-400" />;
+  if (fileType.startsWith("image/"))
+    return <Image className="h-8 w-8 text-blue-400" />;
+  if (fileType.startsWith("video/"))
+    return <Video className="h-8 w-8 text-pink-400" />;
+  if (fileType.includes("pdf") || fileType.includes("doc"))
+    return <FileText className="h-8 w-8 text-yellow-400" />;
   return <File className="h-8 w-8 text-muted-foreground" />;
 }
 
@@ -58,7 +86,9 @@ export function FilesManager({ clientId, initialFiles }: Props) {
   const router = useRouter();
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<FileCategory | "ALL">("ALL");
+  const [activeCategory, setActiveCategory] = useState<FileCategory | "ALL">(
+    "ALL",
+  );
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<FileAsset | null>(null);
@@ -96,8 +126,8 @@ export function FilesManager({ clientId, initialFiles }: Props) {
       category: file.type.startsWith("image/")
         ? "IMAGE"
         : file.type.startsWith("video/")
-        ? "VIDEO"
-        : "DOC",
+          ? "VIDEO"
+          : "DOC",
     }));
     setShowForm(true);
   };
@@ -117,13 +147,25 @@ export function FilesManager({ clientId, initialFiles }: Props) {
           url: form.url,
           category: form.category,
           size: form.size ? Number(form.size) : undefined,
-          tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+          tags: form.tags
+            ? form.tags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
         }),
       });
       const created = await res.json();
       setFiles((p) => [created, ...p]);
       setShowForm(false);
-      setForm({ fileName: "", url: "", fileType: "image/jpeg", category: "IMAGE", tags: "", size: "" });
+      setForm({
+        fileName: "",
+        url: "",
+        fileType: "image/jpeg",
+        category: "IMAGE",
+        tags: "",
+        size: "",
+      });
       router.refresh();
     } catch (err) {
       console.error(err);
@@ -147,7 +189,6 @@ export function FilesManager({ clientId, initialFiles }: Props) {
 
   return (
     <div className="space-y-5">
-
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
@@ -159,7 +200,12 @@ export function FilesManager({ clientId, initialFiles }: Props) {
             className="pl-8"
           />
         </div>
-        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileInput} />
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={handleFileInput}
+        />
         <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
           <Upload className="mr-2 h-4 w-4" />
           Upload file
@@ -207,60 +253,97 @@ export function FilesManager({ clientId, initialFiles }: Props) {
           <CardContent className="pt-5">
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">File Name *</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  File Name *
+                </label>
                 <Input
                   value={form.fileName}
-                  onChange={(e) => setForm((p) => ({ ...p, fileName: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, fileName: e.target.value }))
+                  }
                   placeholder="logo.png"
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">URL *</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  URL *
+                </label>
                 <Input
                   value={form.url}
-                  onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, url: e.target.value }))
+                  }
                   placeholder="https://..."
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Category</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Category
+                </label>
                 <select
                   value={form.category}
-                  onChange={(e) => setForm((p) => ({ ...p, category: e.target.value as FileCategory }))}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      category: e.target.value as FileCategory,
+                    }))
+                  }
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                 >
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">File Type</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  File Type
+                </label>
                 <Input
                   value={form.fileType}
-                  onChange={(e) => setForm((p) => ({ ...p, fileType: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, fileType: e.target.value }))
+                  }
                   placeholder="image/jpeg"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags (comma separated)</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Tags (comma separated)
+                </label>
                 <Input
                   value={form.tags}
-                  onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, tags: e.target.value }))
+                  }
                   placeholder="logo, brand, 2024"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Size (bytes)</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Size (bytes)
+                </label>
                 <Input
                   value={form.size}
-                  onChange={(e) => setForm((p) => ({ ...p, size: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, size: e.target.value }))
+                  }
                   placeholder="102400"
                   type="number"
                 />
               </div>
               <div className="sm:col-span-2 flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForm(false)}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={uploading}>
                   {uploading ? "Saving..." : "Save File"}
                 </Button>
@@ -293,12 +376,16 @@ export function FilesManager({ clientId, initialFiles }: Props) {
                     src={file.url}
                     alt={file.fileName}
                     className="h-full w-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-2 opacity-60">
                     {fileIcon(file.fileType)}
-                    <span className="text-xs text-muted-foreground uppercase">{file.fileType.split("/")[1]}</span>
+                    <span className="text-xs text-muted-foreground uppercase">
+                      {file.fileType.split("/")[1]}
+                    </span>
                   </div>
                 )}
                 {/* Hover actions */}
@@ -313,7 +400,10 @@ export function FilesManager({ clientId, initialFiles }: Props) {
                     <ExternalLink className="h-4 w-4 text-white" />
                   </a>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(file._id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(file._id);
+                    }}
                     className="rounded-full bg-white/20 p-2 hover:bg-amber-500/80 transition-colors"
                     title="Archive file"
                   >
@@ -323,19 +413,31 @@ export function FilesManager({ clientId, initialFiles }: Props) {
               </div>
 
               <CardContent className="p-3">
-                <p className="text-sm font-medium truncate" title={file.fileName}>{file.fileName}</p>
+                <p
+                  className="text-sm font-medium truncate"
+                  title={file.fileName}
+                >
+                  {file.fileName}
+                </p>
                 <div className="mt-1.5 flex items-center justify-between gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${CATEGORY_COLORS[file.category]}`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${CATEGORY_COLORS[file.category]}`}
+                  >
                     {file.category}
                   </span>
                   {formatSize(file.size) && (
-                    <span className="text-[10px] text-muted-foreground">{formatSize(file.size)}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatSize(file.size)}
+                    </span>
                   )}
                 </div>
                 {file.tags && file.tags.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     {file.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      <span
+                        key={tag}
+                        className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                      >
                         {tag}
                       </span>
                     ))}
@@ -361,8 +463,13 @@ export function FilesManager({ clientId, initialFiles }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b px-5 py-3">
-              <p className="font-medium truncate max-w-[80%]">{preview.fileName}</p>
-              <button onClick={() => setPreview(null)} className="text-muted-foreground hover:text-foreground">
+              <p className="font-medium truncate max-w-[80%]">
+                {preview.fileName}
+              </p>
+              <button
+                onClick={() => setPreview(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -370,9 +477,17 @@ export function FilesManager({ clientId, initialFiles }: Props) {
             <div className="flex items-center justify-center bg-muted min-h-[300px] max-h-[60vh] overflow-hidden">
               {preview.fileType.startsWith("image/") ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={preview.url} alt={preview.fileName} className="max-h-[60vh] max-w-full object-contain" />
+                <img
+                  src={preview.url}
+                  alt={preview.fileName}
+                  className="max-h-[60vh] max-w-full object-contain"
+                />
               ) : preview.fileType.startsWith("video/") ? (
-                <video src={preview.url} controls className="max-h-[60vh] max-w-full" />
+                <video
+                  src={preview.url}
+                  controls
+                  className="max-h-[60vh] max-w-full"
+                />
               ) : (
                 <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
                   {fileIcon(preview.fileType)}
@@ -385,7 +500,9 @@ export function FilesManager({ clientId, initialFiles }: Props) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Category</p>
-                  <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[preview.category]}`}>
+                  <span
+                    className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[preview.category]}`}
+                  >
                     {preview.category}
                   </span>
                 </div>
@@ -396,12 +513,16 @@ export function FilesManager({ clientId, initialFiles }: Props) {
                 {preview.size && (
                   <div>
                     <p className="text-xs text-muted-foreground">Size</p>
-                    <p className="mt-1 font-medium">{formatSize(preview.size)}</p>
+                    <p className="mt-1 font-medium">
+                      {formatSize(preview.size)}
+                    </p>
                   </div>
                 )}
                 <div>
                   <p className="text-xs text-muted-foreground">Uploaded</p>
-                  <p className="mt-1 font-medium">{new Date(preview.uploadedAt).toLocaleDateString()}</p>
+                  <p className="mt-1 font-medium">
+                    {new Date(preview.uploadedAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
               {preview.tags && preview.tags.length > 0 && (
@@ -409,13 +530,23 @@ export function FilesManager({ clientId, initialFiles }: Props) {
                   <p className="text-xs text-muted-foreground mb-1">Tags</p>
                   <div className="flex flex-wrap gap-1">
                     {preview.tags.map((tag) => (
-                      <span key={tag} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{tag}</span>
+                      <span
+                        key={tag}
+                        className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        {tag}
+                      </span>
                     ))}
                   </div>
                 </div>
               )}
               <div className="flex gap-2 pt-1">
-                <a href={preview.url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                <a
+                  href={preview.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1"
+                >
                   <Button variant="outline" className="w-full">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Open file

@@ -12,11 +12,15 @@ export interface IWallMessage extends mongoose.Document {
 const WallMessageSchema = new mongoose.Schema(
   {
     channelId: { type: String, required: true, index: true },
-    authorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     authorName: { type: String, required: true },
     body: { type: String, required: true, maxlength: 8000 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 WallMessageSchema.index({ channelId: 1, createdAt: -1 });

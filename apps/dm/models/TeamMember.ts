@@ -1,6 +1,6 @@
 import * as mongoose from "mongoose";
 
-export type TeamMemberStatus = 'Active' | 'Inactive';
+export type TeamMemberStatus = "Active" | "Inactive";
 
 export interface ITeamMember extends mongoose.Document {
   name: string;
@@ -27,27 +27,27 @@ const TeamMemberSchema: mongoose.Schema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String },
-    roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamRole' },
+    roleId: { type: mongoose.Schema.Types.ObjectId, ref: "TeamRole" },
     roleName: { type: String },
     department: { type: String },
     avatarUrl: { type: String },
     userId: { type: String },
     assignedClientIds: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Client' }],
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Client" }],
       default: [],
     },
     assignedClientNamesSnapshot: [{ type: String }],
     status: {
       type: String,
-      enum: ['Active', 'Inactive'],
-      default: 'Active',
+      enum: ["Active", "Inactive"],
+      default: "Active",
     },
     notes: { type: String },
     joinedAt: { type: Date, default: Date.now },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 TeamMemberSchema.index({ email: 1 }, { unique: true, sparse: true });
@@ -58,6 +58,6 @@ TeamMemberSchema.index({ isDeleted: 1 });
 
 const TeamMember =
   (mongoose.models.TeamMember as mongoose.Model<ITeamMember> | undefined) ||
-  mongoose.model<ITeamMember>('TeamMember', TeamMemberSchema);
+  mongoose.model<ITeamMember>("TeamMember", TeamMemberSchema);
 
 export default TeamMember;

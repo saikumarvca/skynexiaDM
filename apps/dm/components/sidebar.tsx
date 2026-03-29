@@ -1,56 +1,58 @@
-"use client"
+"use client";
 
-import { useState, useLayoutEffect, useCallback } from "react"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { BarChart3, PanelLeftClose, PanelLeft } from "lucide-react"
-import { DashboardNavLinks } from "@/components/dashboard-nav-links"
+import { useState, useLayoutEffect, useCallback } from "react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { BarChart3, PanelLeftClose, PanelLeft } from "lucide-react";
+import { DashboardNavLinks } from "@/components/dashboard-nav-links";
 
-const SIDEBAR_COLLAPSED_KEY = "dm-sidebar-collapsed"
+const SIDEBAR_COLLAPSED_KEY = "dm-sidebar-collapsed";
 
 function persistCollapsed(next: boolean) {
   try {
-    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0")
-    document.documentElement.toggleAttribute("data-sidebar-collapsed", next)
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+    document.documentElement.toggleAttribute("data-sidebar-collapsed", next);
   } catch {
     /* ignore */
   }
 }
 
 export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false);
 
   useLayoutEffect(() => {
     try {
-      const c = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1"
-      setCollapsed(c)
-      document.documentElement.toggleAttribute("data-sidebar-collapsed", c)
+      const c = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+      setCollapsed(c);
+      document.documentElement.toggleAttribute("data-sidebar-collapsed", c);
     } catch {
       /* ignore */
     }
-  }, [])
+  }, []);
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((c) => {
-      const next = !c
-      persistCollapsed(next)
-      return next
-    })
-  }, [])
+      const next = !c;
+      persistCollapsed(next);
+      return next;
+    });
+  }, []);
 
   return (
     <div
       id="app-sidebar"
       className={cn(
         "hidden min-h-dvh shrink-0 flex-col self-stretch border-r bg-card transition-[width] duration-200 ease-out md:flex",
-        collapsed ? "w-[4.25rem]" : "w-64"
+        collapsed ? "w-[4.25rem]" : "w-64",
       )}
     >
       <div
         className={cn(
           "flex h-16 items-center border-b gap-2",
-          collapsed ? "flex-col justify-center px-1 py-2 gap-1.5" : "px-4 gap-2.5"
+          collapsed
+            ? "flex-col justify-center px-1 py-2 gap-1.5"
+            : "px-4 gap-2.5",
         )}
       >
         <Link
@@ -58,7 +60,9 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           className={cn(
             "flex items-center gap-2.5 rounded-lg text-foreground transition-colors",
             "hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
-            collapsed ? "flex-1 flex-col justify-center py-0.5" : "min-w-0 flex-1 -mx-1 px-1 py-0.5"
+            collapsed
+              ? "flex-1 flex-col justify-center py-0.5"
+              : "min-w-0 flex-1 -mx-1 px-1 py-0.5",
           )}
           title="Go to dashboard home"
           aria-label="DM Dashboard — go to home"
@@ -81,7 +85,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             "hover:border-primary/40 hover:bg-primary/[0.14] hover:text-primary hover:shadow-sm hover:scale-[1.05] motion-reduce:hover:scale-100",
             "active:scale-[0.94] motion-reduce:active:scale-100",
             "dark:border-primary/30 dark:bg-primary/10 dark:hover:bg-primary/18",
-            collapsed && "mt-0.5"
+            collapsed && "mt-0.5",
           )}
           onClick={toggleCollapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -102,5 +106,5 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         <DashboardNavLinks isAdmin={isAdmin} collapsed={collapsed} />
       </div>
     </div>
-  )
+  );
 }

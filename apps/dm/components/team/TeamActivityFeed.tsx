@@ -34,7 +34,10 @@ export function TeamActivityFeed({
         <CardTitle>Activity Log</CardTitle>
       </CardHeader>
       <CardContent>
-        <form method="get" className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <form
+          method="get"
+          className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+        >
           <div>
             <label className="mb-1 block text-sm font-medium text-muted-foreground">
               User
@@ -110,7 +113,9 @@ export function TeamActivityFeed({
                   <span className="text-sm">
                     <strong>{a.userName}</strong> {a.action}
                     {a.targetName && (
-                      <span className="text-muted-foreground">: {a.targetName}</span>
+                      <span className="text-muted-foreground">
+                        : {a.targetName}
+                      </span>
                     )}
                   </span>
                   <span className="text-xs text-muted-foreground">

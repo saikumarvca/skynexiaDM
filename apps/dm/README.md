@@ -136,7 +136,18 @@ Dashboard stats and review “mark posted” flows do **not** call the social pu
 
 ### API authentication
 
-[`proxy.ts`](proxy.ts) runs on the Edge and enforces a valid `dm_session` cookie for all `/api/*` routes except `/api/auth/login`, `/api/auth/logout`, and `/api/cron/*`. Invalid or missing sessions receive `401` JSON for API calls. Page routes outside `/portal/*` redirect to `/login` when unauthenticated. Individual route handlers may still call `requireSessionApi` / `requireUserFromRequest` for extra checks (for example admin-only actions).
+[`proxy.ts`](proxy.ts) runs on the Edge and enforces a valid `dm_session` cookie (HMAC + expiry; see [`lib/session-edge.ts`](lib/session-edge.ts)) for `/api/*` except:
+
+| Path | Reason |
+|------|--------|
+| `/api/auth/login`, `/api/auth/logout` | Session establishment |
+| `/api/cron/*` | Called with `Authorization: Bearer <CRON_SECRET>` |
+| `/api/integrations/[id]/ingest` | Integration webhook; validates `x-api-key` / `Authorization` in the route handler |
+| `/api/portal/approvals`, `/api/portal/comments` | Client portal; `token` query/body verified in handler ([`lib/portal-auth.ts`](lib/portal-auth.ts)) |
+
+Other `/api/*` calls without a valid cookie get `401` JSON. Page routes outside `/portal/*` redirect to `/login` when unauthenticated.
+
+Protected handlers also call [`requireSessionApi`](lib/require-session-api.ts) / [`requireUserFromRequest`](lib/auth.ts) to load the user from the database and enforce `isActive` (stricter than the edge check alone). Admin-only actions use `assertAdmin` after `requireUserFromRequest`.
 
 ### Email (`EMAIL_PROVIDER`)
 

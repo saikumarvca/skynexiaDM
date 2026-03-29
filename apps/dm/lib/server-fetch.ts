@@ -34,7 +34,10 @@ async function cookieHeaderForInternalFetch(): Promise<string | null> {
 /**
  * Read JSON `{ error?: string }` from a failed API response for user-facing messages.
  */
-export async function errorMessageFromResponse(res: Response, fallback: string): Promise<string> {
+export async function errorMessageFromResponse(
+  res: Response,
+  fallback: string,
+): Promise<string> {
   const text = await res.text();
   try {
     const j = JSON.parse(text) as { error?: unknown };
@@ -50,7 +53,10 @@ export async function errorMessageFromResponse(res: Response, fallback: string):
  * Same-origin fetch from Server Components / Server Actions → forward session cookies.
  * Prefer `cookies()` because Server Actions often omit `Cookie` on `headers()`.
  */
-export async function serverFetch(path: string, init?: RequestInit): Promise<Response> {
+export async function serverFetch(
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
   const base = getBaseUrl();
   const pathname = path.startsWith("/") ? path : `/${path}`;
   const url = `${base}${pathname}`;

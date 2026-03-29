@@ -26,8 +26,14 @@ async function getAllocations(params: {
   if (params.platform) query.platform = params.platform;
   if (params.dateFrom || params.dateTo) {
     query.assignedDate = {};
-    if (params.dateFrom) (query.assignedDate as Record<string, unknown>).$gte = new Date(params.dateFrom);
-    if (params.dateTo) (query.assignedDate as Record<string, unknown>).$lte = new Date(params.dateTo + "T23:59:59.999Z");
+    if (params.dateFrom)
+      (query.assignedDate as Record<string, unknown>).$gte = new Date(
+        params.dateFrom,
+      );
+    if (params.dateTo)
+      (query.assignedDate as Record<string, unknown>).$lte = new Date(
+        params.dateTo + "T23:59:59.999Z",
+      );
   }
   let allocations = await ReviewAllocationModel.find(query)
     .populate("draftId", "subject reviewText clientId clientName")
@@ -35,7 +41,9 @@ async function getAllocations(params: {
     .lean();
   if (params.clientId) {
     allocations = allocations.filter((a) => {
-      const draft = a.draftId as { clientId?: { toString: () => string } } | null;
+      const draft = a.draftId as {
+        clientId?: { toString: () => string };
+      } | null;
       return draft?.clientId?.toString?.() === params.clientId;
     });
   }
@@ -44,20 +52,34 @@ async function getAllocations(params: {
 
 async function getClients(): Promise<Client[]> {
   await dbConnect();
-  const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean();
+  const docs = await ClientModel.find({})
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .lean();
   return docs.map((c) => JSON.parse(JSON.stringify(c)));
 }
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
   await dbConnect();
-  const docs = await TeamMember.find({ status: "Active", isDeleted: { $ne: true } })
+  const docs = await TeamMember.find({
+    status: "Active",
+    isDeleted: { $ne: true },
+  })
     .select("name")
     .limit(100)
     .lean();
   return docs.map((m) => ({ _id: m._id.toString(), name: m.name }));
 }
 
-async function markShared(id: string, data: { customerName: string; customerContact?: string; platform?: string; sentDate: string }) {
+async function markShared(
+  id: string,
+  data: {
+    customerName: string;
+    customerContact?: string;
+    platform?: string;
+    sentDate: string;
+  },
+) {
   "use server";
   const res = await serverFetch(`/api/review-allocations/${id}/mark-shared`, {
     method: "PATCH",
@@ -81,7 +103,7 @@ async function markPosted(
     postedDate: string;
     markedUsedBy: string;
     remarks?: string;
-  }
+  },
 ) {
   "use server";
   const res = await serverFetch(`/api/review-allocations/${id}/mark-posted`, {
@@ -118,13 +140,22 @@ interface PageProps {
   }>;
 }
 
-export default async function ReviewAllocationsPage({ searchParams }: PageProps) {
+export default async function ReviewAllocationsPage({
+  searchParams,
+}: PageProps) {
   const params = await searchParams;
   const [allocations, clients, teamMembers] = await Promise.all([
     getAllocations({
-      clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
-      status: params.status && params.status !== "ALL" ? params.status : undefined,
-      assignedToUserId: params.assignedTo && params.assignedTo !== "ALL" ? params.assignedTo : undefined,
+      clientId:
+        params.clientId && params.clientId !== "ALL"
+          ? params.clientId
+          : undefined,
+      status:
+        params.status && params.status !== "ALL" ? params.status : undefined,
+      assignedToUserId:
+        params.assignedTo && params.assignedTo !== "ALL"
+          ? params.assignedTo
+          : undefined,
       platform: params.platform,
       dateFrom: params.dateFrom,
       dateTo: params.dateTo,
@@ -137,15 +168,23 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Review Allocations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Review Allocations
+          </h1>
           <p className="text-muted-foreground">
             Track assignment of review drafts to team members and customers.
           </p>
         </div>
 
-        <form method="get" action="/dashboard/review-allocations" className="flex flex-wrap gap-4">
+        <form
+          method="get"
+          action="/dashboard/review-allocations"
+          className="flex flex-wrap gap-4"
+        >
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Client</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Client
+            </label>
             <select
               name="clientId"
               defaultValue={params.clientId ?? "ALL"}
@@ -153,12 +192,16 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
             >
               <option value="ALL">All clients</option>
               {clients.map((c) => (
-                <option key={c._id} value={c._id}>{c.businessName}</option>
+                <option key={c._id} value={c._id}>
+                  {c.businessName}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Status</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Status
+            </label>
             <select
               name="status"
               defaultValue={params.status ?? "ALL"}
@@ -173,7 +216,9 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Assigned To</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Assigned To
+            </label>
             <select
               name="assignedTo"
               defaultValue={params.assignedTo ?? "ALL"}
@@ -181,12 +226,16 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
             >
               <option value="ALL">All</option>
               {teamMembers.map((u) => (
-                <option key={u._id} value={u._id}>{u.name}</option>
+                <option key={u._id} value={u._id}>
+                  {u.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Platform</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Platform
+            </label>
             <input
               name="platform"
               defaultValue={params.platform ?? ""}
@@ -195,7 +244,9 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Date From</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Date From
+            </label>
             <input
               name="dateFrom"
               type="date"
@@ -204,7 +255,9 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Date To</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Date To
+            </label>
             <input
               name="dateTo"
               type="date"
@@ -213,7 +266,9 @@ export default async function ReviewAllocationsPage({ searchParams }: PageProps)
             />
           </div>
           <div className="flex items-end">
-            <Button type="submit" variant="outline">Apply</Button>
+            <Button type="submit" variant="outline">
+              Apply
+            </Button>
           </div>
         </form>
 

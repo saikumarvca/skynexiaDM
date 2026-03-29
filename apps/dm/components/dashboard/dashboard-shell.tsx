@@ -1,43 +1,50 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { DashboardHero } from "@/components/dashboard/dashboard-hero"
-import { OverviewView, type DashboardRecentClientRow } from "@/components/dashboard/views/overview-view"
-import { OperationsView } from "@/components/dashboard/views/operations-view"
-import { ContentReviewsView } from "@/components/dashboard/views/content-reviews-view"
-import { GrowthView } from "@/components/dashboard/views/growth-view"
-import { TechnicalView } from "@/components/dashboard/views/technical-view"
-import type { DashboardPageData } from "@/types"
+} from "@/components/ui/select";
+import { DashboardHero } from "@/components/dashboard/dashboard-hero";
+import {
+  OverviewView,
+  type DashboardRecentClientRow,
+} from "@/components/dashboard/views/overview-view";
+import { OperationsView } from "@/components/dashboard/views/operations-view";
+import { ContentReviewsView } from "@/components/dashboard/views/content-reviews-view";
+import { GrowthView } from "@/components/dashboard/views/growth-view";
+import { TechnicalView } from "@/components/dashboard/views/technical-view";
+import type { DashboardPageData } from "@/types";
 import {
   DASHBOARD_VIEW_STORAGE_KEY,
   parseDashboardViewParam,
   isSavedDashboardViewAllowed,
   type DashboardViewId,
-} from "@/lib/dashboard/views-config"
+} from "@/lib/dashboard/views-config";
 
-function viewBody(view: DashboardViewId, data: DashboardPageData, recent: DashboardRecentClientRow[]) {
+function viewBody(
+  view: DashboardViewId,
+  data: DashboardPageData,
+  recent: DashboardRecentClientRow[],
+) {
   switch (view) {
     case "overview":
-      return <OverviewView data={data} recentClients={recent} />
+      return <OverviewView data={data} recentClients={recent} />;
     case "operations":
-      return <OperationsView data={data} />
+      return <OperationsView data={data} />;
     case "content":
-      return <ContentReviewsView data={data} />
+      return <ContentReviewsView data={data} />;
     case "growth":
-      return <GrowthView data={data} />
+      return <GrowthView data={data} />;
     case "technical":
-      if (data.technical) return <TechnicalView technical={data.technical} />
-      return null
+      if (data.technical) return <TechnicalView technical={data.technical} />;
+      return null;
     default:
-      return <OverviewView data={data} recentClients={recent} />
+      return <OverviewView data={data} recentClients={recent} />;
   }
 }
 
@@ -47,51 +54,55 @@ export function DashboardShell({
   userName,
   isAdmin,
 }: {
-  data: DashboardPageData
-  recentClients: DashboardRecentClientRow[]
-  userName: string
-  isAdmin: boolean
+  data: DashboardPageData;
+  recentClients: DashboardRecentClientRow[];
+  userName: string;
+  isAdmin: boolean;
 }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const appliedSaved = useRef(false)
-  const sanitizedForbidden = useRef(false)
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const appliedSaved = useRef(false);
+  const sanitizedForbidden = useRef(false);
 
-  const view = parseDashboardViewParam(searchParams.get("view"), isAdmin)
+  const view = parseDashboardViewParam(searchParams.get("view"), isAdmin);
 
   useEffect(() => {
-    const raw = searchParams.get("view")
+    const raw = searchParams.get("view");
     if (!sanitizedForbidden.current && raw === "technical" && !isAdmin) {
-      sanitizedForbidden.current = true
-      router.replace(pathname, { scroll: false })
-      return
+      sanitizedForbidden.current = true;
+      router.replace(pathname, { scroll: false });
+      return;
     }
-    if (appliedSaved.current) return
-    const param = searchParams.get("view")
+    if (appliedSaved.current) return;
+    const param = searchParams.get("view");
     if (param != null && param !== "") {
-      appliedSaved.current = true
-      return
+      appliedSaved.current = true;
+      return;
     }
     try {
-      const saved = localStorage.getItem(DASHBOARD_VIEW_STORAGE_KEY)
+      const saved = localStorage.getItem(DASHBOARD_VIEW_STORAGE_KEY);
       if (saved && isSavedDashboardViewAllowed(saved, isAdmin)) {
-        appliedSaved.current = true
-        router.replace(`${pathname}?view=${encodeURIComponent(saved)}`, { scroll: false })
+        appliedSaved.current = true;
+        router.replace(`${pathname}?view=${encodeURIComponent(saved)}`, {
+          scroll: false,
+        });
       }
     } catch {
       /* ignore */
     }
-    appliedSaved.current = true
-  }, [isAdmin, pathname, router, searchParams])
+    appliedSaved.current = true;
+  }, [isAdmin, pathname, router, searchParams]);
 
   function setView(next: DashboardViewId) {
     try {
-      localStorage.setItem(DASHBOARD_VIEW_STORAGE_KEY, next)
+      localStorage.setItem(DASHBOARD_VIEW_STORAGE_KEY, next);
     } catch {
       /* ignore */
     }
-    router.replace(`${pathname}?view=${encodeURIComponent(next)}`, { scroll: false })
+    router.replace(`${pathname}?view=${encodeURIComponent(next)}`, {
+      scroll: false,
+    });
   }
 
   return (
@@ -101,10 +112,16 @@ export function DashboardShell({
           <DashboardHero userName={userName} view={view} />
         </div>
         <div className="flex w-full shrink-0 flex-col gap-2 sm:max-w-xs lg:w-64">
-          <span id="dashboard-view-label" className="text-xs font-medium text-muted-foreground">
+          <span
+            id="dashboard-view-label"
+            className="text-xs font-medium text-muted-foreground"
+          >
             Dashboard type
           </span>
-          <Select value={view} onValueChange={(v) => setView(v as DashboardViewId)}>
+          <Select
+            value={view}
+            onValueChange={(v) => setView(v as DashboardViewId)}
+          >
             <SelectTrigger
               id="dashboard-view"
               className="bg-background"
@@ -117,7 +134,9 @@ export function DashboardShell({
               <SelectItem value="operations">Operations</SelectItem>
               <SelectItem value="content">Content &amp; reviews</SelectItem>
               <SelectItem value="growth">Growth</SelectItem>
-              {isAdmin ? <SelectItem value="technical">Technical</SelectItem> : null}
+              {isAdmin ? (
+                <SelectItem value="technical">Technical</SelectItem>
+              ) : null}
             </SelectContent>
           </Select>
         </div>
@@ -125,5 +144,5 @@ export function DashboardShell({
 
       {viewBody(view, data, recentClients)}
     </div>
-  )
+  );
 }

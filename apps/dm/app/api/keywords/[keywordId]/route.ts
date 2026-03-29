@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireSessionApi } from '@/lib/require-session-api';
-import dbConnect from '@/lib/mongodb';
-import Keyword from '@/models/Keyword';
-import KeywordHistory from '@/models/KeywordHistory';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import Keyword from "@/models/Keyword";
+import KeywordHistory from "@/models/KeywordHistory";
 
 interface RouteParams {
   params: Promise<{ keywordId: string }>;
@@ -17,17 +17,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { keywordId } = await params;
 
     const keyword = await Keyword.findById(keywordId)
-      .populate('clientId', 'name businessName')
+      .populate("clientId", "name businessName")
       .lean();
 
     if (!keyword) {
-      return NextResponse.json({ error: 'Keyword not found' }, { status: 404 });
+      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
     }
 
     return NextResponse.json(keyword);
   } catch (error) {
-    console.error('Error fetching keyword:', error);
-    return NextResponse.json({ error: 'Failed to fetch keyword' }, { status: 500 });
+    console.error("Error fetching keyword:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch keyword" },
+      { status: 500 },
+    );
   }
 }
 
@@ -42,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const existing = await Keyword.findById(keywordId);
     if (!existing) {
-      return NextResponse.json({ error: 'Keyword not found' }, { status: 404 });
+      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
     }
 
     const previousRank = existing.rank;
@@ -66,8 +69,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json(existing);
   } catch (error) {
-    console.error('Error updating keyword:', error);
-    return NextResponse.json({ error: 'Failed to update keyword' }, { status: 500 });
+    console.error("Error updating keyword:", error);
+    return NextResponse.json(
+      { error: "Failed to update keyword" },
+      { status: 500 },
+    );
   }
 }
 
@@ -81,17 +87,22 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const keyword = await Keyword.findByIdAndUpdate(
       keywordId,
-      { $set: { status: 'ARCHIVED' } },
-      { new: true }
-    ).populate('clientId', 'name businessName').lean();
+      { $set: { status: "ARCHIVED" } },
+      { new: true },
+    )
+      .populate("clientId", "name businessName")
+      .lean();
 
     if (!keyword) {
-      return NextResponse.json({ error: 'Keyword not found' }, { status: 404 });
+      return NextResponse.json({ error: "Keyword not found" }, { status: 404 });
     }
 
     return NextResponse.json(keyword);
   } catch (error) {
-    console.error('Error archiving keyword:', error);
-    return NextResponse.json({ error: 'Failed to archive keyword' }, { status: 500 });
+    console.error("Error archiving keyword:", error);
+    return NextResponse.json(
+      { error: "Failed to archive keyword" },
+      { status: 500 },
+    );
   }
 }

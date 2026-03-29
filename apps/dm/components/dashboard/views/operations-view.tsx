@@ -1,15 +1,21 @@
-import Link from "next/link"
-import { StatsCard } from "@/components/stats-card"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link";
+import { StatsCard } from "@/components/stats-card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   CalendarClock,
   ClipboardList,
   Target,
   TrendingUp,
   ArrowRight,
-} from "lucide-react"
-import type { DashboardPageData } from "@/types"
+} from "lucide-react";
+import type { DashboardPageData } from "@/types";
 
 export function OperationsView({ data }: { data: DashboardPageData }) {
   return (
@@ -87,15 +93,21 @@ export function OperationsView({ data }: { data: DashboardPageData }) {
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border bg-muted/30 px-3 py-2">
               <p className="text-xs text-muted-foreground">Clients</p>
-              <p className="text-2xl font-semibold tabular-nums">{data.totalClients}</p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {data.totalClients}
+              </p>
             </div>
             <div className="rounded-lg border bg-muted/30 px-3 py-2">
-              <p className="text-xs text-muted-foreground">Reviews (non-archived)</p>
-              <p className="text-2xl font-semibold tabular-nums">{data.totalReviews}</p>
+              <p className="text-xs text-muted-foreground">
+                Reviews (non-archived)
+              </p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {data.totalReviews}
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
     </>
-  )
+  );
 }

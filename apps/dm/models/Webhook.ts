@@ -31,7 +31,7 @@ const WebhookSchema: mongoose.Schema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     lastTriggeredAt: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 WebhookSchema.index({ isActive: 1 });

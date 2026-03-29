@@ -1,16 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import FileAsset from '@/models/FileAsset';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import FileAsset from "@/models/FileAsset";
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
-    const category = searchParams.get('category');
+    const clientId = searchParams.get("clientId");
+    const category = searchParams.get("category");
 
-    const includeArchived = searchParams.get('includeArchived') === 'true';
+    const includeArchived = searchParams.get("includeArchived") === "true";
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
@@ -22,27 +26,29 @@ export async function GET(request: NextRequest) {
     const files = await FileAsset.find(query).sort({ uploadedAt: -1 });
     return NextResponse.json(files);
   } catch (error) {
-    console.error('Error fetching files:', error);
+    console.error("Error fetching files:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch files' },
-      { status: 500 }
+      { error: "Failed to fetch files" },
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
     const body = await request.json();
     const file = new FileAsset(body);
     await file.save();
     return NextResponse.json(file, { status: 201 });
   } catch (error) {
-    console.error('Error creating file record:', error);
+    console.error("Error creating file record:", error);
     return NextResponse.json(
-      { error: 'Failed to create file record' },
-      { status: 500 }
+      { error: "Failed to create file record" },
+      { status: 500 },
     );
   }
 }
-

@@ -1,17 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import ContentItem from '@/models/ContentItem';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import ContentItem from "@/models/ContentItem";
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
-    const platform = searchParams.get('platform');
-    const category = searchParams.get('category');
-    const status = searchParams.get('status');
-    const search = searchParams.get('search');
+    const clientId = searchParams.get("clientId");
+    const platform = searchParams.get("platform");
+    const category = searchParams.get("category");
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
@@ -20,29 +24,32 @@ export async function GET(request: NextRequest) {
     if (status) query.status = status;
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: "i" } },
+        { content: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
       ];
     }
 
     const items = await ContentItem.find(query)
-      .populate('clientId', 'name businessName')
+      .populate("clientId", "name businessName")
       .sort({ createdAt: -1 })
       .limit(200);
 
     return NextResponse.json(items);
   } catch (error) {
-    console.error('Error fetching content items:', error);
+    console.error("Error fetching content items:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch content items' },
-      { status: 500 }
+      { error: "Failed to fetch content items" },
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const body = await request.json();
@@ -51,11 +58,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
-    console.error('Error creating content item:', error);
+    console.error("Error creating content item:", error);
     return NextResponse.json(
-      { error: 'Failed to create content item' },
-      { status: 500 }
+      { error: "Failed to create content item" },
+      { status: 500 },
     );
   }
 }
-

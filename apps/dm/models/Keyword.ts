@@ -8,7 +8,7 @@ export interface IKeywordHistoryEntry {
 export interface IKeyword extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
   keyword: string;
-  status: 'ACTIVE' | 'ARCHIVED';
+  status: "ACTIVE" | "ARCHIVED";
   searchVolume?: number;
   difficulty?: number;
   rank?: number;
@@ -22,9 +22,13 @@ export interface IKeyword extends mongoose.Document {
 
 const KeywordSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
+    },
     keyword: { type: String, required: true },
-    status: { type: String, enum: ['ACTIVE', 'ARCHIVED'], default: 'ACTIVE' },
+    status: { type: String, enum: ["ACTIVE", "ARCHIVED"], default: "ACTIVE" },
     searchVolume: { type: Number },
     difficulty: { type: Number },
     rank: { type: Number },
@@ -40,7 +44,7 @@ const KeywordSchema: mongoose.Schema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 KeywordSchema.index({ clientId: 1, keyword: 1 }, { unique: true });
@@ -49,7 +53,6 @@ KeywordSchema.index({ clientId: 1, difficulty: 1 });
 
 const Keyword =
   (mongoose.models.Keyword as mongoose.Model<IKeyword> | undefined) ||
-  mongoose.model<IKeyword>('Keyword', KeywordSchema);
+  mongoose.model<IKeyword>("Keyword", KeywordSchema);
 
 export default Keyword;
-

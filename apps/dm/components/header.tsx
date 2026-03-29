@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { LogOut, Settings } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { GlobalSearch } from "@/components/global-search"
-import { MobileDashboardNav } from "@/components/mobile-dashboard-nav"
-import { NotificationBell } from "@/components/notification-bell"
-import { cn } from "@/lib/utils"
+import Link from "next/link";
+import { LogOut, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { GlobalSearch } from "@/components/global-search";
+import { MobileDashboardNav } from "@/components/mobile-dashboard-nav";
+import { NotificationBell } from "@/components/notification-bell";
+import { cn } from "@/lib/utils";
 
 function initialsFromName(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return "?"
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
 
 export function Header({
@@ -22,22 +22,22 @@ export function Header({
   showAdminLinks = false,
   isAdmin = false,
 }: {
-  sessionUser?: { name: string; email: string }
-  showAdminLinks?: boolean
+  sessionUser?: { name: string; email: string };
+  showAdminLinks?: boolean;
   /** Same as sidebar: show admin nav entries (e.g. Admin users). */
-  isAdmin?: boolean
+  isAdmin?: boolean;
 }) {
-  const router = useRouter()
-  const avatar = sessionUser?.name ? initialsFromName(sessionUser.name) : "DM"
+  const router = useRouter();
+  const avatar = sessionUser?.name ? initialsFromName(sessionUser.name) : "DM";
 
   const onLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" })
+      await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      router.replace("/login")
-      router.refresh()
+      router.replace("/login");
+      router.refresh();
     }
-  }
+  };
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 shadow-sm sm:gap-4 sm:px-6">
@@ -68,7 +68,12 @@ export function Header({
           <LogOut className="h-4 w-4" />
         </Button>
         <NotificationBell />
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full"
+          asChild
+        >
           <Link href="/dashboard/settings" aria-label="Settings">
             <Settings className="h-4 w-4" />
           </Link>
@@ -78,7 +83,7 @@ export function Header({
           className={cn(
             "ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground no-underline select-none transition-colors",
             "hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-            "sm:ml-2"
+            "sm:ml-2",
           )}
           title={
             sessionUser
@@ -91,5 +96,5 @@ export function Header({
         </Link>
       </div>
     </header>
-  )
+  );
 }

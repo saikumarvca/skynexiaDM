@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/input";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = useMemo(() => searchParams.get("next") || "/dashboard", [searchParams]);
+  const nextPath = useMemo(
+    () => searchParams.get("next") || "/dashboard",
+    [searchParams],
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,11 +41,16 @@ function LoginForm() {
   return (
     <div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-sm">
       <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Use your email and password to access the dashboard.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Use your email and password to access the dashboard.
+      </p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-1">
-          <label htmlFor="login-email" className="text-sm font-medium text-muted-foreground">
+          <label
+            htmlFor="login-email"
+            className="text-sm font-medium text-muted-foreground"
+          >
             Email
           </label>
           <Input
@@ -56,7 +64,10 @@ function LoginForm() {
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="login-password" className="text-sm font-medium text-muted-foreground">
+          <label
+            htmlFor="login-password"
+            className="text-sm font-medium text-muted-foreground"
+          >
             Password
           </label>
           <Input

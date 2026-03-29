@@ -1,14 +1,14 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft, Search, Plus } from "lucide-react"
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft, Search, Plus } from "lucide-react";
 
 export default async function ClientSeoPage({
   params,
 }: {
-  params: Promise<{ clientId: string }>
+  params: Promise<{ clientId: string }>;
 }) {
-  const { clientId } = await params
+  const { clientId } = await params;
 
   return (
     <DashboardLayout>
@@ -44,6 +44,5 @@ export default async function ClientSeoPage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }
-

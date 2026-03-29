@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import Link from "next/link"
-import { toast } from "sonner"
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
 import {
   Activity,
   ArrowRight,
@@ -22,13 +22,22 @@ import {
   Users,
   Webhook,
   Zap,
-} from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import type { DashboardTechnicalCounts, DashboardTechnicalSnapshot } from "@/types"
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import type {
+  DashboardTechnicalCounts,
+  DashboardTechnicalSnapshot,
+} from "@/types";
 
 const KEY_LABEL: Record<keyof DashboardTechnicalCounts, string> = {
   clients: "Clients",
@@ -46,14 +55,14 @@ const KEY_LABEL: Record<keyof DashboardTechnicalCounts, string> = {
   reviewDrafts: "Review drafts",
   reviewAllocations: "Review allocations",
   reviewRequests: "Review requests",
-}
+};
 
 const DATA_GROUPS: {
-  title: string
-  description: string
-  icon: typeof Database
-  keys: (keyof DashboardTechnicalCounts)[]
-  accent: string
+  title: string;
+  description: string;
+  icon: typeof Database;
+  keys: (keyof DashboardTechnicalCounts)[];
+  accent: string;
 }[] = [
   {
     title: "CRM & growth",
@@ -83,17 +92,17 @@ const DATA_GROUPS: {
     keys: ["tasks", "teamMembers", "users", "webhooks", "notifications"],
     accent: "from-amber-500/20 to-transparent",
   },
-]
+];
 
 function formatGeneratedAt(iso: string) {
   try {
-    const d = new Date(iso)
+    const d = new Date(iso);
     return new Intl.DateTimeFormat(undefined, {
       dateStyle: "medium",
       timeStyle: "medium",
-    }).format(d)
+    }).format(d);
   } catch {
-    return iso
+    return iso;
   }
 }
 
@@ -101,12 +110,17 @@ function SegmentedMeter({
   segments,
   className,
 }: {
-  segments: { key: string; value: number; className: string }[]
-  className?: string
+  segments: { key: string; value: number; className: string }[];
+  className?: string;
 }) {
-  const total = segments.reduce((s, x) => s + x.value, 0) || 1
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1;
   return (
-    <div className={cn("flex h-2.5 overflow-hidden rounded-full bg-muted", className)}>
+    <div
+      className={cn(
+        "flex h-2.5 overflow-hidden rounded-full bg-muted",
+        className,
+      )}
+    >
       {segments.map((seg) =>
         seg.value > 0 ? (
           <div
@@ -115,10 +129,10 @@ function SegmentedMeter({
             style={{ width: `${(seg.value / total) * 100}%` }}
             title={`${seg.key}: ${seg.value}`}
           />
-        ) : null
+        ) : null,
       )}
     </div>
-  )
+  );
 }
 
 function StatTile({
@@ -128,32 +142,38 @@ function StatTile({
   icon: Icon,
   className,
 }: {
-  label: string
-  value: number | string
-  hint?: string
-  icon: typeof Activity
-  className?: string
+  label: string;
+  value: number | string;
+  hint?: string;
+  icon: typeof Activity;
+  className?: string;
 }) {
   return (
     <div
       className={cn(
         "relative overflow-hidden rounded-xl border border-border/80 bg-card p-4 shadow-sm",
-        className
+        className,
       )}
     >
       <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/[0.06] blur-2xl" />
       <div className="relative flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
-          {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {label}
+          </p>
+          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums tracking-tight">
+            {value}
+          </p>
+          {hint ? (
+            <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+          ) : null}
         </div>
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="h-5 w-5" aria-hidden />
         </span>
       </div>
     </div>
-  )
+  );
 }
 
 function CollectionRow({
@@ -161,16 +181,18 @@ function CollectionRow({
   value,
   max,
 }: {
-  label: string
-  value: number
-  max: number
+  label: string;
+  value: number;
+  max: number;
 }) {
-  const pct = max > 0 ? Math.round((value / max) * 1000) / 10 : 0
+  const pct = max > 0 ? Math.round((value / max) * 1000) / 10 : 0;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-mono text-xs tabular-nums text-foreground">{value.toLocaleString()}</span>
+        <span className="font-mono text-xs tabular-nums text-foreground">
+          {value.toLocaleString()}
+        </span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
         <div
@@ -179,61 +201,73 @@ function CollectionRow({
         />
       </div>
     </div>
-  )
+  );
 }
 
-export function TechnicalView({ technical }: { technical: DashboardTechnicalSnapshot }) {
-  const [query, setQuery] = useState("")
+export function TechnicalView({
+  technical,
+}: {
+  technical: DashboardTechnicalSnapshot;
+}) {
+  const [query, setQuery] = useState("");
 
   const maxCount = useMemo(
     () => Math.max(1, ...Object.values(technical.counts)),
-    [technical.counts]
-  )
+    [technical.counts],
+  );
 
   const filteredGroups = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return DATA_GROUPS
+    const q = query.trim().toLowerCase();
+    if (!q) return DATA_GROUPS;
     return DATA_GROUPS.map((g) => ({
       ...g,
       keys: g.keys.filter(
         (k) =>
           KEY_LABEL[k].toLowerCase().includes(q) ||
           k.toLowerCase().includes(q) ||
-          g.title.toLowerCase().includes(q)
+          g.title.toLowerCase().includes(q),
       ),
-    })).filter((g) => g.keys.length > 0)
-  }, [query])
+    })).filter((g) => g.keys.length > 0);
+  }, [query]);
 
   const envBadge =
     technical.nodeEnv === "production" ? (
-      <Badge className="font-mono text-[10px] uppercase tracking-wider">Production</Badge>
+      <Badge className="font-mono text-[10px] uppercase tracking-wider">
+        Production
+      </Badge>
     ) : technical.nodeEnv === "development" ? (
-      <Badge variant="secondary" className="font-mono text-[10px] uppercase tracking-wider">
+      <Badge
+        variant="secondary"
+        className="font-mono text-[10px] uppercase tracking-wider"
+      >
         Development
       </Badge>
     ) : (
-      <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider">
+      <Badge
+        variant="outline"
+        className="font-mono text-[10px] uppercase tracking-wider"
+      >
         {technical.nodeEnv}
       </Badge>
-    )
+    );
 
   async function copySnapshot() {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(technical, null, 2))
-      toast.success("Snapshot copied to clipboard")
+      await navigator.clipboard.writeText(JSON.stringify(technical, null, 2));
+      toast.success("Snapshot copied to clipboard");
     } catch {
-      toast.error("Could not copy — check browser permissions")
+      toast.error("Could not copy — check browser permissions");
     }
   }
 
-  const { breakdown } = technical
+  const { breakdown } = technical;
 
   return (
     <div className="space-y-8">
       <div
         className={cn(
           "relative overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.07] via-card to-cyan-500/[0.05] p-6 shadow-sm sm:p-8",
-          "dark:from-violet-500/10 dark:via-card dark:to-cyan-500/10"
+          "dark:from-violet-500/10 dark:via-card dark:to-cyan-500/10",
         )}
       >
         <div
@@ -249,16 +283,22 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               <Cpu className="h-3.5 w-3.5" aria-hidden />
               Administrator diagnostics
             </p>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Technical control plane</h2>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Technical control plane
+            </h2>
             <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Non-sensitive runtime metadata, MongoDB collection scale, and quick links for operating the
-              platform. Nothing here includes secrets or connection strings.
+              Non-sensitive runtime metadata, MongoDB collection scale, and
+              quick links for operating the platform. Nothing here includes
+              secrets or connection strings.
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               {envBadge}
               <span className="text-xs text-muted-foreground">
                 Snapshot:{" "}
-                <time dateTime={technical.generatedAt} className="font-mono text-foreground/90">
+                <time
+                  dateTime={technical.generatedAt}
+                  className="font-mono text-foreground/90"
+                >
                   {formatGeneratedAt(technical.generatedAt)}
                 </time>
               </span>
@@ -312,15 +352,23 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               <Activity className="h-4 w-4 text-primary" />
               Runtime
             </CardTitle>
-            <CardDescription>Build identity &amp; public URL hint</CardDescription>
+            <CardDescription>
+              Build identity &amp; public URL hint
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">App version</p>
-              <p className="font-mono text-lg font-semibold tabular-nums">{technical.appVersion}</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                App version
+              </p>
+              <p className="font-mono text-lg font-semibold tabular-nums">
+                {technical.appVersion}
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">NODE_ENV</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                NODE_ENV
+              </p>
               <p className="font-mono text-sm">{technical.nodeEnv}</p>
             </div>
             <div className="space-y-1">
@@ -338,7 +386,9 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
                   {technical.publicAppUrl}
                 </a>
               ) : (
-                <p className="font-mono text-sm text-muted-foreground">Not set</p>
+                <p className="font-mono text-sm text-muted-foreground">
+                  Not set
+                </p>
               )}
             </div>
           </CardContent>
@@ -350,14 +400,17 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               Operational mix
             </CardTitle>
-            <CardDescription>How subscriptions and archives split across key models</CardDescription>
+            <CardDescription>
+              How subscriptions and archives split across key models
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Webhooks</span>
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {breakdown.webhooksEnabled} on · {breakdown.webhooksDisabled} off
+                  {breakdown.webhooksEnabled} on · {breakdown.webhooksDisabled}{" "}
+                  off
                 </span>
               </div>
               <SegmentedMeter
@@ -379,7 +432,8 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Login users</span>
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {breakdown.usersActive} active · {breakdown.usersInactive} inactive
+                  {breakdown.usersActive} active · {breakdown.usersInactive}{" "}
+                  inactive
                 </span>
               </div>
               <SegmentedMeter
@@ -401,7 +455,8 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Team members</span>
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {breakdown.teamActive} active · {breakdown.teamInactive} inactive
+                  {breakdown.teamActive} active · {breakdown.teamInactive}{" "}
+                  inactive
                 </span>
               </div>
               <SegmentedMeter
@@ -423,7 +478,8 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Archived records</span>
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {breakdown.clientsArchived} clients · {breakdown.reviewsArchived} reviews
+                  {breakdown.clientsArchived} clients ·{" "}
+                  {breakdown.reviewsArchived} reviews
                 </span>
               </div>
               <SegmentedMeter
@@ -450,8 +506,8 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
           <div>
             <h3 className="text-lg font-semibold tracking-tight">Data plane</h3>
             <p className="text-sm text-muted-foreground">
-              Collection scale by domain — bars are relative to the largest count on this page (
-              {maxCount.toLocaleString()}).
+              Collection scale by domain — bars are relative to the largest
+              count on this page ({maxCount.toLocaleString()}).
             </p>
           </div>
           <div className="relative max-w-md flex-1">
@@ -468,8 +524,11 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
 
         <div className="grid gap-4 md:grid-cols-2">
           {filteredGroups.map((group) => {
-            const Icon = group.icon
-            const groupMax = Math.max(1, ...group.keys.map((k) => technical.counts[k]))
+            const Icon = group.icon;
+            const groupMax = Math.max(
+              1,
+              ...group.keys.map((k) => technical.counts[k]),
+            );
             return (
               <Card
                 key={group.title}
@@ -479,7 +538,7 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
                   className={cn(
                     "h-1 w-full bg-gradient-to-r",
                     group.accent,
-                    "via-primary/10 to-transparent"
+                    "via-primary/10 to-transparent",
                   )}
                 />
                 <CardHeader className="pb-3">
@@ -502,17 +561,21 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
                   ))}
                 </CardContent>
               </Card>
-            )
+            );
           })}
         </div>
 
         {filteredGroups.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground">No collections match that filter.</p>
+          <p className="text-center text-sm text-muted-foreground">
+            No collections match that filter.
+          </p>
         ) : null}
       </div>
 
       <div>
-        <h3 className="mb-3 text-lg font-semibold tracking-tight">Admin workspace</h3>
+        <h3 className="mb-3 text-lg font-semibold tracking-tight">
+          Admin workspace
+        </h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
@@ -569,7 +632,7 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
               href={item.href}
               className={cn(
                 "group flex flex-col rounded-xl border border-border/80 bg-card p-4 shadow-sm transition-all",
-                "hover:border-primary/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                "hover:border-primary/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               )}
             >
               <div className="flex items-start justify-between gap-2">
@@ -579,11 +642,13 @@ export function TechnicalView({ technical }: { technical: DashboardTechnicalSnap
                 <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
               <p className="mt-3 font-medium">{item.title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {item.desc}
+              </p>
             </Link>
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

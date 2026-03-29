@@ -1,59 +1,81 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { MarkUsedFormData } from "@/types"
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { MarkUsedFormData } from "@/types";
 
 interface MarkUsedModalProps {
-  isOpen: boolean
-  onClose: () => void
-  reviewId: string
-  onSubmit: (data: MarkUsedFormData) => Promise<void>
+  isOpen: boolean;
+  onClose: () => void;
+  reviewId: string;
+  onSubmit: (data: MarkUsedFormData) => Promise<void>;
 }
 
-export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
+export function MarkUsedModal({
+  isOpen,
+  onClose,
+  reviewId,
+  onSubmit,
+}: MarkUsedModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<MarkUsedFormData>({
     reviewId,
     sourceName: "",
     usedBy: "",
     profileName: "",
-    usedAt: new Date().toLocaleDateString('en-CA'), // Today's date in YYYY-MM-DD format
+    usedAt: new Date().toLocaleDateString("en-CA"), // Today's date in YYYY-MM-DD format
     notes: "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
     try {
-      await onSubmit(formData)
-      toast.success("Review marked as used")
-      onClose()
+      await onSubmit(formData);
+      toast.success("Review marked as used");
+      onClose();
       // Reset form
       setFormData({
         reviewId,
         sourceName: "",
         usedBy: "",
         profileName: "",
-        usedAt: new Date().toLocaleDateString('en-CA'),
+        usedAt: new Date().toLocaleDateString("en-CA"),
         notes: "",
-      })
+      });
     } catch (error) {
-      console.error("Error submitting form:", error)
-      toast.error(error instanceof Error ? error.message : "Could not mark review as used")
+      console.error("Error submitting form:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not mark review as used",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: keyof MarkUsedFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -66,10 +88,16 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="sourceName" className="block text-sm font-medium text-muted-foreground">
+            <label
+              htmlFor="sourceName"
+              className="block text-sm font-medium text-muted-foreground"
+            >
               Source Platform
             </label>
-            <Select value={formData.sourceName} onValueChange={(value) => handleChange("sourceName", value)}>
+            <Select
+              value={formData.sourceName}
+              onValueChange={(value) => handleChange("sourceName", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select platform" />
               </SelectTrigger>
@@ -86,7 +114,10 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             </Select>
           </div>
           <div>
-            <label htmlFor="usedBy" className="block text-sm font-medium text-muted-foreground">
+            <label
+              htmlFor="usedBy"
+              className="block text-sm font-medium text-muted-foreground"
+            >
               Used By (Team Member)
             </label>
             <Input
@@ -98,7 +129,10 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             />
           </div>
           <div>
-            <label htmlFor="profileName" className="block text-sm font-medium text-muted-foreground">
+            <label
+              htmlFor="profileName"
+              className="block text-sm font-medium text-muted-foreground"
+            >
               Profile/Account Name
             </label>
             <Input
@@ -110,7 +144,10 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             />
           </div>
           <div>
-            <label htmlFor="usedAt" className="block text-sm font-medium text-muted-foreground">
+            <label
+              htmlFor="usedAt"
+              className="block text-sm font-medium text-muted-foreground"
+            >
               Used Date
             </label>
             <Input
@@ -122,7 +159,10 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
             />
           </div>
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-muted-foreground">
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-muted-foreground"
+            >
               Notes (Optional)
             </label>
             <Textarea
@@ -144,5 +184,5 @@ export function MarkUsedModal({ isOpen, onClose, reviewId, onSubmit }: MarkUsedM
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

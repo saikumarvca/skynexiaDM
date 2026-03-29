@@ -1,81 +1,97 @@
-import Link from "next/link"
-import { Suspense } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { QueryToast } from "@/components/query-toast"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Target, Archive } from "lucide-react"
-import { Campaign, CampaignStatus } from "@/types"
-import { Client } from "@/types"
-import dbConnect from "@/lib/mongodb"
-import CampaignModel from "@/models/Campaign"
-import ClientModel from "@/models/Client"
-import { CampaignsListWithSheet } from "@/components/campaigns/campaigns-list-with-sheet"
-import { ExportButton } from "@/components/export-button"
-import { PdfExportButton } from "@/components/pdf-export-button"
+import Link from "next/link";
+import { Suspense } from "react";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { QueryToast } from "@/components/query-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Target, Archive } from "lucide-react";
+import { Campaign, CampaignStatus } from "@/types";
+import { Client } from "@/types";
+import dbConnect from "@/lib/mongodb";
+import CampaignModel from "@/models/Campaign";
+import ClientModel from "@/models/Client";
+import { CampaignsListWithSheet } from "@/components/campaigns/campaigns-list-with-sheet";
+import { ExportButton } from "@/components/export-button";
+import { PdfExportButton } from "@/components/pdf-export-button";
 
 async function getCampaigns(filters: {
-  clientId?: string
-  platform?: string
-  status?: string
-  archived?: boolean
+  clientId?: string;
+  platform?: string;
+  status?: string;
+  archived?: boolean;
 }): Promise<Campaign[]> {
   try {
-    await dbConnect()
-    const query: Record<string, unknown> = {}
-    if (filters.clientId) query.clientId = filters.clientId
-    if (filters.platform) query.platform = filters.platform
+    await dbConnect();
+    const query: Record<string, unknown> = {};
+    if (filters.clientId) query.clientId = filters.clientId;
+    if (filters.platform) query.platform = filters.platform;
     if (filters.status) {
-      query.status = filters.status
+      query.status = filters.status;
     } else {
       // By default exclude ARCHIVED unless explicitly viewing archived
-      query.status = filters.archived ? "ARCHIVED" : { $ne: "ARCHIVED" }
+      query.status = filters.archived ? "ARCHIVED" : { $ne: "ARCHIVED" };
     }
     const docs = await CampaignModel.find(query)
       .populate("clientId", "name businessName")
       .sort({ createdAt: -1 })
-      .lean()
-    return docs.map((c) => JSON.parse(JSON.stringify(c)))
+      .lean();
+    return docs.map((c) => JSON.parse(JSON.stringify(c)));
   } catch (e) {
-    console.error("Error fetching campaigns:", e)
-    return []
+    console.error("Error fetching campaigns:", e);
+    return [];
   }
 }
 
 async function getClients(): Promise<Client[]> {
   try {
-    await dbConnect()
-    const docs = await ClientModel.find({}).sort({ createdAt: -1 }).limit(500).lean()
-    return docs.map((c) => JSON.parse(JSON.stringify(c)))
+    await dbConnect();
+    const docs = await ClientModel.find({})
+      .sort({ createdAt: -1 })
+      .limit(500)
+      .lean();
+    return docs.map((c) => JSON.parse(JSON.stringify(c)));
   } catch (e) {
-    console.error("Error fetching clients:", e)
-    return []
+    console.error("Error fetching clients:", e);
+    return [];
   }
 }
 
 interface PageProps {
-  searchParams: Promise<{ clientId?: string; platform?: string; status?: string; archived?: string }>
+  searchParams: Promise<{
+    clientId?: string;
+    platform?: string;
+    status?: string;
+    archived?: string;
+  }>;
 }
 
-export default async function DashboardCampaignsPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const showArchived = params.archived === "1" || params.archived === "true"
+export default async function DashboardCampaignsPage({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
+  const showArchived = params.archived === "1" || params.archived === "true";
   const [campaigns, clients] = await Promise.all([
     getCampaigns({
-      clientId: params.clientId && params.clientId !== "ALL" ? params.clientId : undefined,
+      clientId:
+        params.clientId && params.clientId !== "ALL"
+          ? params.clientId
+          : undefined,
       platform: params.platform || undefined,
-      status: params.status && params.status !== "ALL" ? params.status : undefined,
+      status:
+        params.status && params.status !== "ALL" ? params.status : undefined,
       archived: showArchived,
     }),
     getClients(),
-  ])
+  ]);
 
-  const exportBase = `/api/export/campaigns`
-  const exportParams = new URLSearchParams()
-  if (params.clientId && params.clientId !== "ALL") exportParams.set("clientId", params.clientId)
-  if (params.status && params.status !== "ALL") exportParams.set("status", params.status)
-  const exportQs = exportParams.toString() ? `?${exportParams.toString()}` : ""
+  const exportBase = `/api/export/campaigns`;
+  const exportParams = new URLSearchParams();
+  if (params.clientId && params.clientId !== "ALL")
+    exportParams.set("clientId", params.clientId);
+  if (params.status && params.status !== "ALL")
+    exportParams.set("status", params.status);
+  const exportQs = exportParams.toString() ? `?${exportParams.toString()}` : "";
 
   return (
     <DashboardLayout>
@@ -95,11 +111,17 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
             </p>
             <div className="mt-3">
               <Link
-                href={showArchived ? "/dashboard/campaigns" : "/dashboard/campaigns?archived=1"}
+                href={
+                  showArchived
+                    ? "/dashboard/campaigns"
+                    : "/dashboard/campaigns?archived=1"
+                }
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
               >
                 <Archive className="h-3.5 w-3.5" />
-                {showArchived ? "View active campaigns" : "View archived campaigns"}
+                {showArchived
+                  ? "View active campaigns"
+                  : "View archived campaigns"}
               </Link>
             </div>
           </div>
@@ -122,10 +144,17 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
             <CardTitle className="text-base">Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <form method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {showArchived && <input type="hidden" name="archived" value="1" />}
+            <form
+              method="get"
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
+              {showArchived && (
+                <input type="hidden" name="archived" value="1" />
+              )}
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Client</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Client
+                </label>
                 <select
                   name="clientId"
                   defaultValue={params.clientId ?? "ALL"}
@@ -140,7 +169,9 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Platform</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                  Platform
+                </label>
                 <Input
                   name="platform"
                   placeholder="e.g. Facebook, Google"
@@ -149,15 +180,27 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
               </div>
               {!showArchived && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-muted-foreground">Status</label>
+                  <label className="mb-1 block text-sm font-medium text-muted-foreground">
+                    Status
+                  </label>
                   <select
                     name="status"
                     defaultValue={params.status ?? "ALL"}
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                   >
                     <option value="ALL">All statuses</option>
-                    {(["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"] as CampaignStatus[]).map((s) => (
-                      <option key={s} value={s}>{s}</option>
+                    {(
+                      [
+                        "PLANNED",
+                        "ACTIVE",
+                        "PAUSED",
+                        "COMPLETED",
+                        "CANCELLED",
+                      ] as CampaignStatus[]
+                    ).map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -185,7 +228,9 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
                   <>
                     <Archive className="mx-auto mb-3 h-10 w-10 opacity-30" />
                     <p>No archived campaigns.</p>
-                    <p className="mt-1 text-sm">Campaigns set to ARCHIVED status will appear here.</p>
+                    <p className="mt-1 text-sm">
+                      Campaigns set to ARCHIVED status will appear here.
+                    </p>
                   </>
                 ) : (
                   <>
@@ -206,5 +251,5 @@ export default async function DashboardCampaignsPage({ searchParams }: PageProps
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

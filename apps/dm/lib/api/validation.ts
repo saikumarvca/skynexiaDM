@@ -12,7 +12,7 @@ export function apiError(
   status: number,
   error: string,
   code: ApiErrorCode = "INTERNAL_ERROR",
-  details?: unknown
+  details?: unknown,
 ) {
   return NextResponse.json({ error, code, details }, { status });
 }
@@ -35,8 +35,10 @@ export function zodIssues(issues: z.ZodIssue[]) {
 
 export async function parseWithSchema<T extends z.ZodTypeAny>(
   request: NextRequest,
-  schema: T
-): Promise<{ ok: true; data: z.infer<T> } | { ok: false; response: NextResponse }> {
+  schema: T,
+): Promise<
+  { ok: true; data: z.infer<T> } | { ok: false; response: NextResponse }
+> {
   const body = await readJsonBody(request);
   if (!body.ok) {
     return {
@@ -57,4 +59,3 @@ export async function parseWithSchema<T extends z.ZodTypeAny>(
 
   return { ok: true, data: parsed.data };
 }
-

@@ -7,7 +7,7 @@ export interface Client {
   phone: string;
   email: string;
   notes?: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   website?: string;
   industry?: string;
   location?: string;
@@ -28,7 +28,7 @@ export interface Review {
   category: string;
   language: string;
   ratingStyle: string;
-  status: 'UNUSED' | 'USED' | 'ARCHIVED';
+  status: "UNUSED" | "USED" | "ARCHIVED";
   createdAt: string;
   updatedAt: string;
 }
@@ -122,7 +122,7 @@ export interface ClientFormData {
   phone: string;
   email: string;
   notes?: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   website?: string;
   industry?: string;
   location?: string;
@@ -161,12 +161,12 @@ export interface MarkUsedFormData {
 }
 
 export type CampaignStatus =
-  | 'PLANNED'
-  | 'ACTIVE'
-  | 'PAUSED'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'ARCHIVED';
+  | "PLANNED"
+  | "ACTIVE"
+  | "PAUSED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "ARCHIVED";
 
 export interface CampaignMetrics {
   impressions?: number;
@@ -195,15 +195,15 @@ export interface Campaign {
 }
 
 export type ContentCategory =
-  | 'CAPTION'
-  | 'HASHTAGS'
-  | 'AD_COPY'
-  | 'CTA'
-  | 'HOOK'
-  | 'OTHER';
+  | "CAPTION"
+  | "HASHTAGS"
+  | "AD_COPY"
+  | "CTA"
+  | "HOOK"
+  | "OTHER";
 
-export type ContentItemStatus = 'DRAFT' | 'APPROVED' | 'ARCHIVED';
-export type ContentItemSource = 'MANUAL' | 'AI' | 'IMPORT';
+export type ContentItemStatus = "DRAFT" | "APPROVED" | "ARCHIVED";
+export type ContentItemSource = "MANUAL" | "AI" | "IMPORT";
 
 export interface ContentItem {
   _id: string;
@@ -235,10 +235,10 @@ export interface ReviewTemplate {
 }
 
 export type ScheduledPostStatus =
-  | 'SCHEDULED'
-  | 'PUBLISHED'
-  | 'FAILED'
-  | 'CANCELLED';
+  | "SCHEDULED"
+  | "PUBLISHED"
+  | "FAILED"
+  | "CANCELLED";
 
 export interface ScheduledPost {
   _id: string;
@@ -257,7 +257,7 @@ export interface Keyword {
   _id: string;
   clientId: string | { _id: string; name?: string; businessName?: string };
   keyword: string;
-  status: 'ACTIVE' | 'ARCHIVED';
+  status: "ACTIVE" | "ARCHIVED";
   searchVolume?: number;
   difficulty?: number;
   rank?: number;
@@ -269,11 +269,11 @@ export interface Keyword {
 }
 
 export type LeadStatus =
-  | 'NEW'
-  | 'CONTACTED'
-  | 'QUALIFIED'
-  | 'CLOSED_WON'
-  | 'CLOSED_LOST';
+  | "NEW"
+  | "CONTACTED"
+  | "QUALIFIED"
+  | "CLOSED_WON"
+  | "CLOSED_LOST";
 
 export interface Lead {
   _id: string;
@@ -289,8 +289,13 @@ export interface Lead {
   updatedAt: string;
 }
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'ARCHIVED';
-export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type TaskStatus =
+  | "TODO"
+  | "IN_PROGRESS"
+  | "BLOCKED"
+  | "DONE"
+  | "ARCHIVED";
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export interface Task {
   _id: string;

@@ -19,7 +19,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     console.error("Error fetching webhooks:", error);
-    return NextResponse.json({ error: "Failed to fetch webhooks" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch webhooks" },
+      { status: 500 },
+    );
   }
 }
 
@@ -45,10 +48,16 @@ export async function POST(request: NextRequest) {
     try {
       new URL(body.url);
     } catch {
-      return NextResponse.json({ error: "url must be a valid URL" }, { status: 400 });
+      return NextResponse.json(
+        { error: "url must be a valid URL" },
+        { status: 400 },
+      );
     }
     if (!Array.isArray(body.events) || body.events.length === 0) {
-      return NextResponse.json({ error: "events must be a non-empty array" }, { status: 400 });
+      return NextResponse.json(
+        { error: "events must be a non-empty array" },
+        { status: 400 },
+      );
     }
 
     const webhook = new Webhook({
@@ -69,6 +78,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     console.error("Error creating webhook:", error);
-    return NextResponse.json({ error: "Failed to create webhook" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create webhook" },
+      { status: 500 },
+    );
   }
 }

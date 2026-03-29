@@ -40,7 +40,12 @@ export function MemberActions({ memberId, status }: MemberActionsProps) {
         </Button>
       </Link>
       <Link href={`/team/members/${memberId}/assign-clients`}>
-        <Button variant="ghost" size="sm" className="h-8" title="Assign Clients">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8"
+          title="Assign Clients"
+        >
           <Users className="h-4 w-4" />
         </Button>
       </Link>

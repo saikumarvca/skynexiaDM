@@ -21,8 +21,14 @@ async function getPostedReviews(params: {
   if (params.platform) query.platform = params.platform;
   if (dateFromIso || dateToIso) {
     query.postedDate = {};
-    if (dateFromIso) (query.postedDate as Record<string, unknown>).$gte = new Date(dateFromIso);
-    if (dateToIso) (query.postedDate as Record<string, unknown>).$lte = new Date(dateToIso + "T23:59:59.999Z");
+    if (dateFromIso)
+      (query.postedDate as Record<string, unknown>).$gte = new Date(
+        dateFromIso,
+      );
+    if (dateToIso)
+      (query.postedDate as Record<string, unknown>).$lte = new Date(
+        dateToIso + "T23:59:59.999Z",
+      );
   }
   let docs = await PostedReviewModel.find(query)
     .populate("draftId", "subject reviewText")
@@ -32,7 +38,10 @@ async function getPostedReviews(params: {
   if (params.search) {
     const s = params.search.toLowerCase();
     docs = docs.filter((p) => {
-      const draft = p.draftId as { subject?: string; reviewText?: string } | null;
+      const draft = p.draftId as {
+        subject?: string;
+        reviewText?: string;
+      } | null;
       return (
         (draft?.subject ?? "").toLowerCase().includes(s) ||
         (draft?.reviewText ?? "").toLowerCase().includes(s) ||
@@ -55,7 +64,10 @@ interface PageProps {
 export default async function UsedReviewsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const posted = await getPostedReviews({
-    platform: params.platform && params.platform !== "ALL" ? params.platform : undefined,
+    platform:
+      params.platform && params.platform !== "ALL"
+        ? params.platform
+        : undefined,
     dateFrom: params.dateFrom,
     dateTo: params.dateTo,
     search: params.search,
@@ -67,13 +79,20 @@ export default async function UsedReviewsPage({ searchParams }: PageProps) {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Used Reviews</h1>
           <p className="text-muted-foreground">
-            Completed review records with proof. View posted reviews and their history.
+            Completed review records with proof. View posted reviews and their
+            history.
           </p>
         </div>
 
-        <form method="get" action="/dashboard/used-reviews" className="flex flex-wrap gap-4">
+        <form
+          method="get"
+          action="/dashboard/used-reviews"
+          className="flex flex-wrap gap-4"
+        >
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Platform</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Platform
+            </label>
             <select
               name="platform"
               defaultValue={params.platform ?? "ALL"}
@@ -87,7 +106,9 @@ export default async function UsedReviewsPage({ searchParams }: PageProps) {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Date From</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Date From
+            </label>
             <input
               name="dateFrom"
               type="text"
@@ -100,7 +121,9 @@ export default async function UsedReviewsPage({ searchParams }: PageProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Date To</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Date To
+            </label>
             <input
               name="dateTo"
               type="text"
@@ -113,7 +136,9 @@ export default async function UsedReviewsPage({ searchParams }: PageProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted-foreground">Search</label>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Search
+            </label>
             <input
               name="search"
               defaultValue={params.search ?? ""}
@@ -122,7 +147,9 @@ export default async function UsedReviewsPage({ searchParams }: PageProps) {
             />
           </div>
           <div className="flex items-end">
-            <Button type="submit" variant="outline">Apply</Button>
+            <Button type="submit" variant="outline">
+              Apply
+            </Button>
           </div>
         </form>
 

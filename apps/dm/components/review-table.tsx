@@ -1,71 +1,91 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { StatusBadge } from "@/components/status-badge"
-import { MarkUsedModal } from "@/components/mark-used-modal"
-import { Review, MarkUsedFormData } from "@/types"
-import { Copy, CheckCircle, Archive } from "lucide-react"
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { StatusBadge } from "@/components/status-badge";
+import { MarkUsedModal } from "@/components/mark-used-modal";
+import { Review, MarkUsedFormData } from "@/types";
+import { Copy, CheckCircle, Archive } from "lucide-react";
 
 interface ReviewTableProps {
-  reviews: Review[]
-  onMarkUsed: (data: MarkUsedFormData) => Promise<void>
-  onArchive: (reviewId: string) => Promise<void>
-  onCopy?: (text: string) => void
+  reviews: Review[];
+  onMarkUsed: (data: MarkUsedFormData) => Promise<void>;
+  onArchive: (reviewId: string) => Promise<void>;
+  onCopy?: (text: string) => void;
 }
 
-export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("ALL")
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+export function ReviewTable({
+  reviews,
+  onMarkUsed,
+  onArchive,
+  onCopy,
+}: ReviewTableProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCopy = async (review: Review) => {
     try {
       if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(review.reviewText)
+        await navigator.clipboard.writeText(review.reviewText);
       }
     } catch (error) {
-      console.error("Failed to copy review text:", error)
+      console.error("Failed to copy review text:", error);
     }
 
     if (onCopy) {
-      onCopy(review.reviewText)
+      onCopy(review.reviewText);
     }
 
-    setSelectedReview(review)
-    setIsModalOpen(true)
-  }
+    setSelectedReview(review);
+    setIsModalOpen(true);
+  };
 
-  const filteredReviews = reviews.filter(review => {
-    const matchesSearch = review.shortLabel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.reviewText.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "ALL" || review.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const filteredReviews = reviews.filter((review) => {
+    const matchesSearch =
+      review.shortLabel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.reviewText.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "ALL" || review.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleMarkUsed = (review: Review) => {
-    setSelectedReview(review)
-    setIsModalOpen(true)
-  }
+    setSelectedReview(review);
+    setIsModalOpen(true);
+  };
 
   const handleModalSubmit = async (data: MarkUsedFormData) => {
-    await onMarkUsed(data)
-  }
+    await onMarkUsed(data);
+  };
 
   const handleArchive = async (reviewId: string) => {
-    if (!confirm("Are you sure you want to archive this review?")) return
+    if (!confirm("Are you sure you want to archive this review?")) return;
     try {
-      await onArchive(reviewId)
-      toast.success("Review archived")
+      await onArchive(reviewId);
+      toast.success("Review archived");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to archive review")
+      toast.error(e instanceof Error ? e.message : "Failed to archive review");
     }
-  }
+  };
 
   return (
     <>
@@ -107,14 +127,18 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
           <TableBody>
             {filteredReviews.map((review) => (
               <TableRow key={review._id}>
-                <TableCell className="font-medium">{review.shortLabel}</TableCell>
+                <TableCell className="font-medium">
+                  {review.shortLabel}
+                </TableCell>
                 <TableCell>{review.category}</TableCell>
                 <TableCell>{review.language}</TableCell>
                 <TableCell>{review.ratingStyle}</TableCell>
                 <TableCell>
                   <StatusBadge status={review.status} />
                 </TableCell>
-                <TableCell>{new Date(review.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -125,7 +149,7 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
-                    {review.status === 'UNUSED' && (
+                    {review.status === "UNUSED" && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -164,5 +188,5 @@ export function ReviewTable({ reviews, onMarkUsed, onArchive, onCopy }: ReviewTa
         onSubmit={handleModalSubmit}
       />
     </>
-  )
+  );
 }

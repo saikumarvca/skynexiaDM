@@ -21,16 +21,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const notification = await Notification.findOneAndUpdate(
       { _id: id, userId: user.userId },
       { isRead: true },
-      { new: true }
+      { new: true },
     ).lean();
 
     if (!notification) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Notification not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json(notification);
   } catch (error) {
     console.error("Error marking notification as read:", error);
-    return NextResponse.json({ error: "Failed to mark notification as read" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to mark notification as read" },
+      { status: 500 },
+    );
   }
 }

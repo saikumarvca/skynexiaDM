@@ -8,7 +8,7 @@ export interface IClient extends mongoose.Document {
   phone: string;
   email: string;
   notes?: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   website?: string;
   industry?: string;
   location?: string;
@@ -32,8 +32,8 @@ const ClientSchema: mongoose.Schema = new mongoose.Schema(
     notes: { type: String },
     status: {
       type: String,
-      enum: ['ACTIVE', 'INACTIVE', 'ARCHIVED'],
-      default: 'ACTIVE',
+      enum: ["ACTIVE", "INACTIVE", "ARCHIVED"],
+      default: "ACTIVE",
     },
     website: { type: String },
     industry: { type: String },
@@ -46,7 +46,7 @@ const ClientSchema: mongoose.Schema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Add indexes for better query performance
@@ -57,6 +57,8 @@ ClientSchema.index({ businessName: 1 });
 ClientSchema.index({ status: 1, industry: 1 });
 
 // Prevent model overwrite during hot reload in development
-const Client = (mongoose.models.Client as mongoose.Model<IClient> | undefined) || mongoose.model<IClient>('Client', ClientSchema);
+const Client =
+  (mongoose.models.Client as mongoose.Model<IClient> | undefined) ||
+  mongoose.model<IClient>("Client", ClientSchema);
 
 export default Client;

@@ -1,130 +1,151 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { StatsCard } from "@/components/stats-card"
-import { StatusBadge } from "@/components/status-badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Client } from "@/types"
-import { FileText, CheckCircle, Archive, Edit, Plus, Target, ListChecks, FileStack, LineChart, Layers, Search, Download } from "lucide-react"
-import Link from "next/link"
-import { CollapsibleClientInfo } from "@/components/collapsible-client-info"
-import { CollapsibleStats } from "@/components/collapsible-stats"
-import { serverFetch } from "@/lib/server-fetch"
-import { GeneratePortalLinkButton } from "@/components/generate-portal-link-button"
-import { ClientPerformanceCharts } from "@/components/clients/client-performance-charts"
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { StatsCard } from "@/components/stats-card";
+import { StatusBadge } from "@/components/status-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Client } from "@/types";
+import {
+  FileText,
+  CheckCircle,
+  Archive,
+  Edit,
+  Plus,
+  Target,
+  ListChecks,
+  FileStack,
+  LineChart,
+  Layers,
+  Search,
+  Download,
+} from "lucide-react";
+import Link from "next/link";
+import { CollapsibleClientInfo } from "@/components/collapsible-client-info";
+import { CollapsibleStats } from "@/components/collapsible-stats";
+import { serverFetch } from "@/lib/server-fetch";
+import { GeneratePortalLinkButton } from "@/components/generate-portal-link-button";
+import { ClientPerformanceCharts } from "@/components/clients/client-performance-charts";
 
 type UsageItem = {
-  _id: string
+  _id: string;
   reviewId: {
-    _id: string
-    shortLabel: string
-  }
-  sourceName: string
-  usedBy: string
-  profileName: string
-  usedAt: string
-  notes?: string
-}
+    _id: string;
+    shortLabel: string;
+  };
+  sourceName: string;
+  usedBy: string;
+  profileName: string;
+  usedAt: string;
+  notes?: string;
+};
 
 type ClientAnalytics = {
   summary: {
-    totalReviews: number
-    unusedReviews: number
-    usedReviews: number
-    archivedReviews: number
-    totalUsage: number
-  }
-  byPlatform: { platform: string; count: number }[]
-  byLanguage: { language: string; count: number }[]
-  usageOverTime: { date: string; count: number }[]
+    totalReviews: number;
+    unusedReviews: number;
+    usedReviews: number;
+    archivedReviews: number;
+    totalUsage: number;
+  };
+  byPlatform: { platform: string; count: number }[];
+  byLanguage: { language: string; count: number }[];
+  usageOverTime: { date: string; count: number }[];
   recommendations: {
-    id: string
-    severity: "low" | "medium" | "high"
-    title: string
-    description: string
-  }[]
-  campaignsByStatus?: { status: string; count: number }[]
-  leadsByStatus?: { status: string; count: number }[]
-}
+    id: string;
+    severity: "low" | "medium" | "high";
+    title: string;
+    description: string;
+  }[];
+  campaignsByStatus?: { status: string; count: number }[];
+  leadsByStatus?: { status: string; count: number }[];
+};
 
 async function getClient(clientId: string): Promise<Client | null> {
   try {
-    const res = await serverFetch(`/api/clients/${clientId}`)
-    if (!res.ok) return null
-    return await res.json()
+    const res = await serverFetch(`/api/clients/${clientId}`);
+    if (!res.ok) return null;
+    return await res.json();
   } catch (error) {
-    console.error('Error fetching client:', error)
-    return null
+    console.error("Error fetching client:", error);
+    return null;
   }
 }
 
 async function getClientStats(clientId: string) {
   try {
-    const res = await serverFetch(`/api/clients/${clientId}/stats`)
-    if (!res.ok) throw new Error('Failed to fetch stats')
-    return await res.json()
+    const res = await serverFetch(`/api/clients/${clientId}/stats`);
+    if (!res.ok) throw new Error("Failed to fetch stats");
+    return await res.json();
   } catch (error) {
-    console.error('Error fetching client stats:', error)
+    console.error("Error fetching client stats:", error);
     return {
       totalReviews: 0,
       unusedReviews: 0,
       usedReviews: 0,
       totalUsage: 0,
-    }
+    };
   }
 }
 
 async function getClientUsage(clientId: string): Promise<UsageItem[]> {
   try {
-    const res = await serverFetch(`/api/review-usage?clientId=${encodeURIComponent(clientId)}`)
+    const res = await serverFetch(
+      `/api/review-usage?clientId=${encodeURIComponent(clientId)}`,
+    );
     if (!res.ok) {
-      throw new Error('Failed to fetch usage')
+      throw new Error("Failed to fetch usage");
     }
-    return await res.json()
+    return await res.json();
   } catch (error) {
-    console.error('Error fetching client usage:', error)
-    return []
+    console.error("Error fetching client usage:", error);
+    return [];
   }
 }
 
-async function getClientAnalytics(clientId: string): Promise<ClientAnalytics | null> {
+async function getClientAnalytics(
+  clientId: string,
+): Promise<ClientAnalytics | null> {
   try {
-    const res = await serverFetch(`/api/clients/${clientId}/analytics`)
+    const res = await serverFetch(`/api/clients/${clientId}/analytics`);
     if (!res.ok) {
-      throw new Error('Failed to fetch analytics')
+      throw new Error("Failed to fetch analytics");
     }
-    return await res.json()
+    return await res.json();
   } catch (error) {
-    console.error('Error fetching client analytics:', error)
-    return null
+    console.error("Error fetching client analytics:", error);
+    return null;
   }
 }
 
 interface ClientDetailPageProps {
-  params: Promise<{ clientId: string }>
+  params: Promise<{ clientId: string }>;
 }
 
-export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
-  const { clientId } = await params
-  const client = await getClient(clientId)
-  const stats = await getClientStats(clientId)
+export default async function ClientDetailPage({
+  params,
+}: ClientDetailPageProps) {
+  const { clientId } = await params;
+  const client = await getClient(clientId);
+  const stats = await getClientStats(clientId);
   const [usage, analytics] = await Promise.all([
     getClientUsage(clientId),
     getClientAnalytics(clientId),
-  ])
+  ]);
 
   if (!client) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold">Client not found</h1>
-          <p className="text-muted-foreground">The client you&apos;re looking for doesn&apos;t exist.</p>
+          <p className="text-muted-foreground">
+            The client you&apos;re looking for doesn&apos;t exist.
+          </p>
           <Link href="/clients">
             <Button className="mt-4">Back to Clients</Button>
           </Link>
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   return (
@@ -139,7 +160,9 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             >
               ← Back to clients
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{client.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {client.name}
+            </h1>
             <p className="text-muted-foreground">{client.businessName}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -233,7 +256,9 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           <TabsContent value="usage" className="space-y-4">
             <h2 className="text-xl font-semibold">Usage History</h2>
             {usage.length === 0 ? (
-              <p className="text-muted-foreground">No usage records found for this client yet.</p>
+              <p className="text-muted-foreground">
+                No usage records found for this client yet.
+              </p>
             ) : (
               <div className="overflow-x-auto rounded-md border">
                 <table className="w-full text-sm">
@@ -254,13 +279,16 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                           {new Date(item.usedAt).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-2">
-                          {item.reviewId?.shortLabel || 'N/A'}
+                          {item.reviewId?.shortLabel || "N/A"}
                         </td>
                         <td className="px-4 py-2">{item.sourceName}</td>
                         <td className="px-4 py-2">{item.profileName}</td>
                         <td className="px-4 py-2">{item.usedBy}</td>
-                        <td className="px-4 py-2 max-w-xs truncate" title={item.notes}>
-                          {item.notes || '-'}
+                        <td
+                          className="px-4 py-2 max-w-xs truncate"
+                          title={item.notes}
+                        >
+                          {item.notes || "-"}
                         </td>
                       </tr>
                     ))}
@@ -273,7 +301,9 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           <TabsContent value="analytics" className="space-y-4">
             <h2 className="text-xl font-semibold">Analytics</h2>
             {!analytics ? (
-              <p className="text-muted-foreground">Analytics are not available for this client yet.</p>
+              <p className="text-muted-foreground">
+                Analytics are not available for this client yet.
+              </p>
             ) : (
               <div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -301,22 +331,30 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                     icon={FileText}
                     description="Usage records"
                   />
-                  {Array.isArray(analytics.campaignsByStatus) && analytics.campaignsByStatus.length > 0 && (
-                    <StatsCard
-                      title="Total Campaigns"
-                      value={analytics.campaignsByStatus.reduce((sum, c) => sum + c.count, 0)}
-                      icon={Target}
-                      description="Campaigns across all statuses"
-                    />
-                  )}
-                  {Array.isArray(analytics.leadsByStatus) && analytics.leadsByStatus.length > 0 && (
-                    <StatsCard
-                      title="Total Leads"
-                      value={analytics.leadsByStatus.reduce((sum, l) => sum + l.count, 0)}
-                      icon={LineChart}
-                      description="Leads in all stages"
-                    />
-                  )}
+                  {Array.isArray(analytics.campaignsByStatus) &&
+                    analytics.campaignsByStatus.length > 0 && (
+                      <StatsCard
+                        title="Total Campaigns"
+                        value={analytics.campaignsByStatus.reduce(
+                          (sum, c) => sum + c.count,
+                          0,
+                        )}
+                        icon={Target}
+                        description="Campaigns across all statuses"
+                      />
+                    )}
+                  {Array.isArray(analytics.leadsByStatus) &&
+                    analytics.leadsByStatus.length > 0 && (
+                      <StatsCard
+                        title="Total Leads"
+                        value={analytics.leadsByStatus.reduce(
+                          (sum, l) => sum + l.count,
+                          0,
+                        )}
+                        icon={LineChart}
+                        description="Leads in all stages"
+                      />
+                    )}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -326,11 +364,16 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                     </CardHeader>
                     <CardContent>
                       {analytics.byPlatform.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No usage data by platform yet.</p>
+                        <p className="text-sm text-muted-foreground">
+                          No usage data by platform yet.
+                        </p>
                       ) : (
                         <ul className="space-y-2 text-sm">
                           {analytics.byPlatform.map((item) => (
-                            <li key={item.platform} className="flex items-center justify-between">
+                            <li
+                              key={item.platform}
+                              className="flex items-center justify-between"
+                            >
                               <span>{item.platform}</span>
                               <span className="font-medium">{item.count}</span>
                             </li>
@@ -346,11 +389,16 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                     </CardHeader>
                     <CardContent>
                       {analytics.byLanguage.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No language breakdown available.</p>
+                        <p className="text-sm text-muted-foreground">
+                          No language breakdown available.
+                        </p>
                       ) : (
                         <ul className="space-y-2 text-sm">
                           {analytics.byLanguage.map((item) => (
-                            <li key={item.language} className="flex items-center justify-between">
+                            <li
+                              key={item.language}
+                              className="flex items-center justify-between"
+                            >
                               <span>{item.language}</span>
                               <span className="font-medium">{item.count}</span>
                             </li>
@@ -364,12 +412,18 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                       <CardTitle>Campaigns by Status</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {!analytics.campaignsByStatus || analytics.campaignsByStatus.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No campaigns yet.</p>
+                      {!analytics.campaignsByStatus ||
+                      analytics.campaignsByStatus.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No campaigns yet.
+                        </p>
                       ) : (
                         <ul className="space-y-2 text-sm">
                           {analytics.campaignsByStatus.map((item) => (
-                            <li key={item.status} className="flex items-center justify-between">
+                            <li
+                              key={item.status}
+                              className="flex items-center justify-between"
+                            >
                               <span>{item.status}</span>
                               <span className="font-medium">{item.count}</span>
                             </li>
@@ -383,12 +437,18 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                       <CardTitle>Leads by Status</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {!analytics.leadsByStatus || analytics.leadsByStatus.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No leads yet.</p>
+                      {!analytics.leadsByStatus ||
+                      analytics.leadsByStatus.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No leads yet.
+                        </p>
                       ) : (
                         <ul className="space-y-2 text-sm">
                           {analytics.leadsByStatus.map((item) => (
-                            <li key={item.status} className="flex items-center justify-between">
+                            <li
+                              key={item.status}
+                              className="flex items-center justify-between"
+                            >
                               <span>{item.status}</span>
                               <span className="font-medium">{item.count}</span>
                             </li>
@@ -406,14 +466,17 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                   <CardContent>
                     {analytics.recommendations.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        No specific recommendations at this time. Keep using reviews consistently across platforms.
+                        No specific recommendations at this time. Keep using
+                        reviews consistently across platforms.
                       </p>
                     ) : (
                       <ul className="space-y-3 text-sm">
                         {analytics.recommendations.map((rec) => (
                           <li key={rec.id}>
                             <p className="font-medium">{rec.title}</p>
-                            <p className="text-muted-foreground">{rec.description}</p>
+                            <p className="text-muted-foreground">
+                              {rec.description}
+                            </p>
                           </li>
                         ))}
                       </ul>
@@ -422,7 +485,9 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                 </Card>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Performance Charts</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Performance Charts
+                  </h3>
                   <ClientPerformanceCharts clientId={clientId} />
                 </div>
               </div>
@@ -431,7 +496,9 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
 
           <TabsContent value="settings" className="space-y-4">
             <h2 className="text-xl font-semibold">Client Settings</h2>
-            <p className="text-muted-foreground">Client configuration options will be available here.</p>
+            <p className="text-muted-foreground">
+              Client configuration options will be available here.
+            </p>
           </TabsContent>
 
           <TabsContent value="campaigns" className="space-y-4">
@@ -554,5 +621,5 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
         </Tabs>
       </div>
     </DashboardLayout>
-  )
+  );
 }

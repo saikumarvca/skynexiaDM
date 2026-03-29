@@ -1,17 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireSessionApi } from '@/lib/require-session-api';
-import dbConnect from '@/lib/mongodb';
-import Lead from '@/models/Lead';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import Lead from "@/models/Lead";
 
 function esc(v: unknown): string {
-  if (v == null) return '';
-  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (v == null) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function fmtDate(v: unknown): string {
-  if (!v) return '';
+  if (!v) return "";
   const d = new Date(v as string);
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
 }
 
 export async function GET(request: NextRequest) {
@@ -22,27 +25,31 @@ export async function GET(request: NextRequest) {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
-    const status = searchParams.get('status');
+    const clientId = searchParams.get("clientId");
+    const status = searchParams.get("status");
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
     if (status) query.status = status;
 
     const leads = await Lead.find(query)
-      .populate('clientId', 'name businessName')
-      .populate('campaignId', 'campaignName')
+      .populate("clientId", "name businessName")
+      .populate("campaignId", "campaignName")
       .sort({ createdAt: -1 })
       .lean();
 
     const exportDate = new Date().toLocaleDateString();
 
-    const rows = leads.map((l) => {
-      const client = l.clientId as { businessName?: string; name?: string } | null;
-      const clientName = client?.businessName ?? client?.name ?? '';
-      const campaign = l.campaignId as { campaignName?: string } | null;
-      const campaignName = campaign?.campaignName ?? '';
-      return `
+    const rows = leads
+      .map((l) => {
+        const client = l.clientId as {
+          businessName?: string;
+          name?: string;
+        } | null;
+        const clientName = client?.businessName ?? client?.name ?? "";
+        const campaign = l.campaignId as { campaignName?: string } | null;
+        const campaignName = campaign?.campaignName ?? "";
+        return `
       <tr>
         <td>${esc(l.name)}</td>
         <td>${esc(l.email)}</td>
@@ -53,7 +60,8 @@ export async function GET(request: NextRequest) {
         <td>${esc(campaignName)}</td>
         <td>${esc(fmtDate(l.createdAt))}</td>
       </tr>`;
-    }).join('');
+      })
+      .join("");
 
     const html = `<!DOCTYPE html>
 <html>
@@ -85,7 +93,7 @@ export async function GET(request: NextRequest) {
     <button onclick="window.print()">Print / Save as PDF</button>
   </div>
   <h1>Leads Export</h1>
-  <p class="meta">Exported: ${exportDate} &middot; ${leads.length} record${leads.length !== 1 ? 's' : ''}</p>
+  <p class="meta">Exported: ${exportDate} &middot; ${leads.length} record${leads.length !== 1 ? "s" : ""}</p>
   <table>
     <thead>
       <tr>
@@ -109,11 +117,14 @@ export async function GET(request: NextRequest) {
     return new NextResponse(html, {
       status: 200,
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
+        "Content-Type": "text/html; charset=utf-8",
       },
     });
   } catch (error) {
-    console.error('Error generating leads PDF:', error);
-    return NextResponse.json({ error: 'Failed to generate leads PDF' }, { status: 500 });
+    console.error("Error generating leads PDF:", error);
+    return NextResponse.json(
+      { error: "Failed to generate leads PDF" },
+      { status: 500 },
+    );
   }
 }

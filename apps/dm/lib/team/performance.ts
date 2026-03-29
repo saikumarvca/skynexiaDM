@@ -2,7 +2,11 @@ import dbConnect from "@/lib/mongodb";
 import TeamMember from "@/models/TeamMember";
 import TeamAssignment from "@/models/TeamAssignment";
 import ReviewAllocation from "@/models/ReviewAllocation";
-import { calculateUrgentCount, calculateDueSoonCount, getWorkloadStatus } from "./workload";
+import {
+  calculateUrgentCount,
+  calculateDueSoonCount,
+  getWorkloadStatus,
+} from "./workload";
 
 export interface MemberPerformanceMetrics {
   memberId: string;
@@ -20,7 +24,9 @@ export interface MemberPerformanceMetrics {
   workloadStatus: string;
 }
 
-export async function getPerformanceMetrics(params: { memberId?: string; department?: string } = {}): Promise<MemberPerformanceMetrics[]> {
+export async function getPerformanceMetrics(
+  params: { memberId?: string; department?: string } = {},
+): Promise<MemberPerformanceMetrics[]> {
   await dbConnect();
   const memberQuery: Record<string, unknown> = { isDeleted: { $ne: true } };
   if (params.memberId) memberQuery._id = params.memberId;
@@ -30,22 +36,37 @@ export async function getPerformanceMetrics(params: { memberId?: string; departm
   const memberIds = members.map((m) => m._id.toString());
 
   const [assignments, reviewCompletions] = await Promise.all([
-    TeamAssignment.find({ assignedToUserId: { $in: memberIds }, isDeleted: { $ne: true } }).lean(),
+    TeamAssignment.find({
+      assignedToUserId: { $in: memberIds },
+      isDeleted: { $ne: true },
+    }).lean(),
     ReviewAllocation.aggregate([
-      { $match: { assignedToUserId: { $in: memberIds }, allocationStatus: "Used" } },
+      {
+        $match: {
+          assignedToUserId: { $in: memberIds },
+          allocationStatus: "Used",
+        },
+      },
       { $group: { _id: "$assignedToUserId", count: { $sum: 1 } } },
     ]),
   ]);
 
   const reviewCountByMember: Record<string, number> = {};
-  for (const r of reviewCompletions) reviewCountByMember[r._id as string] = r.count;
+  for (const r of reviewCompletions)
+    reviewCountByMember[r._id as string] = r.count;
 
   const now = new Date();
   return members.map((m) => {
     const id = m._id.toString();
-    const memberAssignments = assignments.filter((a) => a.assignedToUserId === id);
-    const open = memberAssignments.filter((a) => a.status === "Pending" || a.status === "In Progress");
-    const completed = memberAssignments.filter((a) => a.status === "Completed").length;
+    const memberAssignments = assignments.filter(
+      (a) => a.assignedToUserId === id,
+    );
+    const open = memberAssignments.filter(
+      (a) => a.status === "Pending" || a.status === "In Progress",
+    );
+    const completed = memberAssignments.filter(
+      (a) => a.status === "Completed",
+    ).length;
     const pending = open.length;
     const overdue = memberAssignments.filter((a) => {
       if (a.status === "Completed" || a.status === "Cancelled") return false;

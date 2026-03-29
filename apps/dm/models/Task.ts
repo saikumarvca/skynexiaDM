@@ -1,8 +1,13 @@
 import * as mongoose from "mongoose";
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'ARCHIVED';
+export type TaskStatus =
+  | "TODO"
+  | "IN_PROGRESS"
+  | "BLOCKED"
+  | "DONE"
+  | "ARCHIVED";
 
-export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export interface ITask extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
@@ -21,28 +26,40 @@ export interface ITask extends mongoose.Document {
 
 const TaskSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
+    },
     title: { type: String, required: true },
     description: { type: String },
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     assignedToUserId: { type: String },
     assignedToName: { type: String },
     priority: {
       type: String,
-      enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
-      default: 'MEDIUM',
+      enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      default: "MEDIUM",
     },
     deadline: { type: Date },
     status: {
       type: String,
-      enum: ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE', 'ARCHIVED'],
-      default: 'TODO',
+      enum: ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"],
+      default: "TODO",
     },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 TaskSchema.index({ clientId: 1, status: 1, priority: 1, deadline: 1 });
@@ -50,7 +67,6 @@ TaskSchema.index({ assignedTo: 1, status: 1 });
 
 const Task =
   (mongoose.models.Task as mongoose.Model<ITask> | undefined) ||
-  mongoose.model<ITask>('Task', TaskSchema);
+  mongoose.model<ITask>("Task", TaskSchema);
 
 export default Task;
-

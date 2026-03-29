@@ -97,7 +97,12 @@ export function TeamMemberForm({
         </div>
       )}
       <div>
-        <label htmlFor="name" className="mb-1 block text-sm font-medium text-muted-foreground">Name *</label>
+        <label
+          htmlFor="name"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Name *
+        </label>
         <Input
           id="name"
           value={name}
@@ -106,7 +111,12 @@ export function TeamMemberForm({
         />
       </div>
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium text-muted-foreground">Email *</label>
+        <label
+          htmlFor="email"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Email *
+        </label>
         <Input
           id="email"
           type="email"
@@ -117,7 +127,12 @@ export function TeamMemberForm({
         />
       </div>
       <div>
-        <label htmlFor="phone" className="mb-1 block text-sm font-medium text-muted-foreground">Phone</label>
+        <label
+          htmlFor="phone"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Phone
+        </label>
         <Input
           id="phone"
           value={phone}
@@ -125,7 +140,12 @@ export function TeamMemberForm({
         />
       </div>
       <div>
-        <label htmlFor="roleId" className="mb-1 block text-sm font-medium text-muted-foreground">Role</label>
+        <label
+          htmlFor="roleId"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Role
+        </label>
         <select
           id="roleId"
           value={roleId}
@@ -141,7 +161,12 @@ export function TeamMemberForm({
         </select>
       </div>
       <div>
-        <label htmlFor="department" className="mb-1 block text-sm font-medium text-muted-foreground">Department</label>
+        <label
+          htmlFor="department"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Department
+        </label>
         <Input
           id="department"
           value={department}
@@ -149,7 +174,12 @@ export function TeamMemberForm({
         />
       </div>
       <div>
-        <label htmlFor="notes" className="mb-1 block text-sm font-medium text-muted-foreground">Notes</label>
+        <label
+          htmlFor="notes"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Notes
+        </label>
         <Textarea
           id="notes"
           value={notes}
@@ -169,7 +199,10 @@ export function TeamMemberForm({
           </p>
         </div>
         <div>
-          <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-muted-foreground">
+          <label
+            htmlFor="login-password"
+            className="mb-1 block text-sm font-medium text-muted-foreground"
+          >
             {memberId ? "New password" : "Password"}
           </label>
           <Input
@@ -178,11 +211,18 @@ export function TeamMemberForm({
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={memberId ? "Leave blank to keep current" : "Min. 8 characters if enabling login"}
+            placeholder={
+              memberId
+                ? "Leave blank to keep current"
+                : "Min. 8 characters if enabling login"
+            }
           />
         </div>
         <div>
-          <label htmlFor="login-password-confirm" className="mb-1 block text-sm font-medium text-muted-foreground">
+          <label
+            htmlFor="login-password-confirm"
+            className="mb-1 block text-sm font-medium text-muted-foreground"
+          >
             Confirm password
           </label>
           <Input
@@ -199,11 +239,7 @@ export function TeamMemberForm({
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : "Save"}
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-        >
+        <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
       </div>

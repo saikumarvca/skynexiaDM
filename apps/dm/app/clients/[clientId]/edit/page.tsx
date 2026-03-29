@@ -1,47 +1,50 @@
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { ClientForm } from "@/components/client-form"
-import { Button } from "@/components/ui/button"
-import { ClientFormData } from "@/types"
-import { getActiveTeamManagers } from "@/lib/team-managers"
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { ClientForm } from "@/components/client-form";
+import { Button } from "@/components/ui/button";
+import { ClientFormData } from "@/types";
+import { getActiveTeamManagers } from "@/lib/team-managers";
 
-import { serverFetch } from "@/lib/server-fetch"
+import { serverFetch } from "@/lib/server-fetch";
 
 function toIsoDay(v: unknown): string | undefined {
-  if (v == null) return undefined
-  if (typeof v === "string") return v.slice(0, 10)
-  const d = new Date(v as string | number | Date)
-  if (Number.isNaN(d.getTime())) return undefined
-  return d.toISOString().slice(0, 10)
+  if (v == null) return undefined;
+  if (typeof v === "string") return v.slice(0, 10);
+  const d = new Date(v as string | number | Date);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString().slice(0, 10);
 }
 
 async function getClient(clientId: string) {
-  const res = await serverFetch(`/api/clients/${clientId}`)
-  if (!res.ok) return null
-  return await res.json()
+  const res = await serverFetch(`/api/clients/${clientId}`);
+  if (!res.ok) return null;
+  return await res.json();
 }
 
 async function updateClient(clientId: string, data: ClientFormData) {
-  "use server"
+  "use server";
 
   const res = await serverFetch(`/api/clients/${clientId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-  })
-  if (!res.ok) throw new Error("Failed to update client")
-  return await res.json()
+  });
+  if (!res.ok) throw new Error("Failed to update client");
+  return await res.json();
 }
 
 export default async function ClientEditPage({
   params,
 }: {
-  params: Promise<{ clientId: string }>
+  params: Promise<{ clientId: string }>;
 }) {
-  const { clientId } = await params
-  const [client, managers] = await Promise.all([getClient(clientId), getActiveTeamManagers()])
-  if (!client) notFound()
+  const { clientId } = await params;
+  const [client, managers] = await Promise.all([
+    getClient(clientId),
+    getActiveTeamManagers(),
+  ]);
+  if (!client) notFound();
 
   const initialData: ClientFormData = {
     name: client.name,
@@ -60,7 +63,7 @@ export default async function ClientEditPage({
     contractEnd: toIsoDay(client.contractEnd),
     monthlyBudget: client.monthlyBudget ?? null,
     assignedManagerId: client.assignedManagerId ?? null,
-  }
+  };
 
   return (
     <DashboardLayout>
@@ -87,5 +90,5 @@ export default async function ClientEditPage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

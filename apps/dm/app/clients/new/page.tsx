@@ -1,11 +1,11 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { ClientForm } from "@/components/client-form"
-import { ClientFormData } from "@/types"
-import { errorMessageFromResponse, serverFetch } from "@/lib/server-fetch"
-import { getActiveTeamManagers } from "@/lib/team-managers"
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { ClientForm } from "@/components/client-form";
+import { ClientFormData } from "@/types";
+import { errorMessageFromResponse, serverFetch } from "@/lib/server-fetch";
+import { getActiveTeamManagers } from "@/lib/team-managers";
 
 async function createClient(data: ClientFormData) {
-  "use server"
+  "use server";
 
   const res = await serverFetch("/api/clients", {
     method: "POST",
@@ -13,17 +13,19 @@ async function createClient(data: ClientFormData) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
 
   if (!res.ok) {
-    throw new Error(await errorMessageFromResponse(res, "Failed to create client"))
+    throw new Error(
+      await errorMessageFromResponse(res, "Failed to create client"),
+    );
   }
 
-  return res.json()
+  return res.json();
 }
 
 export default async function NewClientPage() {
-  const managers = await getActiveTeamManagers()
+  const managers = await getActiveTeamManagers();
 
   return (
     <DashboardLayout>
@@ -40,5 +42,5 @@ export default async function NewClientPage() {
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

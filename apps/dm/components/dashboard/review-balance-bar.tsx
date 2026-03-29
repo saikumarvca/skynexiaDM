@@ -1,18 +1,24 @@
-import { PieChart } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { PieChart } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function ReviewBalanceBar({
   unused,
   used,
   total,
 }: {
-  unused: number
-  used: number
-  total: number
+  unused: number;
+  used: number;
+  total: number;
 }) {
-  const safeTotal = total > 0 ? total : 1
-  const unusedPct = Math.round((unused / safeTotal) * 1000) / 10
-  const usedPct = Math.round((used / safeTotal) * 1000) / 10
+  const safeTotal = total > 0 ? total : 1;
+  const unusedPct = Math.round((unused / safeTotal) * 1000) / 10;
+  const usedPct = Math.round((used / safeTotal) * 1000) / 10;
 
   return (
     <Card className="border-border/80">
@@ -23,7 +29,9 @@ export function ReviewBalanceBar({
           </span>
           <div>
             <CardTitle className="text-base">Review balance</CardTitle>
-            <CardDescription>Unused vs used across your library</CardDescription>
+            <CardDescription>
+              Unused vs used across your library
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -52,15 +60,25 @@ export function ReviewBalanceBar({
             </div>
             <div className="flex flex-wrap gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500"
+                  aria-hidden
+                />
                 <span className="text-muted-foreground">Unused</span>
-                <span className="font-semibold tabular-nums text-foreground">{unused}</span>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {unused}
+                </span>
                 <span className="text-muted-foreground">({unusedPct}%)</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-violet-500" aria-hidden />
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full bg-violet-500"
+                  aria-hidden
+                />
                 <span className="text-muted-foreground">Used</span>
-                <span className="font-semibold tabular-nums text-foreground">{used}</span>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {used}
+                </span>
                 <span className="text-muted-foreground">({usedPct}%)</span>
               </div>
             </div>
@@ -68,5 +86,5 @@ export function ReviewBalanceBar({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

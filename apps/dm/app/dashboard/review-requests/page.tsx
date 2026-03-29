@@ -24,7 +24,9 @@ async function getReviewRequests(): Promise<ReviewRequestRow[]> {
 }
 
 async function getClients(): Promise<ClientOption[]> {
-  const res = await serverFetch("/api/clients?limit=200", { cache: "no-store" });
+  const res = await serverFetch("/api/clients?limit=200", {
+    cache: "no-store",
+  });
   if (!res.ok) return [];
   return res.json();
 }
@@ -32,7 +34,10 @@ async function getClients(): Promise<ClientOption[]> {
 export default async function ReviewRequestsPage() {
   await requireUser();
 
-  const [requests, clients] = await Promise.all([getReviewRequests(), getClients()]);
+  const [requests, clients] = await Promise.all([
+    getReviewRequests(),
+    getClients(),
+  ]);
 
   return (
     <DashboardLayout>

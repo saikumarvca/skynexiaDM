@@ -1,17 +1,21 @@
-'use client'
+"use client";
 
-import { FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PdfExportButtonProps {
-  href: string
-  label?: string
-  className?: string
+  href: string;
+  label?: string;
+  className?: string;
 }
 
-export function PdfExportButton({ href, label = 'Export PDF', className }: PdfExportButtonProps) {
+export function PdfExportButton({
+  href,
+  label = "Export PDF",
+  className,
+}: PdfExportButtonProps) {
   function handleClick() {
-    window.open(href, '_blank')
+    window.open(href, "_blank");
   }
 
   return (
@@ -19,5 +23,5 @@ export function PdfExportButton({ href, label = 'Export PDF', className }: PdfEx
       <FileText className="mr-2 h-4 w-4" />
       {label}
     </Button>
-  )
+  );
 }

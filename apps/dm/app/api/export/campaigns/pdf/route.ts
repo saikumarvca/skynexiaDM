@@ -1,17 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireSessionApi } from '@/lib/require-session-api';
-import dbConnect from '@/lib/mongodb';
-import Campaign from '@/models/Campaign';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import Campaign from "@/models/Campaign";
 
 function esc(v: unknown): string {
-  if (v == null) return '';
-  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (v == null) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function fmtDate(v: unknown): string {
-  if (!v) return '';
+  if (!v) return "";
   const d = new Date(v as string);
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
 }
 
 export async function GET(request: NextRequest) {
@@ -22,28 +25,35 @@ export async function GET(request: NextRequest) {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
-    const status = searchParams.get('status');
+    const clientId = searchParams.get("clientId");
+    const status = searchParams.get("status");
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
     if (status) query.status = status;
 
     const campaigns = await Campaign.find(query)
-      .populate('clientId', 'name businessName')
+      .populate("clientId", "name businessName")
       .sort({ createdAt: -1 })
       .lean();
 
     const exportDate = new Date().toLocaleDateString();
 
-    const rows = campaigns.map((c) => {
-      const client = c.clientId as { businessName?: string; name?: string } | null;
-      const clientName = client?.businessName ?? client?.name ?? '';
-      const m = (c.metrics as Record<string, unknown>) ?? {};
-      const startDate = fmtDate(c.startDate);
-      const endDate = fmtDate(c.endDate);
-      const dates = startDate && endDate ? `${startDate} – ${endDate}` : startDate || endDate || '';
-      return `
+    const rows = campaigns
+      .map((c) => {
+        const client = c.clientId as {
+          businessName?: string;
+          name?: string;
+        } | null;
+        const clientName = client?.businessName ?? client?.name ?? "";
+        const m = (c.metrics as Record<string, unknown>) ?? {};
+        const startDate = fmtDate(c.startDate);
+        const endDate = fmtDate(c.endDate);
+        const dates =
+          startDate && endDate
+            ? `${startDate} – ${endDate}`
+            : startDate || endDate || "";
+        return `
       <tr>
         <td>${esc(c.campaignName)}</td>
         <td>${esc(clientName)}</td>
@@ -56,7 +66,8 @@ export async function GET(request: NextRequest) {
         <td>${esc(m.ctr)}</td>
         <td>${esc(m.costPerLead)}</td>
       </tr>`;
-    }).join('');
+      })
+      .join("");
 
     const html = `<!DOCTYPE html>
 <html>
@@ -88,7 +99,7 @@ export async function GET(request: NextRequest) {
     <button onclick="window.print()">Print / Save as PDF</button>
   </div>
   <h1>Campaigns Export</h1>
-  <p class="meta">Exported: ${exportDate} &middot; ${campaigns.length} record${campaigns.length !== 1 ? 's' : ''}</p>
+  <p class="meta">Exported: ${exportDate} &middot; ${campaigns.length} record${campaigns.length !== 1 ? "s" : ""}</p>
   <table>
     <thead>
       <tr>
@@ -114,11 +125,14 @@ export async function GET(request: NextRequest) {
     return new NextResponse(html, {
       status: 200,
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
+        "Content-Type": "text/html; charset=utf-8",
       },
     });
   } catch (error) {
-    console.error('Error generating campaigns PDF:', error);
-    return NextResponse.json({ error: 'Failed to generate campaigns PDF' }, { status: 500 });
+    console.error("Error generating campaigns PDF:", error);
+    return NextResponse.json(
+      { error: "Failed to generate campaigns PDF" },
+      { status: 500 },
+    );
   }
 }

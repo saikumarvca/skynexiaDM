@@ -1,19 +1,25 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ReviewFormData } from "@/types"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ReviewFormData } from "@/types";
 
 interface ReviewFormProps {
-  clientId: string
-  onSubmit: (data: ReviewFormData) => Promise<void>
+  clientId: string;
+  onSubmit: (data: ReviewFormData) => Promise<void>;
 }
 
 export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<ReviewFormData>({
     clientId,
     shortLabel: "",
@@ -21,43 +27,51 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
     category: "",
     language: "English",
     ratingStyle: "5-star",
-  })
+  });
 
-  const [templates, setTemplates] = useState<{ _id: string; name: string; suggestedCategory?: string; suggestedLanguage?: string; suggestedRatingStyle?: string }[]>([])
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
+  const [templates, setTemplates] = useState<
+    {
+      _id: string;
+      name: string;
+      suggestedCategory?: string;
+      suggestedLanguage?: string;
+      suggestedRatingStyle?: string;
+    }[]
+  >([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
 
   useEffect(() => {
     async function fetchTemplates() {
       try {
-        const res = await fetch('/api/templates')
-        if (!res.ok) return
-        const data = await res.json()
-        setTemplates(data)
+        const res = await fetch("/api/templates");
+        if (!res.ok) return;
+        const data = await res.json();
+        setTemplates(data);
       } catch (error) {
-        console.error('Error fetching templates:', error)
+        console.error("Error fetching templates:", error);
       }
     }
-    fetchTemplates()
-  }, [])
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
-    if (!selectedTemplateId) return
-    const template = templates.find(t => t._id === selectedTemplateId)
-    if (!template) return
+    if (!selectedTemplateId) return;
+    const template = templates.find((t) => t._id === selectedTemplateId);
+    if (!template) return;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       category: template.suggestedCategory || prev.category,
       language: template.suggestedLanguage || prev.language,
       ratingStyle: template.suggestedRatingStyle || prev.ratingStyle,
-    }))
-  }, [selectedTemplateId, templates])
+    }));
+  }, [selectedTemplateId, templates]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
     try {
-      await onSubmit(formData)
+      await onSubmit(formData);
       // Reset form
       setFormData({
         clientId,
@@ -66,27 +80,33 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
         category: "",
         language: "English",
         ratingStyle: "5-star",
-      })
+      });
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Error submitting form:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: keyof ReviewFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {templates.length > 0 && (
           <div className="md:col-span-2">
-            <label htmlFor="template" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="template"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Template (optional)
             </label>
-            <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+            <Select
+              value={selectedTemplateId}
+              onValueChange={setSelectedTemplateId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a template to prefill fields" />
               </SelectTrigger>
@@ -102,7 +122,10 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
           </div>
         )}
         <div>
-          <label htmlFor="shortLabel" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="shortLabel"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Short Label
           </label>
           <Input
@@ -114,7 +137,10 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
           />
         </div>
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Category
           </label>
           <Input
@@ -126,10 +152,16 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
           />
         </div>
         <div>
-          <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="language"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Language
           </label>
-          <Select value={formData.language} onValueChange={(value) => handleChange("language", value)}>
+          <Select
+            value={formData.language}
+            onValueChange={(value) => handleChange("language", value)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -143,10 +175,16 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
           </Select>
         </div>
         <div>
-          <label htmlFor="ratingStyle" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="ratingStyle"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Rating Style
           </label>
-          <Select value={formData.ratingStyle} onValueChange={(value) => handleChange("ratingStyle", value)}>
+          <Select
+            value={formData.ratingStyle}
+            onValueChange={(value) => handleChange("ratingStyle", value)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -161,7 +199,10 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
         </div>
       </div>
       <div>
-        <label htmlFor="reviewText" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          htmlFor="reviewText"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Review Text
         </label>
         <Textarea
@@ -179,5 +220,5 @@ export function ReviewForm({ clientId, onSubmit }: ReviewFormProps) {
         </Button>
       </div>
     </form>
-  )
+  );
 }

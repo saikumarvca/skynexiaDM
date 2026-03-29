@@ -23,7 +23,7 @@ const TeamActivityLogSchema: mongoose.Schema = new mongoose.Schema(
     targetName: { type: String },
     details: { type: mongoose.Schema.Types.Mixed },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 TeamActivityLogSchema.index({ userId: 1 });
@@ -31,7 +31,9 @@ TeamActivityLogSchema.index({ module: 1 });
 TeamActivityLogSchema.index({ createdAt: -1 });
 
 const TeamActivityLog =
-  (mongoose.models.TeamActivityLog as mongoose.Model<ITeamActivityLog> | undefined) ||
-  mongoose.model<ITeamActivityLog>('TeamActivityLog', TeamActivityLogSchema);
+  (mongoose.models.TeamActivityLog as
+    | mongoose.Model<ITeamActivityLog>
+    | undefined) ||
+  mongoose.model<ITeamActivityLog>("TeamActivityLog", TeamActivityLogSchema);
 
 export default TeamActivityLog;

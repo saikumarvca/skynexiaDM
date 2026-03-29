@@ -1,40 +1,42 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { ScheduledPostForm } from "@/components/scheduled-post-form"
-import { serverFetch } from "@/lib/server-fetch"
-import { Client } from "@/types"
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { ScheduledPostForm } from "@/components/scheduled-post-form";
+import { serverFetch } from "@/lib/server-fetch";
+import { Client } from "@/types";
 
 async function getClients(): Promise<Client[]> {
-  const res = await serverFetch("/api/clients?limit=500")
-  if (!res.ok) return []
-  return res.json()
+  const res = await serverFetch("/api/clients?limit=500");
+  if (!res.ok) return [];
+  return res.json();
 }
 
 export default async function NewScheduledPostPage({
   searchParams,
 }: {
-  searchParams: Promise<{ clientId?: string }>
+  searchParams: Promise<{ clientId?: string }>;
 }) {
-  const params = await searchParams
-  const clients = await getClients()
+  const params = await searchParams;
+  const clients = await getClients();
 
   async function createScheduledPost(formData: FormData) {
-    "use server"
-    const clientId = formData.get("clientId") as string
-    const platform = formData.get("platform") as string
-    const content = formData.get("content") as string
-    const publishLocal = formData.get("publishDate") as string
+    "use server";
+    const clientId = formData.get("clientId") as string;
+    const platform = formData.get("platform") as string;
+    const content = formData.get("content") as string;
+    const publishLocal = formData.get("publishDate") as string;
     if (!clientId || !platform || !content || !publishLocal) {
-      throw new Error("Client, platform, content, and publish date are required")
+      throw new Error(
+        "Client, platform, content, and publish date are required",
+      );
     }
-    const publishDate = new Date(publishLocal).toISOString()
-    const timeZone = (formData.get("timeZone") as string)?.trim() || undefined
-    const status = (formData.get("status") as string) || "SCHEDULED"
-    const contentIdRaw = (formData.get("contentId") as string)?.trim()
-    const contentId = contentIdRaw ? contentIdRaw : null
+    const publishDate = new Date(publishLocal).toISOString();
+    const timeZone = (formData.get("timeZone") as string)?.trim() || undefined;
+    const status = (formData.get("status") as string) || "SCHEDULED";
+    const contentIdRaw = (formData.get("contentId") as string)?.trim();
+    const contentId = contentIdRaw ? contentIdRaw : null;
 
     const res = await serverFetch("/api/scheduled-posts", {
       method: "POST",
@@ -48,12 +50,14 @@ export default async function NewScheduledPostPage({
         status,
         contentId,
       }),
-    })
+    });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error((err as { error?: string }).error || "Failed to create scheduled post")
+      const err = await res.json().catch(() => ({}));
+      throw new Error(
+        (err as { error?: string }).error || "Failed to create scheduled post",
+      );
     }
-    redirect("/dashboard/scheduled-posts?created=1")
+    redirect("/dashboard/scheduled-posts?created=1");
   }
 
   return (
@@ -66,8 +70,12 @@ export default async function NewScheduledPostPage({
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">New scheduled post</h1>
-            <p className="text-muted-foreground">Schedule copy for a specific time and platform.</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              New scheduled post
+            </h1>
+            <p className="text-muted-foreground">
+              Schedule copy for a specific time and platform.
+            </p>
           </div>
         </div>
 
@@ -81,5 +89,5 @@ export default async function NewScheduledPostPage({
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

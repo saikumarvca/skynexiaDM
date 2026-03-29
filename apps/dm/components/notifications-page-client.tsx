@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { useCallback, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Bell, CheckCheck } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Bell, CheckCheck } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface NotificationItem {
-  _id: string
-  type: string
-  title: string
-  message: string
-  href?: string
-  isRead: boolean
-  createdAt: string
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  href?: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 interface NotificationsPageClientProps {
-  initialNotifications: NotificationItem[]
+  initialNotifications: NotificationItem[];
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -27,53 +27,64 @@ const TYPE_LABELS: Record<string, string> = {
   CAMPAIGN_UPDATED: "Campaign",
   LEAD_UPDATED: "Lead",
   SYSTEM: "System",
-}
+};
 
 const TYPE_COLORS: Record<string, string> = {
-  TASK_ASSIGNED: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  REVIEW_ASSIGNED: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-  CAMPAIGN_UPDATED: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  LEAD_UPDATED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+  TASK_ASSIGNED:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  REVIEW_ASSIGNED:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+  CAMPAIGN_UPDATED:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  LEAD_UPDATED:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
   SYSTEM: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-}
+};
 
-export function NotificationsPageClient({ initialNotifications }: NotificationsPageClientProps) {
-  const router = useRouter()
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications)
-  const [markingAll, setMarkingAll] = useState(false)
+export function NotificationsPageClient({
+  initialNotifications,
+}: NotificationsPageClientProps) {
+  const router = useRouter();
+  const [notifications, setNotifications] =
+    useState<NotificationItem[]>(initialNotifications);
+  const [markingAll, setMarkingAll] = useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleMarkRead = useCallback(
     async (notification: NotificationItem) => {
       if (!notification.isRead) {
         try {
-          await fetch(`/api/notifications/${notification._id}/read`, { method: "POST" })
+          await fetch(`/api/notifications/${notification._id}/read`, {
+            method: "POST",
+          });
           setNotifications((prev) =>
-            prev.map((n) => (n._id === notification._id ? { ...n, isRead: true } : n))
-          )
+            prev.map((n) =>
+              n._id === notification._id ? { ...n, isRead: true } : n,
+            ),
+          );
         } catch {
           // ignore
         }
       }
       if (notification.href) {
-        router.push(notification.href)
+        router.push(notification.href);
       }
     },
-    [router]
-  )
+    [router],
+  );
 
   const handleMarkAllRead = async () => {
-    setMarkingAll(true)
+    setMarkingAll(true);
     try {
-      await fetch("/api/notifications/read-all", { method: "POST" })
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+      await fetch("/api/notifications/read-all", { method: "POST" });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch {
       // ignore
     } finally {
-      setMarkingAll(false)
+      setMarkingAll(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -106,7 +117,8 @@ export function NotificationsPageClient({ initialNotifications }: NotificationsP
             <div>
               <p className="font-medium">No notifications yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Activity across tasks, reviews, campaigns, and leads will appear here.
+                Activity across tasks, reviews, campaigns, and leads will appear
+                here.
               </p>
             </div>
           </CardContent>
@@ -117,7 +129,9 @@ export function NotificationsPageClient({ initialNotifications }: NotificationsP
             <Card
               key={n._id}
               className={`transition-colors ${
-                n.isRead ? "opacity-70" : "border-blue-200 dark:border-blue-800/60"
+                n.isRead
+                  ? "opacity-70"
+                  : "border-blue-200 dark:border-blue-800/60"
               }`}
             >
               <CardContent className="px-4 py-3">
@@ -130,15 +144,23 @@ export function NotificationsPageClient({ initialNotifications }: NotificationsP
                     {/* Unread indicator */}
                     <div className="mt-1.5 shrink-0">
                       {!n.isRead ? (
-                        <span className="block h-2.5 w-2.5 rounded-full bg-blue-500" aria-label="Unread" />
+                        <span
+                          className="block h-2.5 w-2.5 rounded-full bg-blue-500"
+                          aria-label="Unread"
+                        />
                       ) : (
-                        <span className="block h-2.5 w-2.5 rounded-full bg-transparent" aria-hidden />
+                        <span
+                          className="block h-2.5 w-2.5 rounded-full bg-transparent"
+                          aria-hidden
+                        />
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className={`text-sm font-semibold ${!n.isRead ? "" : "font-medium"}`}>
+                        <p
+                          className={`text-sm font-semibold ${!n.isRead ? "" : "font-medium"}`}
+                        >
                           {n.title}
                         </p>
                         <span
@@ -149,9 +171,13 @@ export function NotificationsPageClient({ initialNotifications }: NotificationsP
                           {TYPE_LABELS[n.type] ?? n.type}
                         </span>
                       </div>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{n.message}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {n.message}
+                      </p>
                       <p className="mt-1 text-xs text-muted-foreground/60">
-                        {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(n.createdAt), {
+                          addSuffix: true,
+                        })}
                       </p>
                     </div>
 
@@ -168,5 +194,5 @@ export function NotificationsPageClient({ initialNotifications }: NotificationsP
         </div>
       )}
     </div>
-  )
+  );
 }

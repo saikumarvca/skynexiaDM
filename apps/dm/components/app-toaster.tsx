@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
-const DARK_THEMES = new Set(["dark", "midnight", "forest", "sunset", "dracula"]);
+const DARK_THEMES = new Set([
+  "dark",
+  "midnight",
+  "forest",
+  "sunset",
+  "dracula",
+]);
 
 export function AppToaster() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -19,7 +25,10 @@ export function AppToaster() {
     };
     apply();
     const obs = new MutationObserver(apply);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
     return () => obs.disconnect();
   }, []);
 

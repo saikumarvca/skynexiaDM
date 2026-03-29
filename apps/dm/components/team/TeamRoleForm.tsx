@@ -19,9 +19,11 @@ interface TeamRoleFormProps {
 export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
   const router = useRouter();
   const [roleName, setRoleName] = useState(initialData?.roleName ?? "");
-  const [description, setDescription] = useState(initialData?.description ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
   const [permissions, setPermissions] = useState<Set<string>>(
-    new Set(initialData?.permissions ?? [])
+    new Set(initialData?.permissions ?? []),
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -40,9 +42,7 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
     setError("");
     setLoading(true);
     try {
-      const url = roleId
-        ? `/api/team/roles/${roleId}`
-        : `/api/team/roles`;
+      const url = roleId ? `/api/team/roles/${roleId}` : `/api/team/roles`;
       const method = roleId ? "PATCH" : "POST";
       const res = await fetch(url, {
         method,
@@ -108,9 +108,7 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
                 onChange={() => togglePerm(perm)}
                 className="h-4 w-4"
               />
-              <span className="text-sm">
-                {perm.replace(/_/g, " ")}
-              </span>
+              <span className="text-sm">{perm.replace(/_/g, " ")}</span>
             </label>
           ))}
         </div>

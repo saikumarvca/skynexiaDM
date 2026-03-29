@@ -2,7 +2,10 @@ import crypto from "crypto";
 import dbConnect from "@/lib/mongodb";
 import Webhook from "@/models/Webhook";
 
-export async function triggerWebhook(event: string, payload: object): Promise<void> {
+export async function triggerWebhook(
+  event: string,
+  payload: object,
+): Promise<void> {
   try {
     await dbConnect();
     const webhooks = await Webhook.find({ isActive: true, events: event });
@@ -36,9 +39,12 @@ export async function triggerWebhook(event: string, payload: object): Promise<vo
             lastTriggeredAt: new Date(),
           });
         } catch (err) {
-          console.error(`[webhooks] Failed to deliver ${event} to ${webhook.url}:`, err);
+          console.error(
+            `[webhooks] Failed to deliver ${event} to ${webhook.url}:`,
+            err,
+          );
         }
-      })
+      }),
     );
   } catch (err) {
     console.error("[webhooks] triggerWebhook error:", err);

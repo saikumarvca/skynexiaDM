@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { toast } from "sonner"
-import { Sparkles, Copy, Check, X, Loader2, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import { toast } from "sonner";
+import { Sparkles, Copy, Check, X, Loader2, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type ContentType = "CAPTION" | "HASHTAGS" | "AD_COPY" | "CTA" | "HOOK"
+type ContentType = "CAPTION" | "HASHTAGS" | "AD_COPY" | "CTA" | "HOOK";
 
 interface AIGenerateButtonProps {
-  clientId?: string
-  onUse?: (content: string, type: ContentType) => void
+  clientId?: string;
+  onUse?: (content: string, type: ContentType) => void;
 }
 
 const CONTENT_TYPES: { value: ContentType; label: string }[] = [
@@ -21,7 +21,7 @@ const CONTENT_TYPES: { value: ContentType; label: string }[] = [
   { value: "AD_COPY", label: "Ad Copy" },
   { value: "CTA", label: "Call to Action" },
   { value: "HOOK", label: "Hook" },
-]
+];
 
 const PLATFORMS = [
   "Instagram",
@@ -32,32 +32,32 @@ const PLATFORMS = [
   "TikTok",
   "YouTube",
   "Pinterest",
-]
+];
 
-const TONES = ["Professional", "Casual", "Humorous", "Inspirational"]
+const TONES = ["Professional", "Casual", "Humorous", "Inspirational"];
 
 export function AIGenerateButton({ clientId, onUse }: AIGenerateButtonProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [topic, setTopic] = useState("")
-  const [contentType, setContentType] = useState<ContentType>("CAPTION")
-  const [platform, setPlatform] = useState("Instagram")
-  const [tone, setTone] = useState("Professional")
-  const [saveToBank, setSaveToBank] = useState(false)
-  const [generating, setGenerating] = useState(false)
-  const [generated, setGenerated] = useState("")
-  const [copied, setCopied] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [contentType, setContentType] = useState<ContentType>("CAPTION");
+  const [platform, setPlatform] = useState("Instagram");
+  const [tone, setTone] = useState("Professional");
+  const [saveToBank, setSaveToBank] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generated, setGenerated] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleGenerate() {
-    const trimmedTopic = topic.trim()
+    const trimmedTopic = topic.trim();
     if (!trimmedTopic) {
-      toast.error("Please enter a topic or description")
-      return
+      toast.error("Please enter a topic or description");
+      return;
     }
 
-    setGenerating(true)
-    setError(null)
-    setGenerated("")
+    setGenerating(true);
+    setError(null);
+    setGenerated("");
 
     try {
       const res = await fetch("/api/ai/generate-content", {
@@ -71,59 +71,59 @@ export function AIGenerateButton({ clientId, onUse }: AIGenerateButtonProps) {
           clientId: clientId || undefined,
           saveToBank: saveToBank && Boolean(clientId),
         }),
-      })
+      });
 
-      const data = await res.json() as { content?: string; error?: string }
+      const data = (await res.json()) as { content?: string; error?: string };
 
       if (!res.ok) {
-        const msg = data.error ?? "Generation failed"
-        setError(msg)
+        const msg = data.error ?? "Generation failed";
+        setError(msg);
         if (res.status === 503) {
-          toast.error("AI is not configured. Contact your administrator.")
+          toast.error("AI is not configured. Contact your administrator.");
         } else {
-          toast.error(msg)
+          toast.error(msg);
         }
-        return
+        return;
       }
 
       if (data.content) {
-        setGenerated(data.content)
+        setGenerated(data.content);
         if (saveToBank && clientId) {
-          toast.success("Content generated and saved to content bank")
+          toast.success("Content generated and saved to content bank");
         } else {
-          toast.success("Content generated")
+          toast.success("Content generated");
         }
       }
     } catch {
-      const msg = "An unexpected error occurred"
-      setError(msg)
-      toast.error(msg)
+      const msg = "An unexpected error occurred";
+      setError(msg);
+      toast.error(msg);
     } finally {
-      setGenerating(false)
+      setGenerating(false);
     }
   }
 
   async function handleCopy() {
-    if (!generated) return
+    if (!generated) return;
     try {
-      await navigator.clipboard.writeText(generated)
-      setCopied(true)
-      toast.success("Copied to clipboard")
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(generated);
+      setCopied(true);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Failed to copy")
+      toast.error("Failed to copy");
     }
   }
 
   function handleUse() {
-    if (!generated || !onUse) return
-    onUse(generated, contentType)
-    toast.success("Content applied to form")
-    setIsOpen(false)
+    if (!generated || !onUse) return;
+    onUse(generated, contentType);
+    toast.success("Content applied to form");
+    setIsOpen(false);
   }
 
   const selectClass =
-    "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
   return (
     <div className="space-y-3">
@@ -180,7 +180,9 @@ export function AIGenerateButton({ clientId, onUse }: AIGenerateButtonProps) {
                 <label className="text-sm font-medium">Content type</label>
                 <select
                   value={contentType}
-                  onChange={(e) => setContentType(e.target.value as ContentType)}
+                  onChange={(e) =>
+                    setContentType(e.target.value as ContentType)
+                  }
                   disabled={generating}
                   className={selectClass}
                 >
@@ -303,5 +305,5 @@ export function AIGenerateButton({ clientId, onUse }: AIGenerateButtonProps) {
         </Card>
       )}
     </div>
-  )
+  );
 }

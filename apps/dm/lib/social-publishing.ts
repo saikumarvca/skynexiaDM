@@ -8,8 +8,8 @@
  * Instagram: first line of `content` must be a **public** image URL; remaining lines are the caption.
  * Twitter/X: requires TWITTER_ACCESS_TOKEN_SECRET for OAuth 1.0a user context.
  */
-import type { IScheduledPost } from '@/models/ScheduledPost';
-import { TwitterApi } from 'twitter-api-v2';
+import type { IScheduledPost } from "@/models/ScheduledPost";
+import { TwitterApi } from "twitter-api-v2";
 
 export interface PublishResult {
   success: boolean;
@@ -25,30 +25,34 @@ async function publishToFacebook(content: string): Promise<PublishResult> {
   if (!accessToken || !pageId) {
     return {
       success: false,
-      platform: 'facebook',
+      platform: "facebook",
       error:
-        'Facebook not configured. Set FACEBOOK_ACCESS_TOKEN and FACEBOOK_PAGE_ID environment variables.',
+        "Facebook not configured. Set FACEBOOK_ACCESS_TOKEN and FACEBOOK_PAGE_ID environment variables.",
     };
   }
 
   const url = `https://graph.facebook.com/${pageId}/feed`;
   const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message: content, access_token: accessToken }),
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: { message: res.statusText } }));
+    const err = await res
+      .json()
+      .catch(() => ({ error: { message: res.statusText } }));
     return {
       success: false,
-      platform: 'facebook',
-      error: (err as { error?: { message?: string } })?.error?.message ?? 'Facebook API error',
+      platform: "facebook",
+      error:
+        (err as { error?: { message?: string } })?.error?.message ??
+        "Facebook API error",
     };
   }
 
-  const data = await res.json() as { id?: string };
-  return { success: true, platform: 'facebook', postId: data.id };
+  const data = (await res.json()) as { id?: string };
+  return { success: true, platform: "facebook", postId: data.id };
 }
 
 /**
@@ -62,9 +66,9 @@ async function publishToInstagram(content: string): Promise<PublishResult> {
   if (!accessToken || !igUserId) {
     return {
       success: false,
-      platform: 'instagram',
+      platform: "instagram",
       error:
-        'Instagram not configured. Set FACEBOOK_ACCESS_TOKEN and INSTAGRAM_BUSINESS_ACCOUNT_ID (Instagram Business Account id from Graph API).',
+        "Instagram not configured. Set FACEBOOK_ACCESS_TOKEN and INSTAGRAM_BUSINESS_ACCOUNT_ID (Instagram Business Account id from Graph API).",
     };
   }
 
@@ -74,19 +78,19 @@ async function publishToInstagram(content: string): Promise<PublishResult> {
     .map((l) => l.trim())
     .filter(Boolean);
 
-  const first = lines[0] ?? '';
+  const first = lines[0] ?? "";
   if (!/^https?:\/\//i.test(first)) {
     return {
       success: false,
-      platform: 'instagram',
+      platform: "instagram",
       error:
-        'Instagram requires a public image URL on the first line of the post content, then optional caption lines below.',
+        "Instagram requires a public image URL on the first line of the post content, then optional caption lines below.",
     };
   }
 
   const imageUrl = first;
-  const caption = lines.slice(1).join('\n') || '.';
-  const v = 'v21.0';
+  const caption = lines.slice(1).join("\n") || ".";
+  const v = "v21.0";
 
   const mediaParams = new URLSearchParams({
     image_url: imageUrl,
@@ -96,25 +100,33 @@ async function publishToInstagram(content: string): Promise<PublishResult> {
 
   const createRes = await fetch(
     `https://graph.facebook.com/${v}/${igUserId}/media?${mediaParams.toString()}`,
-    { method: 'POST' }
+    { method: "POST" },
   );
 
   if (!createRes.ok) {
-    const err = await createRes.json().catch(() => ({ error: { message: createRes.statusText } }));
+    const err = await createRes
+      .json()
+      .catch(() => ({ error: { message: createRes.statusText } }));
     return {
       success: false,
-      platform: 'instagram',
+      platform: "instagram",
       error:
-        (err as { error?: { message?: string } })?.error?.message ?? 'Instagram media creation failed',
+        (err as { error?: { message?: string } })?.error?.message ??
+        "Instagram media creation failed",
     };
   }
 
-  const created = (await createRes.json()) as { id?: string; error?: { message?: string } };
+  const created = (await createRes.json()) as {
+    id?: string;
+    error?: { message?: string };
+  };
   if (!created.id) {
     return {
       success: false,
-      platform: 'instagram',
-      error: created.error?.message ?? 'Instagram did not return a media container id',
+      platform: "instagram",
+      error:
+        created.error?.message ??
+        "Instagram did not return a media container id",
     };
   }
 
@@ -125,21 +137,24 @@ async function publishToInstagram(content: string): Promise<PublishResult> {
 
   const publishRes = await fetch(
     `https://graph.facebook.com/${v}/${igUserId}/media_publish?${publishParams.toString()}`,
-    { method: 'POST' }
+    { method: "POST" },
   );
 
   if (!publishRes.ok) {
-    const err = await publishRes.json().catch(() => ({ error: { message: publishRes.statusText } }));
+    const err = await publishRes
+      .json()
+      .catch(() => ({ error: { message: publishRes.statusText } }));
     return {
       success: false,
-      platform: 'instagram',
+      platform: "instagram",
       error:
-        (err as { error?: { message?: string } })?.error?.message ?? 'Instagram media_publish failed',
+        (err as { error?: { message?: string } })?.error?.message ??
+        "Instagram media_publish failed",
     };
   }
 
   const published = (await publishRes.json()) as { id?: string };
-  return { success: true, platform: 'instagram', postId: published.id };
+  return { success: true, platform: "instagram", postId: published.id };
 }
 
 async function publishToLinkedIn(content: string): Promise<PublishResult> {
@@ -148,28 +163,29 @@ async function publishToLinkedIn(content: string): Promise<PublishResult> {
   if (!accessToken) {
     return {
       success: false,
-      platform: 'linkedin',
-      error: 'LinkedIn not configured. Set LINKEDIN_ACCESS_TOKEN environment variable.',
+      platform: "linkedin",
+      error:
+        "LinkedIn not configured. Set LINKEDIN_ACCESS_TOKEN environment variable.",
     };
   }
 
-  const res = await fetch('https://api.linkedin.com/v2/ugcPosts', {
-    method: 'POST',
+  const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'X-Restli-Protocol-Version': '2.0.0',
+      "Content-Type": "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
     },
     body: JSON.stringify({
-      author: 'urn:li:person:me',
-      lifecycleState: 'PUBLISHED',
+      author: "urn:li:person:me",
+      lifecycleState: "PUBLISHED",
       specificContent: {
-        'com.linkedin.ugc.ShareContent': {
+        "com.linkedin.ugc.ShareContent": {
           shareCommentary: { text: content },
-          shareMediaCategory: 'NONE',
+          shareMediaCategory: "NONE",
         },
       },
-      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
+      visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
     }),
   });
 
@@ -177,13 +193,13 @@ async function publishToLinkedIn(content: string): Promise<PublishResult> {
     const err = await res.json().catch(() => ({ message: res.statusText }));
     return {
       success: false,
-      platform: 'linkedin',
-      error: (err as { message?: string })?.message ?? 'LinkedIn API error',
+      platform: "linkedin",
+      error: (err as { message?: string })?.message ?? "LinkedIn API error",
     };
   }
 
-  const location = res.headers.get('X-RestLi-Id') ?? undefined;
-  return { success: true, platform: 'linkedin', postId: location };
+  const location = res.headers.get("X-RestLi-Id") ?? undefined;
+  return { success: true, platform: "linkedin", postId: location };
 }
 
 async function publishToTwitter(content: string): Promise<PublishResult> {
@@ -195,9 +211,9 @@ async function publishToTwitter(content: string): Promise<PublishResult> {
   if (!apiKey || !apiSecret || !accessToken || !accessTokenSecret) {
     return {
       success: false,
-      platform: 'twitter',
+      platform: "twitter",
       error:
-        'Twitter/X not configured. Set TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, and TWITTER_ACCESS_TOKEN_SECRET.',
+        "Twitter/X not configured. Set TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, and TWITTER_ACCESS_TOKEN_SECRET.",
     };
   }
 
@@ -211,18 +227,18 @@ async function publishToTwitter(content: string): Promise<PublishResult> {
       accessSecret: accessTokenSecret,
     });
     const { data } = await client.v2.tweet(text);
-    return { success: true, platform: 'twitter', postId: data.id };
+    return { success: true, platform: "twitter", postId: data.id };
   } catch (e: unknown) {
     const msg =
-      e && typeof e === 'object' && 'data' in e
+      e && typeof e === "object" && "data" in e
         ? JSON.stringify((e as { data?: unknown }).data)
         : e instanceof Error
           ? e.message
           : String(e);
     return {
       success: false,
-      platform: 'twitter',
-      error: msg || 'Twitter API error',
+      platform: "twitter",
+      error: msg || "Twitter API error",
     };
   }
 }
@@ -230,17 +246,19 @@ async function publishToTwitter(content: string): Promise<PublishResult> {
 /**
  * Publish a scheduled post to the appropriate platform.
  */
-export async function publishPost(post: IScheduledPost): Promise<PublishResult> {
-  const platform = (post.platform ?? '').toLowerCase();
+export async function publishPost(
+  post: IScheduledPost,
+): Promise<PublishResult> {
+  const platform = (post.platform ?? "").toLowerCase();
   const content = post.content;
 
-  if (platform === 'facebook') {
+  if (platform === "facebook") {
     return publishToFacebook(content);
-  } else if (platform === 'instagram') {
+  } else if (platform === "instagram") {
     return publishToInstagram(content);
-  } else if (platform === 'linkedin') {
+  } else if (platform === "linkedin") {
     return publishToLinkedIn(content);
-  } else if (platform === 'twitter' || platform === 'x') {
+  } else if (platform === "twitter" || platform === "x") {
     return publishToTwitter(content);
   } else {
     return {
@@ -256,9 +274,12 @@ export async function publishPost(post: IScheduledPost): Promise<PublishResult> 
  */
 export function getSocialPlatformStatus() {
   return {
-    facebook: !!(process.env.FACEBOOK_ACCESS_TOKEN && process.env.FACEBOOK_PAGE_ID),
+    facebook: !!(
+      process.env.FACEBOOK_ACCESS_TOKEN && process.env.FACEBOOK_PAGE_ID
+    ),
     instagram: !!(
-      process.env.FACEBOOK_ACCESS_TOKEN && process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
+      process.env.FACEBOOK_ACCESS_TOKEN &&
+      process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
     ),
     linkedin: !!process.env.LINKEDIN_ACCESS_TOKEN,
     twitter: !!(

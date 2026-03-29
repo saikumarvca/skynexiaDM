@@ -19,7 +19,9 @@ export function toDdMmYyyyDisplay(value: string | undefined): string {
 }
 
 /** Parse form value: accepts dd-mm-yyyy or yyyy-mm-dd → yyyy-mm-dd or undefined if invalid */
-export function parseFlexibleDateParam(value: string | undefined): string | undefined {
+export function parseFlexibleDateParam(
+  value: string | undefined,
+): string | undefined {
   if (!value?.trim()) return undefined;
   const t = value.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
@@ -34,7 +36,11 @@ export function parseFlexibleDateParam(value: string | undefined): string | unde
   const iso = `${yyyy}-${mm}-${dd}`;
   const dt = new Date(iso + "T12:00:00.000Z");
   if (Number.isNaN(dt.getTime())) return undefined;
-  if (dt.getUTCFullYear() !== Number(yyyy) || dt.getUTCMonth() + 1 !== Number(mm) || dt.getUTCDate() !== Number(dd)) {
+  if (
+    dt.getUTCFullYear() !== Number(yyyy) ||
+    dt.getUTCMonth() + 1 !== Number(mm) ||
+    dt.getUTCDate() !== Number(dd)
+  ) {
     return undefined;
   }
   return iso;

@@ -1,6 +1,10 @@
 import * as mongoose from "mongoose";
 
-export type ExternalReviewPlatform = 'GOOGLE' | 'FACEBOOK' | 'INSTAGRAM' | 'OTHER';
+export type ExternalReviewPlatform =
+  | "GOOGLE"
+  | "FACEBOOK"
+  | "INSTAGRAM"
+  | "OTHER";
 
 export interface IExternalReview extends mongoose.Document {
   clientId: mongoose.Types.ObjectId;
@@ -10,7 +14,7 @@ export interface IExternalReview extends mongoose.Document {
   text: string;
   reviewDate?: Date;
   responseText?: string;
-  sentiment?: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
+  sentiment?: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
   sourceId?: string;
   lastSyncedAt?: Date;
   createdAt: Date;
@@ -19,7 +23,11 @@ export interface IExternalReview extends mongoose.Document {
 
 const ExternalReviewSchema: mongoose.Schema = new mongoose.Schema(
   {
-    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
+    },
     platform: { type: String, required: true },
     authorName: { type: String },
     rating: { type: Number, required: true },
@@ -28,14 +36,14 @@ const ExternalReviewSchema: mongoose.Schema = new mongoose.Schema(
     responseText: { type: String },
     sentiment: {
       type: String,
-      enum: ['POSITIVE', 'NEUTRAL', 'NEGATIVE'],
+      enum: ["POSITIVE", "NEUTRAL", "NEGATIVE"],
     },
     sourceId: { type: String },
     lastSyncedAt: { type: Date },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 ExternalReviewSchema.index({ clientId: 1, platform: 1, rating: -1 });
@@ -43,8 +51,9 @@ ExternalReviewSchema.index({ clientId: 1, sentiment: 1 });
 ExternalReviewSchema.index({ clientId: 1, reviewDate: -1 });
 
 const ExternalReview =
-  (mongoose.models.ExternalReview as mongoose.Model<IExternalReview> | undefined) ||
-  mongoose.model<IExternalReview>('ExternalReview', ExternalReviewSchema);
+  (mongoose.models.ExternalReview as
+    | mongoose.Model<IExternalReview>
+    | undefined) ||
+  mongoose.model<IExternalReview>("ExternalReview", ExternalReviewSchema);
 
 export default ExternalReview;
-

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Menu } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Menu } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,12 +10,12 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { DashboardNavLinks } from "@/components/dashboard-nav-links"
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { DashboardNavLinks } from "@/components/dashboard-nav-links";
 
 export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -58,5 +58,5 @@ export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

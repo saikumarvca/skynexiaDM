@@ -17,7 +17,9 @@ export function AssignClientsForm({
   clients,
 }: AssignClientsFormProps) {
   const router = useRouter();
-  const [selected, setSelected] = useState<Set<string>>(new Set(initialClientIds));
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(initialClientIds),
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

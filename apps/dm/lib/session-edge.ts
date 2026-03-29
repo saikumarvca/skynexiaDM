@@ -3,15 +3,15 @@
  * Must stay in sync with HMAC signing in lib/auth.ts (`dm_session` cookie).
  */
 import type { NextRequest } from "next/server";
-
-export const SESSION_COOKIE_NAME = "dm_session";
+import { DM_SESSION_COOKIE_NAME } from "@/lib/session-cookie-name";
 
 export function getSessionCookieName(): string {
-  return SESSION_COOKIE_NAME;
+  return DM_SESSION_COOKIE_NAME;
 }
 
 function base64UrlToBytes(s: string): Uint8Array {
-  const padded = s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
+  const padded =
+    s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
   const bin = atob(padded);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -32,7 +32,7 @@ async function signBody(body: string, secret: string): Promise<string> {
     enc.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
   const sig = await crypto.subtle.sign("HMAC", key, enc.encode(body));
   return bytesToBase64Url(sig);
@@ -46,7 +46,10 @@ function timingSafeEqualString(a: string, b: string): boolean {
 }
 
 /** Verify signed session token body + signature + expiry (no DB / isActive check). */
-export async function verifySessionTokenEdge(token: string, secret: string): Promise<boolean> {
+export async function verifySessionTokenEdge(
+  token: string,
+  secret: string,
+): Promise<boolean> {
   const [body, sig] = token.split(".");
   if (!body || !sig) return false;
 
@@ -66,11 +69,13 @@ export async function verifySessionTokenEdge(token: string, secret: string): Pro
 }
 
 /** Returns true if the dm_session cookie is present, signed correctly, and not expired. */
-export async function verifySessionCookie(request: NextRequest): Promise<boolean> {
+export async function verifySessionCookie(
+  request: NextRequest,
+): Promise<boolean> {
   const secret = process.env.AUTH_SECRET;
   if (!secret) return false;
 
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const token = request.cookies.get(DM_SESSION_COOKIE_NAME)?.value;
   if (!token) return false;
 
   return verifySessionTokenEdge(token, secret);

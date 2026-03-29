@@ -1,17 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireSessionApi } from '@/lib/require-session-api';
-import dbConnect from '@/lib/mongodb';
-import Review from '@/models/Review';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import Review from "@/models/Review";
 
 function esc(v: unknown): string {
-  if (v == null) return '';
-  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (v == null) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function fmtDate(v: unknown): string {
-  if (!v) return '';
+  if (!v) return "";
   const d = new Date(v as string);
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
 }
 
 export async function GET(request: NextRequest) {
@@ -22,24 +25,28 @@ export async function GET(request: NextRequest) {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
-    const status = searchParams.get('status');
+    const clientId = searchParams.get("clientId");
+    const status = searchParams.get("status");
 
     const query: Record<string, unknown> = {};
     if (clientId) query.clientId = clientId;
-    if (status && status !== 'ALL') query.status = status;
+    if (status && status !== "ALL") query.status = status;
 
     const reviews = await Review.find(query)
-      .populate('clientId', 'name businessName')
+      .populate("clientId", "name businessName")
       .sort({ createdAt: -1 })
       .lean();
 
     const exportDate = new Date().toLocaleDateString();
 
-    const rows = reviews.map((r) => {
-      const client = r.clientId as { businessName?: string; name?: string } | null;
-      const clientName = client?.businessName ?? client?.name ?? '';
-      return `
+    const rows = reviews
+      .map((r) => {
+        const client = r.clientId as {
+          businessName?: string;
+          name?: string;
+        } | null;
+        const clientName = client?.businessName ?? client?.name ?? "";
+        return `
       <tr>
         <td>${esc(clientName)}</td>
         <td>${esc(r.shortLabel)}</td>
@@ -49,7 +56,8 @@ export async function GET(request: NextRequest) {
         <td>${esc(r.status)}</td>
         <td>${esc(fmtDate(r.createdAt))}</td>
       </tr>`;
-    }).join('');
+      })
+      .join("");
 
     const html = `<!DOCTYPE html>
 <html>
@@ -81,7 +89,7 @@ export async function GET(request: NextRequest) {
     <button onclick="window.print()">Print / Save as PDF</button>
   </div>
   <h1>Reviews Export</h1>
-  <p class="meta">Exported: ${exportDate} &middot; ${reviews.length} record${reviews.length !== 1 ? 's' : ''}</p>
+  <p class="meta">Exported: ${exportDate} &middot; ${reviews.length} record${reviews.length !== 1 ? "s" : ""}</p>
   <table>
     <thead>
       <tr>
@@ -104,11 +112,14 @@ export async function GET(request: NextRequest) {
     return new NextResponse(html, {
       status: 200,
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
+        "Content-Type": "text/html; charset=utf-8",
       },
     });
   } catch (error) {
-    console.error('Error generating reviews PDF:', error);
-    return NextResponse.json({ error: 'Failed to generate reviews PDF' }, { status: 500 });
+    console.error("Error generating reviews PDF:", error);
+    return NextResponse.json(
+      { error: "Failed to generate reviews PDF" },
+      { status: 500 },
+    );
   }
 }

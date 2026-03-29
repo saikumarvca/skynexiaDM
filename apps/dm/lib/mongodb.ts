@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 type MongooseCache = {
   conn: typeof mongoose | null;
@@ -15,7 +15,9 @@ declare global {
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
-const globalForMongoose = globalThis as typeof globalThis & { mongoose?: MongooseCache };
+const globalForMongoose = globalThis as typeof globalThis & {
+  mongoose?: MongooseCache;
+};
 let cached = globalForMongoose.mongoose;
 
 if (!cached) {
@@ -26,7 +28,9 @@ async function dbConnect(): Promise<typeof mongoose> {
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+    throw new Error(
+      "Please define the MONGODB_URI environment variable inside .env.local",
+    );
   }
 
   if (cached?.conn) {
@@ -46,13 +50,16 @@ async function dbConnect(): Promise<typeof mongoose> {
     };
 
     if (cached) {
-      cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-        console.log('Connected to MongoDB');
-        return mongoose;
-      }).catch((error) => {
-        console.error('MongoDB connection error:', error);
-        throw error;
-      });
+      cached.promise = mongoose
+        .connect(MONGODB_URI, opts)
+        .then((mongoose) => {
+          console.log("Connected to MongoDB");
+          return mongoose;
+        })
+        .catch((error) => {
+          console.error("MongoDB connection error:", error);
+          throw error;
+        });
     }
   }
 

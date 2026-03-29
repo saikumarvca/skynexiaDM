@@ -94,7 +94,9 @@ export function AssignDraftModal({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Assign To *</label>
+            <label className="block text-sm font-medium mb-1">
+              Assign To *
+            </label>
             <select
               value={assignedToUserId}
               onChange={(e) => setAssignedToUserId(e.target.value)}
@@ -110,7 +112,9 @@ export function AssignDraftModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Customer Name (optional at assign)</label>
+            <label className="block text-sm font-medium mb-1">
+              Customer Name (optional at assign)
+            </label>
             <Input
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
@@ -118,7 +122,9 @@ export function AssignDraftModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Customer Contact</label>
+            <label className="block text-sm font-medium mb-1">
+              Customer Contact
+            </label>
             <Input
               value={customerContact}
               onChange={(e) => setCustomerContact(e.target.value)}

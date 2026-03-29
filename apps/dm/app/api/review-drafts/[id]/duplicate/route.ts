@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import ReviewDraft from '@/models/ReviewDraft';
-import { logActivity } from '@/lib/review-activity';
+import { NextRequest, NextResponse } from "next/server";
+import { requireSessionApi } from "@/lib/require-session-api";
+import dbConnect from "@/lib/mongodb";
+import ReviewDraft from "@/models/ReviewDraft";
+import { logActivity } from "@/lib/review-activity";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -9,19 +10,22 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+
     await dbConnect();
 
     const { id } = await params;
     const body = await request.json();
-    const performedBy = body.performedBy ?? 'system';
+    const performedBy = body.performedBy ?? "system";
 
     const original = await ReviewDraft.findById(id);
     if (!original) {
-      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
+      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
 
     const copy = new ReviewDraft({
-      subject: original.subject + ' (Copy)',
+      subject: original.subject + " (Copy)",
       reviewText: original.reviewText,
       clientId: original.clientId,
       clientName: original.clientName,
@@ -30,21 +34,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       suggestedRating: original.suggestedRating,
       tone: original.tone,
       reusable: original.reusable,
-      status: 'Available',
+      status: "Available",
       createdBy: performedBy,
       notes: original.notes,
     });
     await copy.save();
 
     const populated = await ReviewDraft.findById(copy._id).populate(
-      'clientId',
-      'name businessName'
+      "clientId",
+      "name businessName",
     );
 
     await logActivity({
-      entityType: 'DRAFT',
+      entityType: "DRAFT",
       entityId: copy._id.toString(),
-      action: 'DUPLICATE',
+      action: "DUPLICATE",
       oldValue: { sourceId: id },
       newValue: populated?.toObject(),
       performedBy,
@@ -52,10 +56,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json(populated, { status: 201 });
   } catch (error) {
-    console.error('Error duplicating review draft:', error);
+    console.error("Error duplicating review draft:", error);
     return NextResponse.json(
-      { error: 'Failed to duplicate review draft' },
-      { status: 500 }
+      { error: "Failed to duplicate review draft" },
+      { status: 500 },
     );
   }
 }

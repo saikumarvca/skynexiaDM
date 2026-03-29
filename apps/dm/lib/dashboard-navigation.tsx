@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react"
+import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Users,
@@ -29,26 +29,35 @@ import {
   Hash,
   ListChecks,
   MessageSquare,
-} from "lucide-react"
+  FileText as InvoiceIcon,
+  Clock,
+  Zap,
+  DollarSign,
+  Globe,
+  BarChart2,
+  AlertTriangle,
+  HelpCircle,
+  BookOpen,
+} from "lucide-react";
 
 export type DashboardNavChild = {
-  name: string
-  href: string
-  icon: LucideIcon
-}
+  name: string;
+  href: string;
+  icon: LucideIcon;
+};
 
 export type DashboardNavItem =
   | {
-      name: string
-      href: string
-      icon: LucideIcon
+      name: string;
+      href: string;
+      icon: LucideIcon;
     }
   | {
-      name: string
-      href: string
-      icon: LucideIcon
-      children: DashboardNavChild[]
-    }
+      name: string;
+      href: string;
+      icon: LucideIcon;
+      children: DashboardNavChild[];
+    };
 
 const baseNavigation: DashboardNavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -61,7 +70,11 @@ const baseNavigation: DashboardNavItem[] = [
       { name: "All Clients", href: "/clients", icon: Users },
       { name: "Add Client", href: "/clients/new", icon: Plus },
       { name: "Archived", href: "/clients?archived=1", icon: Archive },
-      { name: "Google Reviews", href: "/dashboard/google-reviews", icon: CheckCircle },
+      {
+        name: "Google Reviews",
+        href: "/dashboard/google-reviews",
+        icon: CheckCircle,
+      },
     ],
   },
   {
@@ -71,7 +84,16 @@ const baseNavigation: DashboardNavItem[] = [
     children: [
       { name: "All Campaigns", href: "/dashboard/campaigns", icon: Target },
       { name: "New Campaign", href: "/dashboard/campaigns/new", icon: Plus },
-      { name: "Archived", href: "/dashboard/campaigns?archived=1", icon: Archive },
+      {
+        name: "Budget Pacing",
+        href: "/dashboard/budget-pacing",
+        icon: AlertTriangle,
+      },
+      {
+        name: "Archived",
+        href: "/dashboard/campaigns?archived=1",
+        icon: Archive,
+      },
     ],
   },
   {
@@ -81,8 +103,16 @@ const baseNavigation: DashboardNavItem[] = [
     children: [
       { name: "Content Bank", href: "/dashboard/content", icon: Layers },
       { name: "New Content", href: "/dashboard/content/new", icon: Plus },
-      { name: "Scheduled Posts", href: "/dashboard/scheduled-posts", icon: CalendarClock },
-      { name: "New Scheduled Post", href: "/dashboard/scheduled-posts/new", icon: CalendarClock },
+      {
+        name: "Scheduled Posts",
+        href: "/dashboard/scheduled-posts",
+        icon: CalendarClock,
+      },
+      {
+        name: "New Scheduled Post",
+        href: "/dashboard/scheduled-posts/new",
+        icon: CalendarClock,
+      },
     ],
   },
   {
@@ -92,6 +122,7 @@ const baseNavigation: DashboardNavItem[] = [
     children: [
       { name: "Keywords", href: "/dashboard/seo", icon: Hash },
       { name: "Add Keyword", href: "/dashboard/seo/new", icon: Plus },
+      { name: "Competitors", href: "/dashboard/seo/competitors", icon: Globe },
     ],
   },
   {
@@ -100,7 +131,11 @@ const baseNavigation: DashboardNavItem[] = [
     icon: TrendingUp,
     children: [
       { name: "All Leads", href: "/dashboard/leads", icon: TrendingUp },
-      { name: "Kanban Board", href: "/dashboard/leads?view=kanban", icon: Columns3 },
+      {
+        name: "Kanban Board",
+        href: "/dashboard/leads?view=kanban",
+        icon: Columns3,
+      },
       { name: "Add Lead", href: "/dashboard/leads/new", icon: Plus },
     ],
   },
@@ -119,13 +154,41 @@ const baseNavigation: DashboardNavItem[] = [
     icon: FileText,
     children: [
       { name: "Overview", href: "/dashboard/reviews", icon: FileText },
-      { name: "Review Drafts", href: "/dashboard/review-drafts", icon: ClipboardCheck },
-      { name: "Review Allocations", href: "/dashboard/review-allocations", icon: UserPlus },
-      { name: "My Assigned Reviews", href: "/dashboard/my-assigned-reviews", icon: UserCheck },
-      { name: "Used Reviews", href: "/dashboard/used-reviews", icon: CheckCircle },
-      { name: "Review Analytics", href: "/dashboard/review-analytics", icon: BarChart3 },
-      { name: "Review templates", href: "/dashboard/review-templates", icon: LayoutTemplate },
-      { name: "Review Requests", href: "/dashboard/review-requests", icon: Mail },
+      {
+        name: "Review Drafts",
+        href: "/dashboard/review-drafts",
+        icon: ClipboardCheck,
+      },
+      {
+        name: "Review Allocations",
+        href: "/dashboard/review-allocations",
+        icon: UserPlus,
+      },
+      {
+        name: "My Assigned Reviews",
+        href: "/dashboard/my-assigned-reviews",
+        icon: UserCheck,
+      },
+      {
+        name: "Used Reviews",
+        href: "/dashboard/used-reviews",
+        icon: CheckCircle,
+      },
+      {
+        name: "Review Analytics",
+        href: "/dashboard/review-analytics",
+        icon: BarChart3,
+      },
+      {
+        name: "Review templates",
+        href: "/dashboard/review-templates",
+        icon: LayoutTemplate,
+      },
+      {
+        name: "Review Requests",
+        href: "/dashboard/review-requests",
+        icon: Mail,
+      },
     ],
   },
   {
@@ -140,27 +203,72 @@ const baseNavigation: DashboardNavItem[] = [
       { name: "Performance", href: "/team/performance", icon: TrendingUp },
       { name: "Workload", href: "/team/workload", icon: Loader2 },
       { name: "Activity", href: "/team/activity", icon: Activity },
-      { name: "Review Assignments", href: "/team/review-assignments", icon: ClipboardCheck },
+      {
+        name: "Review Assignments",
+        href: "/team/review-assignments",
+        icon: ClipboardCheck,
+      },
     ],
   },
   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  {
+    name: "Social Analytics",
+    href: "/dashboard/social-analytics",
+    icon: BarChart2,
+  },
+  {
+    name: "Reports",
+    href: "/dashboard/reports",
+    icon: Mail,
+    children: [
+      { name: "Scheduled Reports", href: "/dashboard/reports", icon: Mail },
+      { name: "New Schedule", href: "/dashboard/reports/new", icon: Plus },
+    ],
+  },
+  {
+    name: "Invoices",
+    href: "/dashboard/invoices",
+    icon: DollarSign,
+    children: [
+      { name: "All Invoices", href: "/dashboard/invoices", icon: DollarSign },
+      { name: "New Invoice", href: "/dashboard/invoices/new", icon: Plus },
+    ],
+  },
+  { name: "Time Tracking", href: "/dashboard/time-tracking", icon: Clock },
+  { name: "Integrations", href: "/dashboard/integrations", icon: Zap },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
-]
+  {
+    name: "Help",
+    href: "/dashboard/help/documentation",
+    icon: HelpCircle,
+    children: [
+      {
+        name: "Documentation",
+        href: "/dashboard/help/documentation",
+        icon: BookOpen,
+      },
+    ],
+  },
+];
 
 export function buildDashboardNavItems(isAdmin: boolean): DashboardNavItem[] {
-  if (!isAdmin) return baseNavigation
-  const idx = baseNavigation.findIndex((x) => x.name === "Settings")
-  if (idx === -1) return baseNavigation
-  const next = [...baseNavigation]
+  if (!isAdmin) return baseNavigation;
+  const idx = baseNavigation.findIndex((x) => x.name === "Settings");
+  if (idx === -1) return baseNavigation;
+  const next = [...baseNavigation];
   next.splice(idx, 0, {
     name: "Admin",
     href: "/dashboard/admin/users",
     icon: Shield,
     children: [
       { name: "Users", href: "/dashboard/admin/users", icon: Shield },
-      { name: "Audit Log", href: "/dashboard/admin/audit-log", icon: ScrollText },
+      {
+        name: "Audit Log",
+        href: "/dashboard/admin/audit-log",
+        icon: ScrollText,
+      },
       { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: Webhook },
     ],
-  })
-  return next
+  });
+  return next;
 }

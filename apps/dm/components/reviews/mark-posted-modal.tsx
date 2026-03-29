@@ -39,13 +39,16 @@ export function MarkPostedModal({
   const [platform, setPlatform] = useState("Google");
   const [reviewLink, setReviewLink] = useState("");
   const [proofUrl, setProofUrl] = useState("");
-  const [postedDate, setPostedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [postedDate, setPostedDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
   const [markedUsedBy, setMarkedUsedBy] = useState(initialMarkedBy ?? "");
   const [remarks, setRemarks] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postedByName.trim() || !platform || !reviewLink.trim() || !postedDate) return;
+    if (!postedByName.trim() || !platform || !reviewLink.trim() || !postedDate)
+      return;
     setIsLoading(true);
     try {
       await onSubmit({
@@ -67,7 +70,9 @@ export function MarkPostedModal({
       setMarkedUsedBy("");
       setRemarks("");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save posting details");
+      toast.error(
+        e instanceof Error ? e.message : "Could not save posting details",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -81,12 +86,16 @@ export function MarkPostedModal({
           {subject ? (
             <DialogDescription>{subject}</DialogDescription>
           ) : (
-            <DialogDescription>Enter posting details and the review link.</DialogDescription>
+            <DialogDescription>
+              Enter posting details and the review link.
+            </DialogDescription>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Posted By (Customer Name) *</label>
+            <label className="block text-sm font-medium mb-1">
+              Posted By (Customer Name) *
+            </label>
             <Input
               value={postedByName}
               onChange={(e) => setPostedByName(e.target.value)}
@@ -110,7 +119,9 @@ export function MarkPostedModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Review Link *</label>
+            <label className="block text-sm font-medium mb-1">
+              Review Link *
+            </label>
             <Input
               value={reviewLink}
               onChange={(e) => setReviewLink(e.target.value)}
@@ -119,7 +130,9 @@ export function MarkPostedModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Proof URL (screenshot)</label>
+            <label className="block text-sm font-medium mb-1">
+              Proof URL (screenshot)
+            </label>
             <Input
               value={proofUrl}
               onChange={(e) => setProofUrl(e.target.value)}
@@ -127,7 +140,9 @@ export function MarkPostedModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Posted Date *</label>
+            <label className="block text-sm font-medium mb-1">
+              Posted Date *
+            </label>
             <Input
               type="date"
               value={postedDate}
@@ -136,7 +151,9 @@ export function MarkPostedModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Marked Used By</label>
+            <label className="block text-sm font-medium mb-1">
+              Marked Used By
+            </label>
             <Input
               value={markedUsedBy}
               onChange={(e) => setMarkedUsedBy(e.target.value)}

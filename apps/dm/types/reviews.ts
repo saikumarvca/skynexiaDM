@@ -1,14 +1,19 @@
-export type DraftStatus = 'Available' | 'Allocated' | 'Shared' | 'Used' | 'Archived';
+export type DraftStatus =
+  | "Available"
+  | "Allocated"
+  | "Shared"
+  | "Used"
+  | "Archived";
 
 export type AllocationStatus =
-  | 'Unassigned'
-  | 'Assigned'
-  | 'Shared with Customer'
-  | 'Posted'
-  | 'Used'
-  | 'Cancelled';
+  | "Unassigned"
+  | "Assigned"
+  | "Shared with Customer"
+  | "Posted"
+  | "Used"
+  | "Cancelled";
 
-export type EntityType = 'DRAFT' | 'ALLOCATION' | 'POSTED_REVIEW';
+export type EntityType = "DRAFT" | "ALLOCATION" | "POSTED_REVIEW";
 
 export interface ReviewDraft {
   _id: string;
@@ -30,7 +35,14 @@ export interface ReviewDraft {
 
 export interface ReviewAllocation {
   _id: string;
-  draftId: string | { _id: string; subject?: string; reviewText?: string; clientName?: string };
+  draftId:
+    | string
+    | {
+        _id: string;
+        subject?: string;
+        reviewText?: string;
+        clientName?: string;
+      };
   assignedToUserId: string;
   assignedToUserName: string;
   assignedByUserId: string;

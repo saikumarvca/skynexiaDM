@@ -33,7 +33,9 @@ export function MarkSharedModal({
   const [customerName, setCustomerName] = useState("");
   const [customerContact, setCustomerContact] = useState("");
   const [platform, setPlatform] = useState("");
-  const [sentDate, setSentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [sentDate, setSentDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +55,9 @@ export function MarkSharedModal({
       setPlatform("");
       setSentDate(new Date().toISOString().slice(0, 10));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update allocation");
+      toast.error(
+        e instanceof Error ? e.message : "Could not update allocation",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -67,12 +71,16 @@ export function MarkSharedModal({
           {subject ? (
             <DialogDescription>{subject}</DialogDescription>
           ) : (
-            <DialogDescription>Enter the customer details and sent date.</DialogDescription>
+            <DialogDescription>
+              Enter the customer details and sent date.
+            </DialogDescription>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Customer Name *</label>
+            <label className="block text-sm font-medium mb-1">
+              Customer Name *
+            </label>
             <Input
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
@@ -81,7 +89,9 @@ export function MarkSharedModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Customer Contact</label>
+            <label className="block text-sm font-medium mb-1">
+              Customer Contact
+            </label>
             <Input
               value={customerContact}
               onChange={(e) => setCustomerContact(e.target.value)}
@@ -104,7 +114,9 @@ export function MarkSharedModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Sent Date *</label>
+            <label className="block text-sm font-medium mb-1">
+              Sent Date *
+            </label>
             <Input
               type="date"
               value={sentDate}

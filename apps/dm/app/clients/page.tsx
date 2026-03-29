@@ -1,75 +1,79 @@
-import Link from "next/link"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { ClientCard } from "@/components/client-card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Plus, Archive } from "lucide-react"
-import { Client } from "@/types"
-import dbConnect from "@/lib/mongodb"
-import ClientModel from "@/models/Client"
-import ClientView from "@/models/ClientView"
+import Link from "next/link";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { ClientCard } from "@/components/client-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Archive } from "lucide-react";
+import { Client } from "@/types";
+import dbConnect from "@/lib/mongodb";
+import ClientModel from "@/models/Client";
+import ClientView from "@/models/ClientView";
 
 async function getClients(
   search?: string,
   viewId?: string,
-  archived?: boolean
+  archived?: boolean,
 ): Promise<Client[]> {
   try {
-    await dbConnect()
-    let baseQuery: Record<string, unknown> = {}
+    await dbConnect();
+    let baseQuery: Record<string, unknown> = {};
     if (search) {
       baseQuery = {
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { businessName: { $regex: search, $options: 'i' } },
-          { brandName: { $regex: search, $options: 'i' } },
-          { contactName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-        ]
-      }
+          { name: { $regex: search, $options: "i" } },
+          { businessName: { $regex: search, $options: "i" } },
+          { brandName: { $regex: search, $options: "i" } },
+          { contactName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      };
     }
-    let filters: Record<string, unknown> = {}
+    let filters: Record<string, unknown> = {};
     if (viewId) {
-      const view = await ClientView.findById(viewId)
-      if (view) filters = view.filters as Record<string, unknown>
+      const view = await ClientView.findById(viewId);
+      if (view) filters = view.filters as Record<string, unknown>;
     }
-    const merged = { ...filters, ...baseQuery }
+    const merged = { ...filters, ...baseQuery };
     const docs = await ClientModel.find({
       ...merged,
       ...(archived ? { status: "ARCHIVED" } : { status: { $ne: "ARCHIVED" } }),
     })
       .sort({ createdAt: -1 })
       .limit(50)
-      .lean()
-    return docs.map((c) => JSON.parse(JSON.stringify(c)))
+      .lean();
+    return docs.map((c) => JSON.parse(JSON.stringify(c)));
   } catch (error) {
-    console.error('Error fetching clients:', error)
-    return []
+    console.error("Error fetching clients:", error);
+    return [];
   }
 }
 
 async function getClientViews(): Promise<{ _id: string; name: string }[]> {
   try {
-    await dbConnect()
-    const docs = await ClientView.find().sort({ createdAt: -1 }).lean()
-    return docs.map((v) => ({ _id: v._id.toString(), name: v.name }))
+    await dbConnect();
+    const docs = await ClientView.find().sort({ createdAt: -1 }).lean();
+    return docs.map((v) => ({ _id: v._id.toString(), name: v.name }));
   } catch (error) {
-    console.error('Error fetching client views:', error)
-    return []
+    console.error("Error fetching client views:", error);
+    return [];
   }
 }
 
 interface ClientsPageProps {
-  searchParams: Promise<{ search?: string; viewId?: string; archived?: string }>
+  searchParams: Promise<{
+    search?: string;
+    viewId?: string;
+    archived?: string;
+  }>;
 }
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
-  const params = await searchParams
-  const showArchived = params.archived === "1" || params.archived === "true"
+  const params = await searchParams;
+  const showArchived = params.archived === "1" || params.archived === "true";
   const [clients, views] = await Promise.all([
     getClients(params.search, params.viewId, showArchived),
     getClientViews(),
-  ])
+  ]);
 
   return (
     <DashboardLayout>
@@ -105,7 +109,11 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         </div>
 
         {/* Search & views */}
-        <form method="get" action="/clients" className="flex flex-wrap items-center gap-4">
+        <form
+          method="get"
+          action="/clients"
+          className="flex flex-wrap items-center gap-4"
+        >
           {showArchived && <input type="hidden" name="archived" value="1" />}
           <Input
             name="search"
@@ -170,5 +178,5 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         )}
       </div>
     </DashboardLayout>
-  )
+  );
 }

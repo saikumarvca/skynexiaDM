@@ -8,7 +8,12 @@ export const dynamic = "force-dynamic";
 
 export default async function NewMemberPage() {
   await dbConnect();
-  const roles = (await TeamRole.find({ isDeleted: { $ne: true } }).sort({ roleName: 1 }).limit(100).lean()).map((r) => JSON.parse(JSON.stringify(r)));
+  const roles = (
+    await TeamRole.find({ isDeleted: { $ne: true } })
+      .sort({ roleName: 1 })
+      .limit(100)
+      .lean()
+  ).map((r) => JSON.parse(JSON.stringify(r)));
 
   return (
     <DashboardLayout>
@@ -18,8 +23,12 @@ export default async function NewMemberPage() {
           <p className="text-muted-foreground">Create a new team member.</p>
         </div>
         <Card>
-          <CardHeader><CardTitle>Member Details</CardTitle></CardHeader>
-          <CardContent><TeamMemberForm roles={roles} /></CardContent>
+          <CardHeader>
+            <CardTitle>Member Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeamMemberForm roles={roles} />
+          </CardContent>
         </Card>
       </div>
     </DashboardLayout>

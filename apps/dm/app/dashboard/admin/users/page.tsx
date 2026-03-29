@@ -5,10 +5,16 @@ import { AdminUsersClient } from "./users-client";
 import { serverFetch } from "@/lib/server-fetch";
 
 async function getUsers() {
-  const res = await serverFetch('/api/users', { cache: "no-store" });
+  const res = await serverFetch("/api/users", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load users");
   return res.json() as Promise<
-    Array<{ _id: string; name: string; email: string; role: string; isActive: boolean }>
+    Array<{
+      _id: string;
+      name: string;
+      email: string;
+      role: string;
+      isActive: boolean;
+    }>
   >;
 }
 
@@ -23,11 +29,12 @@ export default async function AdminUsersPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">Create and manage login accounts.</p>
+          <p className="text-muted-foreground">
+            Create and manage login accounts.
+          </p>
         </div>
         <AdminUsersClient initialUsers={users} />
       </div>
     </DashboardLayout>
   );
 }
-

@@ -2,9 +2,9 @@
 // Each returns { subject, html, text }.
 
 export interface EmailTemplate {
-  subject: string
-  html: string
-  text: string
+  subject: string;
+  html: string;
+  text: string;
 }
 
 function baseHtml(title: string, body: string): string {
@@ -45,7 +45,7 @@ function baseHtml(title: string, body: string): string {
     </tr>
   </table>
 </body>
-</html>`
+</html>`;
 }
 
 function ctaButton(label: string, url: string): string {
@@ -55,18 +55,18 @@ function ctaButton(label: string, url: string): string {
         <a href="${url}" style="display:inline-block;padding:12px 24px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a>
       </td>
     </tr>
-  </table>`
+  </table>`;
 }
 
 // ---------------------------------------------------------------------------
 
 export function taskAssignedEmail(opts: {
-  taskTitle: string
-  assigneeName: string
-  dueDate?: string
-  taskUrl: string
+  taskTitle: string;
+  assigneeName: string;
+  dueDate?: string;
+  taskUrl: string;
 }): EmailTemplate {
-  const subject = `Task assigned: ${opts.taskTitle}`
+  const subject = `Task assigned: ${opts.taskTitle}`;
 
   const bodyHtml = `
     <h2 style="margin:0 0 8px;font-size:20px;color:#18181b;">You have a new task</h2>
@@ -79,7 +79,7 @@ export function taskAssignedEmail(opts: {
       ${opts.dueDate ? `<p style="margin:0;font-size:13px;color:#71717a;">Due: ${opts.dueDate}</p>` : ""}
     </div>
     ${ctaButton("View task", opts.taskUrl)}
-  `
+  `;
 
   const text = [
     `Hi ${opts.assigneeName},`,
@@ -90,21 +90,21 @@ export function taskAssignedEmail(opts: {
     `View task: ${opts.taskUrl}`,
   ]
     .filter((l) => l !== null)
-    .join("\n")
+    .join("\n");
 
   return {
     subject,
     html: baseHtml(subject, bodyHtml),
     text,
-  }
+  };
 }
 
 export function reviewRequestEmail(opts: {
-  clientName: string
-  reviewerName: string
-  reviewUrl: string
+  clientName: string;
+  reviewerName: string;
+  reviewUrl: string;
 }): EmailTemplate {
-  const subject = `Review request for ${opts.clientName}`
+  const subject = `Review request for ${opts.clientName}`;
 
   const bodyHtml = `
     <h2 style="margin:0 0 8px;font-size:20px;color:#18181b;">Review request</h2>
@@ -114,7 +114,7 @@ export function reviewRequestEmail(opts: {
       Click the button below to complete your review.
     </p>
     ${ctaButton("Leave a review", opts.reviewUrl)}
-  `
+  `;
 
   const text = [
     `Hi ${opts.reviewerName},`,
@@ -122,22 +122,22 @@ export function reviewRequestEmail(opts: {
     `You have been asked to submit a review for ${opts.clientName}.`,
     ``,
     `Leave a review: ${opts.reviewUrl}`,
-  ].join("\n")
+  ].join("\n");
 
   return {
     subject,
     html: baseHtml(subject, bodyHtml),
     text,
-  }
+  };
 }
 
 export function leadNotificationEmail(opts: {
-  leadName: string
-  source?: string
-  clientName: string
-  leadUrl: string
+  leadName: string;
+  source?: string;
+  clientName: string;
+  leadUrl: string;
 }): EmailTemplate {
-  const subject = `New lead: ${opts.leadName}`
+  const subject = `New lead: ${opts.leadName}`;
 
   const bodyHtml = `
     <h2 style="margin:0 0 8px;font-size:20px;color:#18181b;">New lead received</h2>
@@ -149,7 +149,7 @@ export function leadNotificationEmail(opts: {
       ${opts.source ? `<p style="margin:0;font-size:13px;color:#71717a;">Source: ${opts.source}</p>` : ""}
     </div>
     ${ctaButton("View lead", opts.leadUrl)}
-  `
+  `;
 
   const text = [
     `New lead received for ${opts.clientName}:`,
@@ -160,11 +160,11 @@ export function leadNotificationEmail(opts: {
     `View lead: ${opts.leadUrl}`,
   ]
     .filter((l) => l !== null)
-    .join("\n")
+    .join("\n");
 
   return {
     subject,
     html: baseHtml(subject, bodyHtml),
     text,
-  }
+  };
 }

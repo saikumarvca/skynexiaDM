@@ -18,7 +18,11 @@ interface SavedFiltersBarProps {
   onApply: (filters: Record<string, string>) => void;
 }
 
-export function SavedFiltersBar({ entityType, currentFilters, onApply }: SavedFiltersBarProps) {
+export function SavedFiltersBar({
+  entityType,
+  currentFilters,
+  onApply,
+}: SavedFiltersBarProps) {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -97,14 +101,16 @@ export function SavedFiltersBar({ entityType, currentFilters, onApply }: SavedFi
   }
 
   const hasActiveFilters = Object.values(currentFilters).some(
-    (v) => v && v !== "ALL" && v !== ""
+    (v) => v && v !== "ALL" && v !== "",
   );
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
       <div className="flex items-center gap-1.5 shrink-0">
         <Bookmark className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-xs font-medium text-muted-foreground">Saved filters</span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Saved filters
+        </span>
       </div>
 
       {loading ? (
@@ -112,7 +118,9 @@ export function SavedFiltersBar({ entityType, currentFilters, onApply }: SavedFi
       ) : (
         <>
           {savedFilters.length === 0 && !showNameInput && (
-            <span className="text-xs text-muted-foreground/60">No saved filters yet</span>
+            <span className="text-xs text-muted-foreground/60">
+              No saved filters yet
+            </span>
           )}
 
           {savedFilters.map((sf) => (
@@ -160,7 +168,11 @@ export function SavedFiltersBar({ entityType, currentFilters, onApply }: SavedFi
                 disabled={saving || !filterName.trim()}
                 onClick={saveCurrentFilters}
               >
-                {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                {saving ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Check className="h-3 w-3" />
+                )}
               </Button>
               <Button
                 size="sm"

@@ -1,4 +1,4 @@
-import TeamActivityLog from '@/models/TeamActivityLog';
+import TeamActivityLog from "@/models/TeamActivityLog";
 
 export interface LogActivityParams {
   userId: string;
@@ -24,7 +24,7 @@ export interface ActivityQueryParams {
   limit?: number;
   page?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export function buildActivityQuery(params: ActivityQueryParams) {
@@ -34,7 +34,9 @@ export function buildActivityQuery(params: ActivityQueryParams) {
   if (params.dateFrom || params.dateTo) {
     query.createdAt = {};
     if (params.dateFrom) {
-      (query.createdAt as Record<string, Date>).$gte = new Date(params.dateFrom);
+      (query.createdAt as Record<string, Date>).$gte = new Date(
+        params.dateFrom,
+      );
     }
     if (params.dateTo) {
       const d = new Date(params.dateTo);

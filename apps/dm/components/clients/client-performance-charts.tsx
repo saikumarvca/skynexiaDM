@@ -1,46 +1,46 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface BarDatum {
-  label: string
-  value: number
-  color: string
+  label: string;
+  value: number;
+  color: string;
 }
 
 interface MonthlyDatum {
-  month: string
-  count: number
+  month: string;
+  count: number;
 }
 
 interface ClientAnalytics {
   summary: {
-    totalReviews: number
-    unusedReviews: number
-    usedReviews: number
-    archivedReviews: number
-    totalUsage: number
-  }
-  campaignsByStatus?: { status: string; count: number }[]
-  leadsByStatus?: { status: string; count: number }[]
-  monthlyReviewUsage?: MonthlyDatum[]
+    totalReviews: number;
+    unusedReviews: number;
+    usedReviews: number;
+    archivedReviews: number;
+    totalUsage: number;
+  };
+  campaignsByStatus?: { status: string; count: number }[];
+  leadsByStatus?: { status: string; count: number }[];
+  monthlyReviewUsage?: MonthlyDatum[];
 }
 
 // ─── SVG Bar Chart (vertical) ────────────────────────────────────────────────
 
 function VerticalBarChart({ data }: { data: BarDatum[] }) {
-  const W = 300
-  const H = 160
-  const PAD = { top: 16, right: 16, bottom: 40, left: 36 }
-  const chartW = W - PAD.left - PAD.right
-  const chartH = H - PAD.top - PAD.bottom
+  const W = 300;
+  const H = 160;
+  const PAD = { top: 16, right: 16, bottom: 40, left: 36 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
 
-  const maxVal = Math.max(...data.map((d) => d.value), 1)
-  const barWidth = chartW / data.length
-  const barPad = barWidth * 0.2
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
+  const barWidth = chartW / data.length;
+  const barPad = barWidth * 0.2;
 
   return (
     <svg
@@ -72,10 +72,10 @@ function VerticalBarChart({ data }: { data: BarDatum[] }) {
       />
 
       {data.map((d, i) => {
-        const barH = (d.value / maxVal) * chartH
-        const x = PAD.left + i * barWidth + barPad / 2
-        const y = PAD.top + chartH - barH
-        const w = barWidth - barPad
+        const barH = (d.value / maxVal) * chartH;
+        const x = PAD.left + i * barWidth + barPad / 2;
+        const y = PAD.top + chartH - barH;
+        const w = barWidth - barPad;
 
         return (
           <g key={d.label}>
@@ -103,23 +103,23 @@ function VerticalBarChart({ data }: { data: BarDatum[] }) {
               {d.label}
             </text>
           </g>
-        )
+        );
       })}
     </svg>
-  )
+  );
 }
 
 // ─── SVG Horizontal Bar Chart ────────────────────────────────────────────────
 
 function HorizontalBarChart({ data }: { data: BarDatum[] }) {
-  const W = 300
-  const ROW_H = 28
-  const LABEL_W = 90
-  const COUNT_W = 28
-  const BAR_AREA = W - LABEL_W - COUNT_W - 8
-  const H = data.length * ROW_H + 8
+  const W = 300;
+  const ROW_H = 28;
+  const LABEL_W = 90;
+  const COUNT_W = 28;
+  const BAR_AREA = W - LABEL_W - COUNT_W - 8;
+  const H = data.length * ROW_H + 8;
 
-  const maxVal = Math.max(...data.map((d) => d.value), 1)
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
 
   return (
     <svg
@@ -129,8 +129,8 @@ function HorizontalBarChart({ data }: { data: BarDatum[] }) {
       role="img"
     >
       {data.map((d, i) => {
-        const barW = (d.value / maxVal) * BAR_AREA
-        const y = i * ROW_H + 4
+        const barW = (d.value / maxVal) * BAR_AREA;
+        const y = i * ROW_H + 4;
 
         return (
           <g key={d.label}>
@@ -174,35 +174,35 @@ function HorizontalBarChart({ data }: { data: BarDatum[] }) {
               {d.value}
             </text>
           </g>
-        )
+        );
       })}
     </svg>
-  )
+  );
 }
 
 // ─── SVG Sparkline ───────────────────────────────────────────────────────────
 
 function Sparkline({ data, labels }: { data: number[]; labels: string[] }) {
-  const W = 300
-  const H = 80
-  const PAD = { top: 12, right: 16, bottom: 24, left: 28 }
-  const chartW = W - PAD.left - PAD.right
-  const chartH = H - PAD.top - PAD.bottom
+  const W = 300;
+  const H = 80;
+  const PAD = { top: 12, right: 16, bottom: 24, left: 28 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
 
-  const maxVal = Math.max(...data, 1)
-  const n = data.length
+  const maxVal = Math.max(...data, 1);
+  const n = data.length;
 
   const points = data.map((v, i) => {
-    const x = PAD.left + (i / Math.max(n - 1, 1)) * chartW
-    const y = PAD.top + chartH - (v / maxVal) * chartH
-    return `${x},${y}`
-  })
+    const x = PAD.left + (i / Math.max(n - 1, 1)) * chartW;
+    const y = PAD.top + chartH - (v / maxVal) * chartH;
+    return `${x},${y}`;
+  });
 
   const dotPoints = data.map((v, i) => ({
     x: PAD.left + (i / Math.max(n - 1, 1)) * chartW,
     y: PAD.top + chartH - (v / maxVal) * chartH,
     v,
-  }))
+  }));
 
   return (
     <svg
@@ -264,7 +264,7 @@ function Sparkline({ data, labels }: { data: number[]; labels: string[] }) {
         {maxVal}
       </text>
     </svg>
-  )
+  );
 }
 
 // ─── Campaign Status Badges ───────────────────────────────────────────────────
@@ -276,23 +276,23 @@ const CAMPAIGN_COLORS: Record<string, string> = {
   COMPLETED: "#14b8a6",
   CANCELLED: "#9ca3af",
   ARCHIVED: "#6b7280",
-}
+};
 
 function CampaignStatusBadges({
   data,
 }: {
-  data: { status: string; count: number }[]
+  data: { status: string; count: number }[];
 }) {
   if (!data || data.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">No campaign data yet.</p>
-    )
+    );
   }
 
   return (
     <div className="flex flex-wrap gap-3">
       {data.map((d) => {
-        const color = CAMPAIGN_COLORS[d.status] ?? "#9ca3af"
+        const color = CAMPAIGN_COLORS[d.status] ?? "#9ca3af";
         return (
           <div
             key={d.status}
@@ -315,10 +315,10 @@ function CampaignStatusBadges({
               {d.count}
             </span>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 // ─── Lead Status Colors ───────────────────────────────────────────────────────
@@ -329,34 +329,34 @@ const LEAD_COLORS: Record<string, string> = {
   QUALIFIED: "#f59e0b",
   CLOSED_WON: "#22c55e",
   CLOSED_LOST: "#ef4444",
-}
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface Props {
-  clientId: string
+  clientId: string;
 }
 
 export function ClientPerformanceCharts({ clientId }: Props) {
-  const [analytics, setAnalytics] = useState<ClientAnalytics | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [analytics, setAnalytics] = useState<ClientAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/clients/${clientId}/analytics`)
-        if (!res.ok) throw new Error("Failed to fetch analytics")
-        const data = await res.json()
-        setAnalytics(data)
+        const res = await fetch(`/api/clients/${clientId}/analytics`);
+        if (!res.ok) throw new Error("Failed to fetch analytics");
+        const data = await res.json();
+        setAnalytics(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error")
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    load()
-  }, [clientId])
+    load();
+  }, [clientId]);
 
   if (loading) {
     return (
@@ -371,7 +371,7 @@ export function ClientPerformanceCharts({ clientId }: Props) {
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
   if (error || !analytics) {
@@ -379,35 +379,51 @@ export function ClientPerformanceCharts({ clientId }: Props) {
       <p className="text-sm text-muted-foreground">
         {error ?? "No analytics data available."}
       </p>
-    )
+    );
   }
 
   // Chart 1 — Reviews by Status
   const reviewStatusData: BarDatum[] = [
-    { label: "UNUSED", value: analytics.summary.unusedReviews, color: "#3b82f6" },
+    {
+      label: "UNUSED",
+      value: analytics.summary.unusedReviews,
+      color: "#3b82f6",
+    },
     { label: "USED", value: analytics.summary.usedReviews, color: "#22c55e" },
-    { label: "ARCHIVED", value: analytics.summary.archivedReviews, color: "#9ca3af" },
-  ]
+    {
+      label: "ARCHIVED",
+      value: analytics.summary.archivedReviews,
+      color: "#9ca3af",
+    },
+  ];
 
   // Chart 2 — Leads by Status
-  const LEAD_ORDER = ["NEW", "CONTACTED", "QUALIFIED", "CLOSED_WON", "CLOSED_LOST"]
+  const LEAD_ORDER = [
+    "NEW",
+    "CONTACTED",
+    "QUALIFIED",
+    "CLOSED_WON",
+    "CLOSED_LOST",
+  ];
   const leadMap = Object.fromEntries(
-    (analytics.leadsByStatus ?? []).map((l) => [l.status, l.count])
-  )
+    (analytics.leadsByStatus ?? []).map((l) => [l.status, l.count]),
+  );
   const leadsData: BarDatum[] = LEAD_ORDER.map((s) => ({
     label: s.replace("_", " "),
     value: leadMap[s] ?? 0,
     color: LEAD_COLORS[s] ?? "#9ca3af",
-  }))
+  }));
 
   // Chart 4 — Monthly review usage sparkline
-  const monthly = analytics.monthlyReviewUsage ?? []
-  const sparkValues = monthly.map((m) => m.count)
+  const monthly = analytics.monthlyReviewUsage ?? [];
+  const sparkValues = monthly.map((m) => m.count);
   const sparkLabels = monthly.map((m) => {
     // e.g. "2025-03" → "Mar"
-    const [, mo] = m.month.split("-")
-    return new Date(2000, Number(mo) - 1, 1).toLocaleString("en", { month: "short" })
-  })
+    const [, mo] = m.month.split("-");
+    return new Date(2000, Number(mo) - 1, 1).toLocaleString("en", {
+      month: "short",
+    });
+  });
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -437,7 +453,9 @@ export function ClientPerformanceCharts({ clientId }: Props) {
       {/* Chart 2 — Leads by Status */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Leads by Status</CardTitle>
+          <CardTitle className="text-sm font-semibold">
+            Leads by Status
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {leadsData.every((d) => d.value === 0) ? (
@@ -478,5 +496,5 @@ export function ClientPerformanceCharts({ clientId }: Props) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

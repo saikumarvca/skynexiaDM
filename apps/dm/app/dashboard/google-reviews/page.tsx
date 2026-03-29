@@ -1,12 +1,12 @@
-import { DashboardLayout } from '@/components/dashboard-layout';
-import { GoogleReviewsClient } from '@/components/google-reviews/google-reviews-client';
-import { serverFetch } from '@/lib/server-fetch';
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { GoogleReviewsClient } from "@/components/google-reviews/google-reviews-client";
+import { serverFetch } from "@/lib/server-fetch";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 async function getClients() {
   try {
-    const res = await serverFetch('/api/clients?limit=500');
+    const res = await serverFetch("/api/clients?limit=500");
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -16,7 +16,7 @@ async function getClients() {
 
 async function getExternalReviews() {
   try {
-    const res = await serverFetch('/api/google-reviews');
+    const res = await serverFetch("/api/google-reviews");
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -25,7 +25,10 @@ async function getExternalReviews() {
 }
 
 export default async function GoogleReviewsPage() {
-  const [clients, reviews] = await Promise.all([getClients(), getExternalReviews()]);
+  const [clients, reviews] = await Promise.all([
+    getClients(),
+    getExternalReviews(),
+  ]);
 
   return (
     <DashboardLayout>
