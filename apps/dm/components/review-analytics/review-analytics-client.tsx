@@ -129,6 +129,7 @@ function MonthlyTrendsChart({
       {data.map((d, i) => {
         const up = usedPts[i]
         const dp = draftedPts[i]
+        if (!dp || !up) return null
         return (
           <g key={d.month}>
             <circle cx={dp.x} cy={dp.y} r={3} fill="#3b82f6" />

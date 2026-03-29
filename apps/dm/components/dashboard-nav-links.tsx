@@ -74,8 +74,8 @@ export function DashboardNavLinks({
     Admin: isAdminActive,
   })
 
-  const sectionCloseTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
-  const flyoutCloseTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const sectionCloseTimers = useRef<Map<string, number>>(new Map())
+  const flyoutCloseTimers = useRef<Map<string, number>>(new Map())
   const [flyoutOpen, setFlyoutOpen] = useState<string | null>(null)
 
   const cancelSectionClose = useCallback((name: string) => {
@@ -95,7 +95,7 @@ export function DashboardNavLinks({
         if (!sectionStillActiveForPath(name, p)) {
           setExpandedSections((prev) => ({ ...prev, [name]: false }))
         }
-      }, HOVER_CLOSE_MS)
+      }, HOVER_CLOSE_MS) as unknown as number
       sectionCloseTimers.current.set(name, id)
     },
     [cancelSectionClose]
@@ -115,7 +115,7 @@ export function DashboardNavLinks({
       const id = window.setTimeout(() => {
         flyoutCloseTimers.current.delete(name)
         setFlyoutOpen((cur) => (cur === name ? null : cur))
-      }, HOVER_CLOSE_MS)
+      }, HOVER_CLOSE_MS) as unknown as number
       flyoutCloseTimers.current.set(name, id)
     },
     [cancelFlyoutClose]
