@@ -5,13 +5,33 @@ import { Palette } from "lucide-react";
 
 const STORAGE_KEY = "dm-theme";
 
-type Theme = "default" | "vivid" | "ocean" | "rose" | "dark" | "midnight" | "dracula" | "forest" | "sunset";
+type Theme =
+  | "default"
+  | "vivid"
+  | "ocean"
+  | "rose"
+  | "default-mid"
+  | "vivid-mid"
+  | "ocean-mid"
+  | "rose-mid"
+  | "dark"
+  | "midnight"
+  | "dracula"
+  | "forest"
+  | "sunset";
 
 const LIGHT_THEMES: { value: Theme; label: string; dot: string }[] = [
   { value: "default",  label: "Default",  dot: "bg-blue-500" },
   { value: "vivid",    label: "Vivid",    dot: "bg-emerald-500" },
   { value: "ocean",    label: "Ocean",    dot: "bg-cyan-500" },
   { value: "rose",     label: "Rose",     dot: "bg-rose-500" },
+];
+
+const MID_THEMES: { value: Theme; label: string; dot: string }[] = [
+  { value: "default-mid", label: "Default Mid", dot: "bg-blue-600" },
+  { value: "vivid-mid",   label: "Vivid Mid",   dot: "bg-emerald-600" },
+  { value: "ocean-mid",   label: "Ocean Mid",   dot: "bg-cyan-600" },
+  { value: "rose-mid",    label: "Rose Mid",    dot: "bg-rose-600" },
 ];
 
 const DARK_THEMES: { value: Theme; label: string; dot: string }[] = [
@@ -22,7 +42,7 @@ const DARK_THEMES: { value: Theme; label: string; dot: string }[] = [
   { value: "sunset",   label: "Sunset",   dot: "bg-orange-400" },
 ];
 
-const ALL_THEMES = [...LIGHT_THEMES, ...DARK_THEMES];
+const ALL_THEMES = [...LIGHT_THEMES, ...MID_THEMES, ...DARK_THEMES];
 
 function applyTheme(theme: Theme) {
   if (theme === "default") {
@@ -40,7 +60,8 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const initial: Theme = stored ?? "default";
+    const valid = new Set(ALL_THEMES.map((t) => t.value));
+    const initial: Theme = stored && valid.has(stored) ? stored : "default";
     setTheme(initial);
     applyTheme(initial);
     setMounted(true);
@@ -65,7 +86,8 @@ export function ThemeToggle() {
 
   if (!mounted) return null;
 
-  const current = ALL_THEMES.find((t) => t.value === theme)!;
+  const current =
+    ALL_THEMES.find((t) => t.value === theme) ?? LIGHT_THEMES[0]!;
 
   return (
     <div ref={ref} className="relative">
@@ -88,6 +110,27 @@ export function ThemeToggle() {
             Light
           </p>
           {LIGHT_THEMES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => select(t.value)}
+              className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-xs hover:bg-muted transition-colors ${
+                theme === t.value ? "font-semibold text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${t.dot}`} />
+              {t.label}
+              {theme === t.value && <span className="ml-auto text-primary">✓</span>}
+            </button>
+          ))}
+
+          <div className="my-1 border-t border-border" />
+
+          {/* Mid themes — softened light, slightly darker surfaces */}
+          <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Mid
+          </p>
+          {MID_THEMES.map((t) => (
             <button
               key={t.value}
               type="button"

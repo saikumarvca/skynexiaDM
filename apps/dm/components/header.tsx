@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { GlobalSearch } from "@/components/global-search"
 import { MobileDashboardNav } from "@/components/mobile-dashboard-nav"
 import { NotificationBell } from "@/components/notification-bell"
+import { cn } from "@/lib/utils"
 
 function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -72,12 +73,22 @@ export function Header({
             <Settings className="h-4 w-4" />
           </Link>
         </Button>
-        <div
-          className="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground select-none sm:ml-2"
-          title={sessionUser ? `${sessionUser.name} (${sessionUser.email})` : undefined}
+        <Link
+          href="/dashboard"
+          className={cn(
+            "ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground no-underline select-none transition-colors",
+            "hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            "sm:ml-2"
+          )}
+          title={
+            sessionUser
+              ? `${sessionUser.name} (${sessionUser.email}) — open dashboard home`
+              : "Open dashboard home"
+          }
+          aria-label="Open dashboard home"
         >
           {avatar}
-        </div>
+        </Link>
       </div>
     </header>
   )

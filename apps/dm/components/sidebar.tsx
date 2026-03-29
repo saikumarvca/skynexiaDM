@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useLayoutEffect, useCallback } from "react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { BarChart3, PanelLeftClose, PanelLeft } from "lucide-react"
@@ -52,14 +53,25 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           collapsed ? "flex-col justify-center px-1 py-2 gap-1.5" : "px-4 gap-2.5"
         )}
       >
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary">
-          <BarChart3 className="h-4 w-4 text-primary-foreground" />
-        </div>
-        {!collapsed && (
-          <h1 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight">
-            DM Dashboard
-          </h1>
-        )}
+        <Link
+          href="/dashboard"
+          className={cn(
+            "flex items-center gap-2.5 rounded-lg text-foreground transition-colors",
+            "hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+            collapsed ? "flex-1 flex-col justify-center py-0.5" : "min-w-0 flex-1 -mx-1 px-1 py-0.5"
+          )}
+          title="Go to dashboard home"
+          aria-label="DM Dashboard — go to home"
+        >
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary">
+            <BarChart3 className="h-4 w-4 text-primary-foreground" />
+          </div>
+          {!collapsed && (
+            <h1 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight">
+              DM Dashboard
+            </h1>
+          )}
+        </Link>
         <Button
           type="button"
           variant="ghost"

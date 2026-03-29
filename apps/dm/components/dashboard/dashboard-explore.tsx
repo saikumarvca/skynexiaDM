@@ -69,13 +69,15 @@ const items = [
   },
 ] as const
 
-export function DashboardExplore() {
+export function DashboardExplore({ hideIntro = false }: { hideIntro?: boolean }) {
   return (
     <div className="space-y-3">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">Explore</h2>
-        <p className="text-sm text-muted-foreground">Jump into the areas you use most</p>
-      </div>
+      {!hideIntro ? (
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Explore</h2>
+          <p className="text-sm text-muted-foreground">Jump into the areas you use most</p>
+        </div>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map(({ href, title, description, icon: Icon, className, iconClass }) => (
           <Link

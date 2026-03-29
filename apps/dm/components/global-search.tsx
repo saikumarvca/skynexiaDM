@@ -6,7 +6,7 @@ import {
   Search, Home, Users, Users2, Target, Layers, ClipboardList,
   FileText, ClipboardCheck, UserPlus, UserCheck, CheckCircle,
   BarChart3, Settings, Activity, TrendingUp, Loader2, X, ArrowLeft,
-  ArrowRight, Hash, CalendarClock, LayoutTemplate, Shield,
+  ArrowRight, Hash, CalendarClock, LayoutTemplate, Shield, MessageSquare,
 } from "lucide-react";
 
 interface LiveClient {
@@ -87,6 +87,7 @@ const GROUPS: Group[] = [
 const ALL_ITEMS: SearchItem[] = [
   // Main
   { name: "Dashboard",       href: "/dashboard",                 group: "Main",      icon: Home },
+  { name: "Connect Wall",    href: "/connect-wall",              group: "Main",      icon: MessageSquare, keywords: "slack chat team org" },
   { name: "Analytics",       href: "/dashboard/analytics",       group: "Analytics", icon: BarChart3 },
   { name: "Settings",        href: "/dashboard/settings",        group: "Settings",  icon: Settings },
   { name: "Notifications",   href: "/dashboard/notifications",   group: "Settings",  icon: Activity },

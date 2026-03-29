@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Menu } from "lucide-react"
 import {
   Sheet,
@@ -34,7 +35,15 @@ export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
         className="flex w-[min(100vw-1rem,20rem)] max-w-[20rem] flex-col gap-0 p-0 sm:max-w-[20rem]"
       >
         <SheetHeader className="space-y-0 border-b px-4 py-4 text-left">
-          <SheetTitle className="text-base font-semibold">DM Dashboard</SheetTitle>
+          <SheetTitle asChild className="text-base font-semibold">
+            <Link
+              href="/dashboard"
+              className="inline-flex rounded-md text-base font-semibold hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              onClick={() => setOpen(false)}
+            >
+              DM Dashboard
+            </Link>
+          </SheetTitle>
           <SheetDescription className="sr-only">
             Main navigation for the dashboard. Choose a section to open it.
           </SheetDescription>

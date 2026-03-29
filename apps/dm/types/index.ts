@@ -90,10 +90,28 @@ export interface DashboardTechnicalCounts {
   reviewRequests: number;
 }
 
+export interface DashboardTechnicalBreakdown {
+  webhooksEnabled: number;
+  webhooksDisabled: number;
+  usersActive: number;
+  usersInactive: number;
+  teamActive: number;
+  teamInactive: number;
+  clientsArchived: number;
+  reviewsArchived: number;
+}
+
 export interface DashboardTechnicalSnapshot {
   appVersion: string;
   nodeEnv: string;
+  /** ISO timestamp when this snapshot was generated on the server. */
+  generatedAt: string;
+  /** Public app URL from env when configured (never secrets). */
+  publicAppUrl: string | null;
   counts: DashboardTechnicalCounts;
+  breakdown: DashboardTechnicalBreakdown;
+  /** Sum of all `counts` values — scale at a glance. */
+  totalDocuments: number;
 }
 
 export interface ClientFormData {
