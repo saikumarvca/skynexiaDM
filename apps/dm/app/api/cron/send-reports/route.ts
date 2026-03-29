@@ -35,7 +35,6 @@ function computeNextSendAt(
 }
 
 type ScheduleDoc = {
-  _id: string;
   name: string;
   sections: string[];
   clientId: { _id: string; businessName?: string; name?: string } | string;
@@ -45,11 +44,18 @@ type ScheduleDoc = {
   recipients: { email: string }[];
 };
 
+function mongoRefToIdString(ref: unknown): string {
+  if (ref == null) return "";
+  if (typeof ref === "string") return ref;
+  if (typeof ref === "object" && "_id" in ref) {
+    const id = (ref as { _id: unknown })._id;
+    return id != null ? String(id) : "";
+  }
+  return String(ref);
+}
+
 async function buildReportHtml(schedule: ScheduleDoc): Promise<string> {
-  const clientId =
-    typeof schedule.clientId === "string"
-      ? schedule.clientId
-      : String((schedule.clientId as { _id: string })._id);
+  const clientId = mongoRefToIdString(schedule.clientId);
   const clientName =
     typeof schedule.clientId === "object"
       ? ((schedule.clientId as { businessName?: string; name?: string })
@@ -126,7 +132,9 @@ export async function GET(request: NextRequest) {
 
     for (const schedule of due) {
       try {
-        const html = await buildReportHtml(schedule.toObject() as ScheduleDoc);
+        const html = await buildReportHtml(
+          schedule.toObject() as unknown as ScheduleDoc,
+        );
         const emails = schedule.recipients.map(
           (r: { email: string }) => r.email,
         );
@@ -138,10 +146,7 @@ export async function GET(request: NextRequest) {
 
         await ReportSendLog.create({
           reportScheduleId: schedule._id,
-          clientId:
-            typeof schedule.clientId === "object"
-              ? (schedule.clientId as { _id: string })._id
-              : schedule.clientId,
+          clientId: mongoRefToIdString(schedule.clientId),
           sentAt: new Date(),
           recipients: emails,
           status: result.success ? "SUCCESS" : "FAILED",

@@ -17,10 +17,14 @@ export async function GET(request: NextRequest) {
     if (clientId) query.clientId = clientId;
     if (userId) query.userId = userId;
     if (month) {
-      const [year, mo] = month.split("-").map(Number);
-      const start = new Date(year, mo - 1, 1);
-      const end = new Date(year, mo, 1);
-      query.date = { $gte: start, $lt: end };
+      const [ys, ms] = month.split("-");
+      const year = Number(ys);
+      const mo = Number(ms);
+      if (Number.isFinite(year) && Number.isFinite(mo)) {
+        const start = new Date(year, mo - 1, 1);
+        const end = new Date(year, mo, 1);
+        query.date = { $gte: start, $lt: end };
+      }
     }
 
     const agg = await TimeEntry.aggregate([
@@ -62,7 +66,7 @@ export async function GET(request: NextRequest) {
           as: "client",
         },
       },
-      { $unwind: { path: "$client", preserveNullAndEmpty: true } },
+      { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
       { $sort: { totalMinutes: -1 } },
     ]);
 

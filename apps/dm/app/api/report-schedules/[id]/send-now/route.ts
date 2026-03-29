@@ -16,15 +16,24 @@ function esc(v: unknown): string {
     .replace(/>/g, "&gt;");
 }
 
-async function buildReportHtml(schedule: {
+function mongoRefToIdString(ref: unknown): string {
+  if (ref == null) return "";
+  if (typeof ref === "string") return ref;
+  if (typeof ref === "object" && "_id" in ref) {
+    const id = (ref as { _id: unknown })._id;
+    return id != null ? String(id) : "";
+  }
+  return String(ref);
+}
+
+type ScheduleEmailDoc = {
   sections: string[];
   clientId: { _id: string; businessName?: string; name?: string } | string;
   name: string;
-}): Promise<string> {
-  const clientId =
-    typeof schedule.clientId === "string"
-      ? schedule.clientId
-      : String((schedule.clientId as { _id: string })._id);
+};
+
+async function buildReportHtml(schedule: ScheduleEmailDoc): Promise<string> {
+  const clientId = mongoRefToIdString(schedule.clientId);
   const clientName =
     typeof schedule.clientId === "object"
       ? ((schedule.clientId as { businessName?: string; name?: string })
@@ -98,7 +107,9 @@ export async function POST(
     if (!schedule)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const html = await buildReportHtml(schedule.toObject());
+    const html = await buildReportHtml(
+      schedule.toObject() as unknown as ScheduleEmailDoc,
+    );
     const emails = schedule.recipients.map((r: { email: string }) => r.email);
 
     const result = await sendEmail({
@@ -109,7 +120,7 @@ export async function POST(
 
     await ReportSendLog.create({
       reportScheduleId: schedule._id,
-      clientId: schedule.clientId,
+      clientId: mongoRefToIdString(schedule.clientId),
       sentAt: new Date(),
       recipients: emails,
       status: result.success ? "SUCCESS" : "FAILED",

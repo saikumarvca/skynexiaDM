@@ -12,7 +12,7 @@ function esc(v: unknown): string {
     .replace(/>/g, "&gt;");
 }
 
-function buildInvoiceHtml(invoice: {
+type InvoiceEmailDoc = {
   invoiceNumber: string;
   issueDate: Date;
   dueDate: Date;
@@ -28,7 +28,9 @@ function buildInvoiceHtml(invoice: {
   currency: string;
   notes?: string;
   clientId: { businessName?: string; name?: string; email?: string } | string;
-}): string {
+};
+
+function buildInvoiceHtml(invoice: InvoiceEmailDoc): string {
   const clientName =
     typeof invoice.clientId === "object"
       ? ((invoice.clientId as { businessName?: string; name?: string })
@@ -84,7 +86,9 @@ export async function POST(
       );
     }
 
-    const html = buildInvoiceHtml(invoice.toObject());
+    const html = buildInvoiceHtml(
+      invoice.toObject() as unknown as InvoiceEmailDoc,
+    );
     const result = await sendEmail({
       to: clientEmail,
       subject: `Invoice ${invoice.invoiceNumber}`,
