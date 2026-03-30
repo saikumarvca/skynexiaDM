@@ -579,25 +579,25 @@ export function TechnicalView({
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
-              href: "/dashboard/admin/users",
+              href: "/admin/users",
               title: "Users & roles",
               desc: "Login accounts, activation, RBAC entry point",
               icon: UserCog,
             },
             {
-              href: "/dashboard/admin/webhooks",
+              href: "/admin/webhooks",
               title: "Webhooks",
               desc: "Outbound integrations and delivery health",
               icon: Webhook,
             },
             {
-              href: "/dashboard/admin/audit-log",
+              href: "/admin/audit-log",
               title: "Audit log",
               desc: "Immutable trail of sensitive actions",
               icon: ScrollText,
             },
             {
-              href: "/dashboard/settings",
+              href: "/settings",
               title: "Settings",
               desc: "Profile, email, and app preferences",
               icon: Shield,
@@ -609,7 +609,7 @@ export function TechnicalView({
               icon: Users,
             },
             {
-              href: "/dashboard/analytics",
+              href: "/analytics",
               title: "Analytics",
               desc: "Campaigns, leads, and spend overview",
               icon: BarChart3,

@@ -125,7 +125,7 @@ export default async function TeamReviewAssignmentsPage({
             <p className="text-sm text-muted-foreground">
               Manage allocations in{" "}
               <Link
-                href="/dashboard/review-allocations"
+                href="/reviews/allocations"
                 className="text-primary hover:underline"
               >
                 Review Allocations
@@ -136,7 +136,7 @@ export default async function TeamReviewAssignmentsPage({
             {allocations.length === 0 ? (
               <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
                 <p>No review allocations match your filters.</p>
-                <Link href="/dashboard/review-allocations">
+                <Link href="/reviews/allocations">
                   <span className="mt-2 inline-block text-sm text-primary hover:underline">
                     Go to Review Allocations
                   </span>
@@ -205,7 +205,7 @@ export default async function TeamReviewAssignmentsPage({
                             </TableCell>
                             <TableCell>
                               <Link
-                                href="/dashboard/review-allocations"
+                                href="/reviews/allocations"
                                 className="text-muted-foreground hover:text-foreground"
                               >
                                 <ExternalLink className="h-4 w-4" />
