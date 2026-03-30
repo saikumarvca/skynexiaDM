@@ -36,6 +36,13 @@ function getDraftInfo(a: ReviewAllocation) {
   return { subject: "—", preview: "—", clientName: "—" };
 }
 
+function getDraftReviewText(a: ReviewAllocation | null): string | undefined {
+  if (!a || typeof a.draftId !== "object" || !a.draftId) return undefined;
+  const t = (a.draftId as { reviewText?: string }).reviewText;
+  const s = (t ?? "").trim();
+  return s || undefined;
+}
+
 function getDraftClientId(a: ReviewAllocation) {
   const d = a.draftId;
   if (typeof d === "object" && d) {
@@ -412,6 +419,7 @@ export function ReviewAllocationTable({
         defaultPlatform={sharedAlloc?.platform}
         defaultCustomerName={sharedAlloc?.customerName}
         defaultCustomerContact={sharedAlloc?.customerContact}
+        draftReviewText={getDraftReviewText(sharedAlloc)}
       />
 
       <MarkPostedModal

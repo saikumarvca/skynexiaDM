@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { MarkSharedFormData } from "@/types/reviews";
+import { openWhatsAppChat, parseWhatsAppDigits } from "@/lib/whatsapp-url";
 
 interface MarkSharedModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ interface MarkSharedModalProps {
   defaultPlatform?: string;
   defaultCustomerName?: string;
   defaultCustomerContact?: string;
+  /** Draft review body for "Send Comments on WA". */
+  draftReviewText?: string;
 }
 
 type ClientReviewDestination = {
@@ -50,7 +53,9 @@ export function MarkSharedModal({
   defaultPlatform,
   defaultCustomerName,
   defaultCustomerContact,
+  draftReviewText = "",
 }: MarkSharedModalProps) {
+  const commentBody = (draftReviewText ?? "").trim();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDestination, setIsLoadingDestination] = useState(false);
   const [copiedDestination, setCopiedDestination] = useState(false);
@@ -147,6 +152,9 @@ export function MarkSharedModal({
       toast.error("Could not copy destination link");
     }
   };
+
+  const waPhone = parseWhatsAppDigits(customerContact);
+  const showWaButtons = waPhone !== null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -287,6 +295,71 @@ export function MarkSharedModal({
               <option value="Other">Other</option>
             </select>
           </div>
+          {showWaButtons ? (
+            <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">
+                WhatsApp opens in a new tab. Very long messages may be trimmed
+                by WhatsApp.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  disabled={
+                    !customerName.trim() ||
+                    !platform ||
+                    !reviewDestinationUrl.trim()
+                  }
+                  onClick={() => {
+                    if (!waPhone) {
+                      toast.error(
+                        "Enter a valid phone number with country code.",
+                      );
+                      return;
+                    }
+                    if (
+                      !customerName.trim() ||
+                      !platform ||
+                      !reviewDestinationUrl.trim()
+                    ) {
+                      toast.error(
+                        "Fill customer name and platform, and ensure a review link is shown above.",
+                      );
+                      return;
+                    }
+                    openWhatsAppChat(
+                      waPhone,
+                      `Dear ${customerName.trim()}, could you please review us on the ${platform} ,${reviewDestinationUrl}.`,
+                    );
+                  }}
+                >
+                  Ask review on WA
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  disabled={!commentBody}
+                  onClick={() => {
+                    if (!waPhone) {
+                      toast.error(
+                        "Enter a valid phone number with country code.",
+                      );
+                      return;
+                    }
+                    if (!commentBody) {
+                      toast.error("No review text to send.");
+                      return;
+                    }
+                    openWhatsAppChat(waPhone, commentBody);
+                  }}
+                >
+                  Send Comments on WA
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <div>
             <label className="block text-sm font-medium mb-1">
               Sent Date *

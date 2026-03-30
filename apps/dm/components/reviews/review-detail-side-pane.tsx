@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { openWhatsAppChat, parseWhatsAppDigits } from "@/lib/whatsapp-url";
 import {
   Sheet,
   SheetContent,
@@ -35,6 +37,15 @@ function getDraftInfo(a: ReviewAllocation) {
     };
   }
   return { subject: "—", description: "—" };
+}
+
+function getDraftReviewText(a: ReviewAllocation): string {
+  const d = a.draftId;
+  if (typeof d === "object" && d) {
+    const t = (d as { reviewText?: string }).reviewText;
+    return (t ?? "").trim();
+  }
+  return "";
 }
 
 interface ReviewDetailSidePaneProps {
@@ -171,6 +182,9 @@ export function ReviewDetailSidePane({
   if (!allocation) return null;
 
   const { subject, description } = getDraftInfo(allocation);
+  const reviewBody = getDraftReviewText(allocation);
+  const waPhone = parseWhatsAppDigits(customerContact);
+  const showWaButtons = waPhone !== null;
   const canMarkShared = allocation.allocationStatus === "Assigned";
   const canMarkPosted =
     allocation.allocationStatus === "Assigned" ||
@@ -367,6 +381,71 @@ export function ReviewDetailSidePane({
                     <option value="Other">Other</option>
                   </select>
                 </div>
+                {showWaButtons ? (
+                  <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      WhatsApp opens in a new tab. Very long messages may be
+                      trimmed by WhatsApp.
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        disabled={
+                          !customerName.trim() ||
+                          !platform ||
+                          !reviewDestinationUrl.trim()
+                        }
+                        onClick={() => {
+                          if (!waPhone) {
+                            toast.error(
+                              "Enter a valid phone number with country code.",
+                            );
+                            return;
+                          }
+                          if (
+                            !customerName.trim() ||
+                            !platform ||
+                            !reviewDestinationUrl.trim()
+                          ) {
+                            toast.error(
+                              "Fill customer name and platform, and ensure a review link is shown above.",
+                            );
+                            return;
+                          }
+                          openWhatsAppChat(
+                            waPhone,
+                            `Dear ${customerName.trim()}, could you please review us on the ${platform} ,${reviewDestinationUrl}.`,
+                          );
+                        }}
+                      >
+                        Ask review on WA
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        disabled={!reviewBody}
+                        onClick={() => {
+                          if (!waPhone) {
+                            toast.error(
+                              "Enter a valid phone number with country code.",
+                            );
+                            return;
+                          }
+                          if (!reviewBody) {
+                            toast.error("No review text to send.");
+                            return;
+                          }
+                          openWhatsAppChat(waPhone, reviewBody);
+                        }}
+                      >
+                        Send Comments on WA
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
                     Sent Date <span className="text-destructive">*</span>
