@@ -84,7 +84,6 @@ async function checkRateLimitMongo(key: string): Promise<RateLimitResult> {
         key,
         bucketStartMs,
         expiresAt: new Date(bucketEndMs + WINDOW_MS), // extra buffer for clock skew
-        count: 0,
       },
       $inc: { count: 1 },
     },
