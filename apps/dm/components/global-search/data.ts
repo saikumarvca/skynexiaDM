@@ -1,0 +1,341 @@
+import {
+  Activity,
+  BarChart3,
+  CalendarClock,
+  CheckCircle,
+  ClipboardCheck,
+  ClipboardList,
+  FileText,
+  Home,
+  Layers,
+  LayoutTemplate,
+  Loader2,
+  MessageSquare,
+  Package,
+  Search,
+  Settings,
+  Shield,
+  Target,
+  TrendingUp,
+  UserCheck,
+  UserPlus,
+  Users,
+  Users2,
+} from "lucide-react";
+import type { Group, SearchItem } from "./types";
+
+export const GROUPS: Group[] = [
+  { name: "Main", icon: Home, description: "Dashboard, Analytics, Settings" },
+  {
+    name: "Reviews",
+    icon: FileText,
+    description: "Drafts, Allocations, Analytics",
+  },
+  { name: "Team", icon: Users2, description: "Users, Roles, Workload" },
+  { name: "Clients", icon: Users, description: "Client list, Add client" },
+  {
+    name: "Campaigns",
+    icon: Target,
+    description: "All campaigns, New campaign",
+  },
+  { name: "Content", icon: Layers, description: "Content bank, SEO, Keywords" },
+  { name: "Leads", icon: TrendingUp, description: "All leads, Pipeline" },
+  { name: "Tasks", icon: ClipboardList, description: "All tasks, New task" },
+  {
+    name: "Analytics",
+    icon: BarChart3,
+    description: "Dashboard, Reviews, Performance",
+  },
+  {
+    name: "Settings",
+    icon: Settings,
+    description: "App settings, Notifications",
+  },
+];
+
+export const ALL_ITEMS: SearchItem[] = [
+  // Main
+  { name: "Dashboard", href: "/dashboard", group: "Main", icon: Home },
+  {
+    name: "Connect",
+    href: "/connect-wall",
+    group: "Main",
+    icon: MessageSquare,
+    keywords: "slack chat team org",
+  },
+  {
+    name: "Analytics",
+    href: "/dashboard/analytics",
+    group: "Analytics",
+    icon: BarChart3,
+  },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    group: "Settings",
+    icon: Settings,
+  },
+  {
+    name: "Item master",
+    href: "/dashboard/settings/item-master",
+    group: "Settings",
+    icon: Package,
+    keywords: "invoice catalog sku products services billing",
+  },
+  {
+    name: "Notifications",
+    href: "/dashboard/notifications",
+    group: "Settings",
+    icon: Activity,
+  },
+
+  // Clients
+  {
+    name: "All Clients",
+    href: "/clients",
+    group: "Clients",
+    icon: Users,
+    keywords: "client list",
+  },
+  {
+    name: "Add New Client",
+    href: "/clients/new",
+    group: "Clients",
+    icon: Users,
+    keywords: "create client",
+  },
+
+  // Campaigns
+  {
+    name: "All Campaigns",
+    href: "/dashboard/campaigns",
+    group: "Campaigns",
+    icon: Target,
+  },
+  {
+    name: "New Campaign",
+    href: "/dashboard/campaigns/new",
+    group: "Campaigns",
+    icon: Target,
+    keywords: "create campaign",
+  },
+
+  // Leads
+  {
+    name: "All Leads",
+    href: "/dashboard/leads",
+    group: "Leads",
+    icon: TrendingUp,
+  },
+  {
+    name: "New Lead",
+    href: "/dashboard/leads/new",
+    group: "Leads",
+    icon: TrendingUp,
+    keywords: "create lead",
+  },
+
+  // Content
+  {
+    name: "Content Bank",
+    href: "/dashboard/content",
+    group: "Content",
+    icon: Layers,
+  },
+  {
+    name: "New Content",
+    href: "/dashboard/content/new",
+    group: "Content",
+    icon: Layers,
+    keywords: "create content",
+  },
+  {
+    name: "Scheduled posts",
+    href: "/dashboard/scheduled-posts",
+    group: "Content",
+    icon: CalendarClock,
+    keywords: "calendar publish",
+  },
+  {
+    name: "New scheduled post",
+    href: "/dashboard/scheduled-posts/new",
+    group: "Content",
+    icon: CalendarClock,
+  },
+  {
+    name: "SEO / Keywords",
+    href: "/dashboard/seo",
+    group: "Content",
+    icon: Search,
+    keywords: "seo keywords",
+  },
+  {
+    name: "New Keyword",
+    href: "/dashboard/seo/new",
+    group: "Content",
+    icon: Search,
+    keywords: "add keyword",
+  },
+
+  // Tasks
+  {
+    name: "All Tasks",
+    href: "/dashboard/tasks",
+    group: "Tasks",
+    icon: ClipboardList,
+  },
+  {
+    name: "New Task",
+    href: "/dashboard/tasks/new",
+    group: "Tasks",
+    icon: ClipboardList,
+    keywords: "create task",
+  },
+
+  // Reviews
+  {
+    name: "Reviews Overview",
+    href: "/dashboard/reviews",
+    group: "Reviews",
+    icon: FileText,
+  },
+  {
+    name: "Review Drafts",
+    href: "/dashboard/review-drafts",
+    group: "Reviews",
+    icon: ClipboardCheck,
+    keywords: "draft bank",
+  },
+  {
+    name: "Review Allocations",
+    href: "/dashboard/review-allocations",
+    group: "Reviews",
+    icon: UserPlus,
+    keywords: "assign review",
+  },
+  {
+    name: "My Assigned Reviews",
+    href: "/dashboard/my-assigned-reviews",
+    group: "Reviews",
+    icon: UserCheck,
+  },
+  {
+    name: "Used Reviews",
+    href: "/dashboard/used-reviews",
+    group: "Reviews",
+    icon: CheckCircle,
+    keywords: "posted reviews",
+  },
+  {
+    name: "Review Analytics",
+    href: "/dashboard/review-analytics",
+    group: "Reviews",
+    icon: BarChart3,
+  },
+  {
+    name: "Review templates",
+    href: "/dashboard/review-templates",
+    group: "Reviews",
+    icon: LayoutTemplate,
+    keywords: "prefill review",
+  },
+
+  // Analytics
+  {
+    name: "Dashboard Analytics",
+    href: "/dashboard/analytics",
+    group: "Analytics",
+    icon: BarChart3,
+  },
+  {
+    name: "Review Analytics",
+    href: "/dashboard/review-analytics",
+    group: "Analytics",
+    icon: BarChart3,
+  },
+  {
+    name: "Team Performance",
+    href: "/team/performance",
+    group: "Analytics",
+    icon: TrendingUp,
+  },
+
+  // Team
+  { name: "Team Overview", href: "/team", group: "Team", icon: Users2 },
+  {
+    name: "Users",
+    href: "/team/members",
+    group: "Team",
+    icon: Users,
+    keywords: "employees staff team members",
+  },
+  {
+    name: "Add Team Member",
+    href: "/team/members/new",
+    group: "Team",
+    icon: Users,
+    keywords: "create employee",
+  },
+  {
+    name: "Team Roles",
+    href: "/team/roles",
+    group: "Team",
+    icon: UserCheck,
+    keywords: "permissions",
+  },
+  { name: "New Role", href: "/team/roles/new", group: "Team", icon: UserCheck },
+  {
+    name: "Team Assignments",
+    href: "/team/assignments",
+    group: "Team",
+    icon: ClipboardList,
+  },
+  {
+    name: "New Assignment",
+    href: "/team/assignments/new",
+    group: "Team",
+    icon: ClipboardList,
+  },
+  {
+    name: "Team Workload",
+    href: "/team/workload",
+    group: "Team",
+    icon: Loader2,
+  },
+  {
+    name: "Team Activity",
+    href: "/team/activity",
+    group: "Team",
+    icon: Activity,
+    keywords: "audit log",
+  },
+  {
+    name: "Review Assignments",
+    href: "/team/review-assignments",
+    group: "Team",
+    icon: ClipboardCheck,
+  },
+
+  // Settings
+  {
+    name: "Admin users",
+    href: "/dashboard/admin/users",
+    group: "Settings",
+    icon: Shield,
+    keywords: "accounts rbac",
+    adminOnly: true,
+  },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    group: "Settings",
+    icon: Settings,
+  },
+  {
+    name: "Notifications",
+    href: "/dashboard/notifications",
+    group: "Settings",
+    icon: Activity,
+  },
+];
+

@@ -136,7 +136,7 @@ function MonthlyTrendsChart({ data }: { data: MonthlyTrend[] }) {
         const dp = draftedPts[i];
         if (!dp || !up) return null;
         return (
-          <g key={d.month}>
+          <g key={`${d.month}-${i}`}>
             <circle cx={dp.x} cy={dp.y} r={3} fill="#3b82f6" />
             <circle cx={up.x} cy={up.y} r={3} fill="#22c55e" />
             <text
