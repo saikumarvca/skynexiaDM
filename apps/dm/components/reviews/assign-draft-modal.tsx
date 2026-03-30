@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { ReviewDraft, AssignDraftFormData } from "@/types/reviews";
+import { CustomerContactInputRow } from "@/components/reviews/customer-contact-input-row";
 
 interface User {
   _id: string;
@@ -121,16 +122,10 @@ export function AssignDraftModal({
               placeholder="e.g. Praveen"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Customer Contact
-            </label>
-            <Input
-              value={customerContact}
-              onChange={(e) => setCustomerContact(e.target.value)}
-              placeholder="Email or phone"
-            />
-          </div>
+          <CustomerContactInputRow
+            value={customerContact}
+            onChange={setCustomerContact}
+          />
           <div>
             <label className="block text-sm font-medium mb-1">Platform</label>
             <select

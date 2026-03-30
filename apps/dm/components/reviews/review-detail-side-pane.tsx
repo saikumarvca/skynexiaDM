@@ -21,6 +21,7 @@ import {
 import type { ReviewAllocation } from "@/types/reviews";
 import type { MarkSharedFormData, MarkPostedFormData } from "@/types/reviews";
 import { resolveClientReviewDestinationsPayload } from "@/lib/infer-review-destination-platform";
+import { CustomerContactInputRow } from "@/components/reviews/customer-contact-input-row";
 
 type ClientReviewDestination = {
   platform: string;
@@ -395,16 +396,11 @@ export function ReviewDetailSidePane({
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">
-                    Customer Contact
-                  </label>
-                  <Input
-                    value={customerContact}
-                    onChange={(e) => setCustomerContact(e.target.value)}
-                    placeholder="Email or phone"
-                  />
-                </div>
+                <CustomerContactInputRow
+                  value={customerContact}
+                  onChange={setCustomerContact}
+                  labelClassName="block text-sm font-medium mb-1.5"
+                />
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
                     Platform

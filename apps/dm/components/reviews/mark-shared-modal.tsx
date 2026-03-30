@@ -17,6 +17,7 @@ import {
 import type { MarkSharedFormData } from "@/types/reviews";
 import { openWhatsAppChat, parseWhatsAppDigits } from "@/lib/whatsapp-url";
 import { resolveClientReviewDestinationsPayload } from "@/lib/infer-review-destination-platform";
+import { CustomerContactInputRow } from "@/components/reviews/customer-contact-input-row";
 
 interface MarkSharedModalProps {
   isOpen: boolean;
@@ -299,16 +300,10 @@ export function MarkSharedModal({
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Customer Contact
-            </label>
-            <Input
-              value={customerContact}
-              onChange={(e) => setCustomerContact(e.target.value)}
-              placeholder="Email or phone"
-            />
-          </div>
+          <CustomerContactInputRow
+            value={customerContact}
+            onChange={setCustomerContact}
+          />
           <div>
             <label className="block text-sm font-medium mb-1">Platform</label>
             <select
