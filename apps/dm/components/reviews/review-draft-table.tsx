@@ -18,10 +18,12 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import type { ReviewDraft } from "@/types/reviews";
 import { ReviewDraftTableToolbar } from "./review-draft-table/Toolbar";
 import { DraftCard } from "./review-draft-table/DraftCard";
-import { parseDraftsCSV } from "./review-draft-table/utils";
 import { useAllocationsByDraftId } from "./review-draft-table/useAllocationsByDraftId";
 import { useFloatingPanePosition } from "./review-draft-table/useFloatingPanePosition";
 import type { ReviewDraftTableProps } from "./review-draft-table/types";
+import { filterDraftsBySearch, getDraftClientName } from "./review-draft-table/draftSelectors";
+import { useDraftsImport } from "./review-draft-table/useDraftsImport";
+import { useDraftActivity } from "./review-draft-table/useDraftActivity";
 
 export function ReviewDraftTable({
   drafts,
@@ -41,17 +43,18 @@ export function ReviewDraftTable({
   const [formOpen, setFormOpen] = useState(false);
   const [editDraft, setEditDraft] = useState<ReviewDraft | null>(null);
   const [assignDraft, setAssignDraft] = useState<ReviewDraft | null>(null);
-  const [activityDraft, setActivityDraft] = useState<ReviewDraft | null>(null);
-  const [activity, setActivity] = useState<
-    { action: string; performedBy: string; performedAt: string }[]
-  >([]);
-  const [importLoading, setImportLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const paneRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [paneOpen, setPaneOpen] = useState(false);
   const isLg = useMediaQuery("(min-width: 1024px)");
+  const { activityDraft, activity, openActivity, closeActivity } =
+    useDraftActivity();
+  const { importLoading, handleImportFile } = useDraftsImport({
+    selectedClientId,
+    onImported: () => router.refresh(),
+  });
 
   const draftIds = useMemo(() => drafts.map((d) => d._id), [drafts]);
   const allocationsByDraftId = useAllocationsByDraftId(draftIds);
@@ -62,69 +65,10 @@ export function ReviewDraftTable({
     paneRef,
   });
 
-  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImportLoading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const text = String(reader.result ?? "");
-        const parsed = parseDraftsCSV(text);
-        if (parsed.length === 0) {
-          toast.error(
-            "No valid rows found. CSV needs subject and reviewText (or review text), plus optional columns.",
-          );
-          return;
-        }
-        const res = await fetch(`/api/review-drafts/import`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            drafts: parsed,
-            clientId:
-              selectedClientId && selectedClientId !== "ALL"
-                ? selectedClientId
-                : undefined,
-            createdBy: "system",
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Import failed");
-        toast.success("Drafts imported");
-        router.refresh();
-        e.target.value = "";
-      } catch (err) {
-        console.error(err);
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : "Import failed. Check CSV columns and that at least one client exists.",
-        );
-      } finally {
-        setImportLoading(false);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const filtered = drafts.filter((d) => {
-    if (!search) return true;
-    const s = search.toLowerCase();
-    return (
-      (d.subject ?? "").toLowerCase().includes(s) ||
-      (d.reviewText ?? "").toLowerCase().includes(s) ||
-      (d.clientName ?? "").toLowerCase().includes(s) ||
-      (d.category ?? "").toLowerCase().includes(s)
-    );
-  });
-
-  const clientName = (d: ReviewDraft) => {
-    const c = d.clientId;
-    if (typeof c === "object" && c && "businessName" in c)
-      return (c as { businessName?: string }).businessName ?? "—";
-    return d.clientName ?? "—";
-  };
+  const filtered = useMemo(
+    () => filterDraftsBySearch(drafts, search),
+    [drafts, search],
+  );
 
   const handleCopy = async (d: ReviewDraft) => {
     try {
@@ -132,20 +76,6 @@ export function ReviewDraftTable({
     } catch (e) {
       console.error(e);
     }
-  };
-
-  const handleFetchActivity = async (entityType: string, entityId: string) => {
-    const res = await fetch(
-      `/api/review-activity?entityType=${entityType}&entityId=${entityId}`,
-    );
-    if (!res.ok) return [];
-    return res.json();
-  };
-
-  const openActivity = async (d: ReviewDraft) => {
-    setActivityDraft(d);
-    const logs = await handleFetchActivity("DRAFT", d._id);
-    setActivity(logs);
   };
 
   const closeDetailsPane = () => {
@@ -237,7 +167,7 @@ export function ReviewDraftTable({
                 selected={selectedDraftId === d._id}
                 assignedToName={allocationsByDraftId[d._id]}
                 canArchive={d.status !== "Archived"}
-                clientName={clientName(d)}
+                clientName={getDraftClientName(d)}
                 onArchiveClick={() => handleArchiveClick(d)}
                 onOpen={() => handleRowClick(d)}
                 onRef={(el) => {
@@ -256,7 +186,7 @@ export function ReviewDraftTable({
                 selected={selectedDraftId === d._id}
                 assignedToName={allocationsByDraftId[d._id]}
                 canArchive={d.status !== "Archived"}
-                clientName={clientName(d)}
+                clientName={getDraftClientName(d)}
                 onArchiveClick={() => handleArchiveClick(d)}
                 onOpen={() => handleRowClick(d)}
                 onRef={(el) => {
@@ -368,8 +298,7 @@ export function ReviewDraftTable({
       <ReviewActivityTimeline
         isOpen={!!activityDraft}
         onClose={() => {
-          setActivityDraft(null);
-          setActivity([]);
+          closeActivity();
         }}
         activity={activity}
       />
