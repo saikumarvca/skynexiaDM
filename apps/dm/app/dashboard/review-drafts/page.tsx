@@ -13,6 +13,8 @@ import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
 
 import { serverFetch } from "@/lib/server-fetch";
+import { getCurrentUserTeamPermissions } from "@/lib/team/current-user-permissions";
+import { requireAnyPermission } from "@/lib/team/require-permission";
 
 async function getDrafts(params: {
   clientId?: string;
@@ -120,6 +122,9 @@ interface PageProps {
 }
 
 export default async function ReviewDraftsPage({ searchParams }: PageProps) {
+  const team = await getCurrentUserTeamPermissions();
+  requireAnyPermission(team.permissions, ["manage_reviews"]);
+
   const params = await searchParams;
   const [drafts, clients, teamMembers] = await Promise.all([
     getDrafts({

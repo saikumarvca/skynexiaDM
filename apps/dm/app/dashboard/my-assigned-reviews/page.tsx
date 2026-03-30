@@ -10,6 +10,8 @@ import ReviewAllocationModel from "@/models/ReviewAllocation";
 import TeamMember from "@/models/TeamMember";
 
 import { serverFetch } from "@/lib/server-fetch";
+import { getCurrentUserTeamPermissions } from "@/lib/team/current-user-permissions";
+import { requireAnyPermission } from "@/lib/team/require-permission";
 
 async function getAllocations(
   assignedToUserId: string | undefined,
@@ -90,6 +92,13 @@ interface PageProps {
 export default async function MyAssignedReviewsPage({
   searchParams,
 }: PageProps) {
+  const team = await getCurrentUserTeamPermissions();
+  requireAnyPermission(team.permissions, [
+    "work_assigned_reviews",
+    "view_reviews",
+    "manage_reviews",
+  ]);
+
   const params = await searchParams;
   const [allocations, teamMembers] = await Promise.all([
     getAllocations(params.assignedTo),

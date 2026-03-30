@@ -57,11 +57,13 @@ function sectionStillActiveForPath(name: string, p: string): boolean {
 
 export function DashboardNavLinks({
   isAdmin = false,
+  permissions = [],
   collapsed = false,
   onLinkClick,
   className,
 }: {
   isAdmin?: boolean;
+  permissions?: string[];
   collapsed?: boolean;
   onLinkClick?: () => void;
   className?: string;
@@ -69,7 +71,7 @@ export function DashboardNavLinks({
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
-  const navItems = buildDashboardNavItems(isAdmin);
+  const navItems = buildDashboardNavItems(isAdmin, permissions);
 
   const isClientsActive = pathname.startsWith("/clients");
   const isCampaignsActive = pathname.startsWith("/dashboard/campaigns");

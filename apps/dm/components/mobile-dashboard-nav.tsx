@@ -14,7 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { DashboardNavLinks } from "@/components/dashboard-nav-links";
 
-export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
+export function MobileDashboardNav({
+  isAdmin = false,
+  permissions = [],
+}: {
+  isAdmin?: boolean;
+  permissions?: string[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -51,6 +57,7 @@ export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
         <div className="min-h-0 flex-1 overflow-y-auto py-4 scrollbar-thin">
           <DashboardNavLinks
             isAdmin={isAdmin}
+            permissions={permissions}
             collapsed={false}
             onLinkClick={() => setOpen(false)}
             className="px-0"

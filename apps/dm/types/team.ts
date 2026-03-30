@@ -29,6 +29,11 @@ export type WorkloadStatus = "Available" | "Balanced" | "Busy" | "Overloaded";
 
 export const PERMISSION_LIST = [
   // View-only / execution permissions (use these for "workers")
+  "view_clients",
+  "view_campaigns",
+  "view_content",
+  "view_seo",
+  "view_leads",
   "view_tasks",
   "work_assigned_tasks",
   "view_reviews",

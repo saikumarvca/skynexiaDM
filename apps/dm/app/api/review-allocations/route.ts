@@ -3,11 +3,20 @@ import { requireSessionApi } from "@/lib/require-session-api";
 import dbConnect from "@/lib/mongodb";
 import ReviewAllocation from "@/models/ReviewAllocation";
 import { logActivity } from "@/lib/review-activity";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 
 export async function GET(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+
+    const authz = await requireAnyPermissionApi(request, [
+      "manage_reviews",
+      "assign_reviews",
+      "work_assigned_reviews",
+      "view_reviews",
+    ]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -45,6 +54,15 @@ export async function GET(request: NextRequest) {
         (query.assignedDate as Record<string, unknown>).$lte = new Date(
           dateTo + "T23:59:59.999Z",
         );
+    }
+
+    const canSeeAll =
+      authz.perms.includes("manage_reviews") || authz.perms.includes("assign_reviews");
+    if (!canSeeAll && authz.perms.includes("work_assigned_reviews")) {
+      if (!authz.teamMemberId) {
+        return NextResponse.json([], { status: 200 });
+      }
+      query.assignedToUserId = authz.teamMemberId;
     }
 
     let allocations = await ReviewAllocation.find(query)
@@ -95,6 +113,12 @@ export async function POST(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+
+    const authz = await requireAnyPermissionApi(request, [
+      "manage_reviews",
+      "assign_reviews",
+    ]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 

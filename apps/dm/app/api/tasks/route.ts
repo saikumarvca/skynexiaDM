@@ -7,11 +7,20 @@ import TeamMember from "@/models/TeamMember";
 import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { taskCreateSchema } from "@/lib/api/schemas";
 import { createNotification } from "@/lib/notify";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 
 export async function GET(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+
+    const authz = await requireAnyPermissionApi(request, [
+      "manage_tasks",
+      "view_tasks",
+      "work_assigned_tasks",
+      "assign_tasks",
+    ]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -32,6 +41,18 @@ export async function GET(request: NextRequest) {
     if (status) query.status = status;
     if (priority) query.priority = priority;
 
+    const canSeeAll =
+      authz.perms.includes("manage_tasks") ||
+      authz.perms.includes("view_tasks") ||
+      authz.perms.includes("assign_tasks");
+    if (!canSeeAll && authz.perms.includes("work_assigned_tasks")) {
+      if (!authz.teamMemberId) return NextResponse.json([], { status: 200 });
+      query.$or = [
+        { assignedTo: authz.teamMemberId },
+        { assignedToUserId: authz.teamMemberId },
+      ];
+    }
+
     const tasks = await Task.find(query)
       .populate("clientId", "name businessName")
       .populate("assignedTo", "name email")
@@ -51,6 +72,9 @@ export async function POST(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+
+    const authz = await requireAnyPermissionApi(request, ["manage_tasks"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
     const parsed = await parseWithSchema(request, taskCreateSchema);

@@ -11,6 +11,8 @@ import { ExportButton } from "@/components/export-button";
 import { PdfExportButton } from "@/components/pdf-export-button";
 
 import { serverFetch } from "@/lib/server-fetch";
+import { getCurrentUserTeamPermissions } from "@/lib/team/current-user-permissions";
+import { requireAnyPermission } from "@/lib/team/require-permission";
 
 async function getReviews(params: {
   clientId?: string;
@@ -103,6 +105,9 @@ interface PageProps {
 export default async function DashboardReviewsPage({
   searchParams,
 }: PageProps) {
+  const team = await getCurrentUserTeamPermissions();
+  requireAnyPermission(team.permissions, ["manage_reviews", "view_reviews"]);
+
   const params = await searchParams;
   const [reviews, clients] = await Promise.all([
     getReviews({

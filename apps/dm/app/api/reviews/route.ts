@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSessionApi } from "@/lib/require-session-api";
 import dbConnect from "@/lib/mongodb";
 import Review from "@/models/Review";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 
 export async function GET(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+
+    const authz = await requireAnyPermissionApi(request, [
+      "manage_reviews",
+      "view_reviews",
+    ]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -48,6 +55,9 @@ export async function POST(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+
+    const authz = await requireAnyPermissionApi(request, ["manage_reviews"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 

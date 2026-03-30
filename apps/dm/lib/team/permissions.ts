@@ -22,6 +22,36 @@ export type PermissionDefinition = {
 
 const PERMISSION_DEFINITIONS_BASE: PermissionDefinition[] = [
   {
+    key: "view_clients",
+    label: "View clients",
+    description: "See client records (read-only).",
+    category: "Clients",
+  },
+  {
+    key: "view_campaigns",
+    label: "View campaigns",
+    description: "See campaigns (read-only).",
+    category: "Campaigns",
+  },
+  {
+    key: "view_content",
+    label: "View content",
+    description: "See content and calendars (read-only).",
+    category: "Content & SEO",
+  },
+  {
+    key: "view_seo",
+    label: "View SEO",
+    description: "See SEO dashboards and items (read-only).",
+    category: "Content & SEO",
+  },
+  {
+    key: "view_leads",
+    label: "View leads",
+    description: "See leads and pipeline (read-only).",
+    category: "Leads",
+  },
+  {
     key: "view_tasks",
     label: "View tasks",
     description: "See tasks you have access to (read-only).",

@@ -18,7 +18,13 @@ function persistCollapsed(next: boolean) {
   }
 }
 
-export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
+export function Sidebar({
+  isAdmin = false,
+  permissions = [],
+}: {
+  isAdmin?: boolean;
+  permissions?: string[];
+}) {
   const [collapsed, setCollapsed] = useState(false);
 
   useLayoutEffect(() => {
@@ -103,7 +109,11 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto py-4 scrollbar-thin">
-        <DashboardNavLinks isAdmin={isAdmin} collapsed={collapsed} />
+        <DashboardNavLinks
+          isAdmin={isAdmin}
+          permissions={permissions}
+          collapsed={collapsed}
+        />
       </div>
     </div>
   );

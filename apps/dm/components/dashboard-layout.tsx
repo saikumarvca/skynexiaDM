@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCachedUser } from "@/lib/auth";
+import { getCurrentUserTeamPermissions } from "@/lib/team/current-user-permissions";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 
@@ -17,6 +18,7 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const isAdmin = user.role === "ADMIN";
   const sessionUser = { name: user.name, email: user.email };
+  const team = await getCurrentUserTeamPermissions();
 
   return (
     <div className="flex min-h-dvh items-stretch bg-background">
@@ -26,12 +28,13 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         Skip to main content
       </a>
-      <Sidebar isAdmin={isAdmin} />
+      <Sidebar isAdmin={isAdmin} permissions={team.permissions} />
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col overflow-hidden">
         <Header
           sessionUser={sessionUser}
           showAdminLinks={isAdmin}
           isAdmin={isAdmin}
+          permissions={team.permissions}
         />
         <main
           id="main-content"

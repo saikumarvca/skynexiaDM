@@ -21,11 +21,13 @@ export function Header({
   sessionUser,
   showAdminLinks = false,
   isAdmin = false,
+  permissions = [],
 }: {
   sessionUser?: { name: string; email: string };
   showAdminLinks?: boolean;
   /** Same as sidebar: show admin nav entries (e.g. Admin users). */
   isAdmin?: boolean;
+  permissions?: string[];
 }) {
   const router = useRouter();
   const avatar = sessionUser?.name ? initialsFromName(sessionUser.name) : "DM";
@@ -41,7 +43,7 @@ export function Header({
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-1.5 border-b bg-background px-2 shadow-sm sm:h-16 sm:gap-4 sm:px-6">
-      <MobileDashboardNav isAdmin={isAdmin} />
+      <MobileDashboardNav isAdmin={isAdmin} permissions={permissions} />
       <span className="hidden shrink-0 text-sm font-medium text-muted-foreground md:block">
         Digital Marketing
       </span>
