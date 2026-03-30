@@ -16,6 +16,9 @@ export function ReviewDraftTableToolbar(props: {
   onExportClick: () => void;
   onImportPickClick: () => void;
   onImportFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  selectedCount: number;
+  onBulkAssignClientClick: () => void;
+  onBulkAssignUserClick: () => void;
 }) {
   const {
     search,
@@ -28,6 +31,9 @@ export function ReviewDraftTableToolbar(props: {
     onExportClick,
     onImportPickClick,
     onImportFileChange,
+    selectedCount,
+    onBulkAssignClientClick,
+    onBulkAssignUserClick,
   } = props;
 
   return (
@@ -105,6 +111,20 @@ export function ReviewDraftTableToolbar(props: {
           </p>
         </div>
       </details>
+      <Button
+        variant="outline"
+        disabled={selectedCount === 0}
+        onClick={onBulkAssignClientClick}
+      >
+        Assign Client ({selectedCount})
+      </Button>
+      <Button
+        variant="outline"
+        disabled={selectedCount === 0}
+        onClick={onBulkAssignUserClick}
+      >
+        Assign User ({selectedCount})
+      </Button>
     </div>
   );
 }

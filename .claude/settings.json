@@ -14,7 +14,9 @@
       "Bash(cat /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/app/portal/[token]/page.tsx)",
       "Bash(find /c/Users/Administrator/Downloads/skynexiaDM/apps/dm -name dashboard-layout* -o -name DashboardLayout*)",
       "Bash(find /c/Users/Administrator/Downloads/skynexiaDM/apps/dm -name *DashboardNav* -o -name *dashboard-nav*)",
-      "Bash(grep -r \"buildDashboardNavItems\\\\|navItems\\\\|navigation\" c:UsersAdministratorDownloadsskynexiaDMappsdm --include=*.ts --include=*.tsx -l)"
+      "Bash(grep -r \"buildDashboardNavItems\\\\|navItems\\\\|navigation\" c:UsersAdministratorDownloadsskynexiaDMappsdm --include=*.ts --include=*.tsx -l)",
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|XXX\\\\|HACK\" /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/app --include=*.ts --include=*.tsx)",
+      "Bash(grep -l \"export default\" /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/models/*.ts)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\notifications\\[id]",

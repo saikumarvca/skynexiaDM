@@ -7,6 +7,7 @@ import {
   clientUpsertSchema,
   mongoFieldsFromClientUpsert,
 } from "@/lib/api/schemas";
+import { UNASSIGNED_CLIENT_EMAIL } from "@/lib/reviews/unassigned-client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     const limit = parseInt(searchParams.get("limit") || "50");
     const viewId = searchParams.get("viewId");
+    const includeSystem = searchParams.get("includeSystem") === "true";
 
     let baseQuery: Record<string, unknown> = {};
     if (search) {
@@ -41,7 +43,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const query = { ...filters, ...baseQuery };
+    const query: Record<string, unknown> = { ...filters, ...baseQuery };
+    if (!includeSystem) query.email = { $ne: UNASSIGNED_CLIENT_EMAIL };
 
     const clients = await Client.find(query)
       .sort({ createdAt: -1 })

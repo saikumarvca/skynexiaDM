@@ -36,6 +36,14 @@ function getDraftInfo(a: ReviewAllocation) {
   return { subject: "—", preview: "—", clientName: "—" };
 }
 
+function getDraftClientId(a: ReviewAllocation) {
+  const d = a.draftId;
+  if (typeof d === "object" && d) {
+    return (d as { clientId?: string }).clientId;
+  }
+  return undefined;
+}
+
 interface ReviewAllocationTableProps {
   allocations: ReviewAllocation[];
   onMarkShared: (
@@ -388,6 +396,7 @@ export function ReviewAllocationTable({
         }}
         allocationId={sharedAlloc?._id ?? ""}
         subject={sharedAlloc ? getDraftInfo(sharedAlloc).subject : undefined}
+        clientId={sharedAlloc ? getDraftClientId(sharedAlloc) : undefined}
       />
 
       <MarkPostedModal

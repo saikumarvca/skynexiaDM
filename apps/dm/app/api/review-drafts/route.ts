@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSessionApi } from "@/lib/require-session-api";
 import dbConnect from "@/lib/mongodb";
 import ReviewDraft from "@/models/ReviewDraft";
+import Client from "@/models/Client";
 import { logActivity } from "@/lib/review-activity";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
+import { getOrCreateUnassignedClient } from "@/lib/reviews/unassigned-client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,8 +67,30 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const body = await request.json();
-    const { createdBy = "system", ...rest } = body;
-    const draft = new ReviewDraft({ ...rest, createdBy });
+    const { createdBy = "system", clientId, clientName, ...rest } = body;
+
+    let resolvedClientId = clientId;
+    let resolvedClientName = clientName;
+    if (!resolvedClientId) {
+      const unassignedClient = await getOrCreateUnassignedClient();
+      resolvedClientId = unassignedClient._id.toString();
+      resolvedClientName =
+        unassignedClient.businessName ?? unassignedClient.name ?? "Unassigned";
+    } else if (!resolvedClientName) {
+      const client = await Client.findById(resolvedClientId).select(
+        "name businessName",
+      );
+      if (client) {
+        resolvedClientName = client.businessName ?? client.name;
+      }
+    }
+
+    const draft = new ReviewDraft({
+      ...rest,
+      clientId: resolvedClientId,
+      clientName: resolvedClientName ?? "Unassigned",
+      createdBy,
+    });
     await draft.save();
 
     const populated = await ReviewDraft.findById(draft._id).populate(

@@ -17,6 +17,13 @@ export interface IClient extends mongoose.Document {
   contractEnd?: Date;
   monthlyBudget?: number;
   assignedManagerId?: string | null;
+  reviewDestinationUrl?: string;
+  reviewQrImageUrl?: string;
+  reviewDestinations?: {
+    platform: string;
+    reviewDestinationUrl?: string;
+    reviewQrImageUrl?: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +50,15 @@ const ClientSchema: mongoose.Schema = new mongoose.Schema(
     contractEnd: { type: Date },
     monthlyBudget: { type: Number },
     assignedManagerId: { type: String, default: null },
+    reviewDestinationUrl: { type: String },
+    reviewQrImageUrl: { type: String },
+    reviewDestinations: [
+      {
+        platform: { type: String, required: true },
+        reviewDestinationUrl: { type: String },
+        reviewQrImageUrl: { type: String },
+      },
+    ],
   },
   {
     timestamps: true,

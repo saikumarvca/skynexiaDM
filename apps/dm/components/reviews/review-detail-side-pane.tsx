@@ -14,6 +14,18 @@ import {
 import type { ReviewAllocation } from "@/types/reviews";
 import type { MarkSharedFormData, MarkPostedFormData } from "@/types/reviews";
 
+type ClientReviewDestination = {
+  platform: string;
+  reviewDestinationUrl?: string;
+  reviewQrImageUrl?: string;
+};
+
+function normalizePlatform(v: string) {
+  const s = v.trim().toLowerCase();
+  if (s === "justdail") return "justdial";
+  return s;
+}
+
 function getDraftInfo(a: ReviewAllocation) {
   const d = a.draftId;
   if (typeof d === "object" && d) {
@@ -59,6 +71,13 @@ export function ReviewDetailSidePane({
   );
   const [markedUsedBy, setMarkedUsedBy] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [isLoadingDestination, setIsLoadingDestination] = useState(false);
+  const [reviewDestinationUrl, setReviewDestinationUrl] = useState("");
+  const [reviewQrImageUrl, setReviewQrImageUrl] = useState("");
+  const [reviewDestinations, setReviewDestinations] = useState<
+    ClientReviewDestination[]
+  >([]);
+  const [copiedDestination, setCopiedDestination] = useState(false);
 
   useEffect(() => {
     if (allocation) {
@@ -75,6 +94,57 @@ export function ReviewDetailSidePane({
       setPostedDate(new Date().toISOString().slice(0, 10));
     }
   }, [allocation?._id]);
+
+  useEffect(() => {
+    const draft =
+      allocation && typeof allocation.draftId === "object" ? allocation.draftId : null;
+    const clientId = draft && "clientId" in draft ? draft.clientId : undefined;
+    if (!allocation || !clientId) {
+      setReviewDestinationUrl("");
+      setReviewQrImageUrl("");
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingDestination(true);
+    fetch(`/api/clients/${clientId}`)
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return (await res.json()) as {
+          reviewDestinationUrl?: string;
+          reviewQrImageUrl?: string;
+          reviewDestinations?: ClientReviewDestination[];
+        };
+      })
+      .then((client) => {
+        if (cancelled) return;
+        const list = client?.reviewDestinations ?? [];
+        setReviewDestinations(list);
+        const matched =
+          list.find(
+            (d) =>
+              platform &&
+              normalizePlatform(d.platform) === normalizePlatform(platform),
+          ) ?? list[0];
+        setReviewDestinationUrl(
+          matched?.reviewDestinationUrl ?? client?.reviewDestinationUrl ?? "",
+        );
+        setReviewQrImageUrl(
+          matched?.reviewQrImageUrl ?? client?.reviewQrImageUrl ?? "",
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setReviewDestinations([]);
+        setReviewDestinationUrl("");
+        setReviewQrImageUrl("");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDestination(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [allocation, platform]);
 
   if (!allocation) return null;
 
@@ -107,6 +177,13 @@ export function ReviewDetailSidePane({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCopyDestination = async () => {
+    if (!reviewDestinationUrl) return;
+    await navigator.clipboard.writeText(reviewDestinationUrl);
+    setCopiedDestination(true);
+    setTimeout(() => setCopiedDestination(false), 1500);
   };
 
   const handleMarkPosted = async (e: React.FormEvent) => {
@@ -166,6 +243,71 @@ export function ReviewDetailSidePane({
                 Mark as Shared
               </h3>
               <form onSubmit={handleMarkShared} className="space-y-3">
+                <div className="rounded-md border bg-muted/40 p-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Review destination
+                  </p>
+                  {isLoadingDestination ? (
+                    <p className="text-sm text-muted-foreground">
+                      Loading destination...
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {platform ? (
+                        <p className="text-xs text-muted-foreground">
+                          Showing destination for platform: {platform}
+                        </p>
+                      ) : reviewDestinations.length > 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          Select platform to switch destination.
+                        </p>
+                      ) : null}
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                          Link
+                        </label>
+                        {reviewDestinationUrl ? (
+                          <div className="flex items-center gap-2">
+                            <Input value={reviewDestinationUrl} readOnly />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={handleCopyDestination}
+                              title="Copy destination link"
+                            >
+                              {copiedDestination ? (
+                                <Check className="h-4 w-4 text-emerald-600" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No review destination URL configured for this client.
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                          Scanner (QR)
+                        </label>
+                        {reviewQrImageUrl ? (
+                          <img
+                            src={reviewQrImageUrl}
+                            alt="Client review QR code"
+                            className="h-28 w-28 rounded border object-contain bg-background"
+                          />
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No QR image configured for this client.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
                     Customer Name <span className="text-destructive">*</span>

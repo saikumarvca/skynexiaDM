@@ -7,6 +7,7 @@ import { ClientFormData } from "@/types";
 import { getActiveTeamManagers } from "@/lib/team-managers";
 
 import { serverFetch } from "@/lib/server-fetch";
+import { errorMessageFromResponse } from "@/lib/server-fetch";
 
 function toIsoDay(v: unknown): string | undefined {
   if (v == null) return undefined;
@@ -30,7 +31,11 @@ async function updateClient(clientId: string, data: ClientFormData) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to update client");
+  if (!res.ok) {
+    throw new Error(
+      await errorMessageFromResponse(res, "Failed to update client"),
+    );
+  }
   return await res.json();
 }
 
@@ -63,6 +68,9 @@ export default async function ClientEditPage({
     contractEnd: toIsoDay(client.contractEnd),
     monthlyBudget: client.monthlyBudget ?? null,
     assignedManagerId: client.assignedManagerId ?? null,
+    reviewDestinationUrl: client.reviewDestinationUrl ?? "",
+    reviewQrImageUrl: client.reviewQrImageUrl ?? "",
+    reviewDestinations: client.reviewDestinations ?? [],
   };
 
   return (

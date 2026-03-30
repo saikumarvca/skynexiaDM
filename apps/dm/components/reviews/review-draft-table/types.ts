@@ -15,6 +15,9 @@ export interface ReviewDraftTableProps {
   onUpdate: (id: string, data: Partial<ReviewDraftFormData>) => Promise<void>;
   onDuplicate: (id: string) => Promise<void>;
   onAssign: (id: string, data: AssignDraftFormData) => Promise<void>;
+  onReassignClients: (
+    items: { draftId: string; clientId: string }[],
+  ) => Promise<{ successCount: number; failedCount: number; results: { draftId: string; ok: boolean; message?: string }[] }>;
   onArchive: (id: string) => Promise<void>;
 }
 

@@ -8,6 +8,7 @@ import { Client } from "@/types";
 import dbConnect from "@/lib/mongodb";
 import ClientModel from "@/models/Client";
 import ClientView from "@/models/ClientView";
+import { UNASSIGNED_CLIENT_EMAIL } from "@/lib/reviews/unassigned-client";
 
 async function getClients(
   search?: string,
@@ -36,6 +37,7 @@ async function getClients(
     const merged = { ...filters, ...baseQuery };
     const docs = await ClientModel.find({
       ...merged,
+      email: { $ne: UNASSIGNED_CLIENT_EMAIL },
       ...(archived ? { status: "ARCHIVED" } : { status: { $ne: "ARCHIVED" } }),
     })
       .sort({ createdAt: -1 })

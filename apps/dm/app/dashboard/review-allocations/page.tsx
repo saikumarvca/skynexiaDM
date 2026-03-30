@@ -8,6 +8,10 @@ import "@/models/ReviewDraft";
 import ReviewAllocationModel from "@/models/ReviewAllocation";
 import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
+import {
+  getOrCreateUnassignedClient,
+  UNASSIGNED_CLIENT_NAME,
+} from "@/lib/reviews/unassigned-client";
 
 import { serverFetch } from "@/lib/server-fetch";
 
@@ -52,11 +56,15 @@ async function getAllocations(params: {
 
 async function getClients(): Promise<Client[]> {
   await dbConnect();
+  const unassigned = await getOrCreateUnassignedClient();
   const docs = await ClientModel.find({})
     .sort({ createdAt: -1 })
     .limit(500)
     .lean();
-  return docs.map((c) => JSON.parse(JSON.stringify(c)));
+  const clients = docs.map((c) => JSON.parse(JSON.stringify(c))) as Client[];
+  const hasUnassigned = clients.some((c) => c._id === unassigned._id.toString());
+  if (!hasUnassigned) clients.unshift(JSON.parse(JSON.stringify(unassigned)) as Client);
+  return clients;
 }
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
@@ -144,11 +152,14 @@ export default async function ReviewAllocationsPage({
   searchParams,
 }: PageProps) {
   const params = await searchParams;
+  const unassignedClient = await getOrCreateUnassignedClient();
+  const selectedClientId =
+    params.clientId === "UNASSIGNED" ? unassignedClient._id.toString() : params.clientId;
   const [allocations, clients, teamMembers] = await Promise.all([
     getAllocations({
       clientId:
-        params.clientId && params.clientId !== "ALL"
-          ? params.clientId
+        selectedClientId && selectedClientId !== "ALL"
+          ? selectedClientId
           : undefined,
       status:
         params.status && params.status !== "ALL" ? params.status : undefined,
@@ -174,6 +185,11 @@ export default async function ReviewAllocationsPage({
           <p className="text-muted-foreground">
             Track assignment of review drafts to team members and customers.
           </p>
+          {params.clientId === "UNASSIGNED" ? (
+            <p className="mt-1 text-sm text-primary">
+              Viewing allocations for client: {UNASSIGNED_CLIENT_NAME}
+            </p>
+          ) : null}
         </div>
 
         <form
@@ -191,7 +207,10 @@ export default async function ReviewAllocationsPage({
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[160px]"
             >
               <option value="ALL">All clients</option>
-              {clients.map((c) => (
+              <option value="UNASSIGNED">{UNASSIGNED_CLIENT_NAME}</option>
+              {clients
+                .filter((c) => c._id !== unassignedClient._id.toString())
+                .map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.businessName}
                 </option>

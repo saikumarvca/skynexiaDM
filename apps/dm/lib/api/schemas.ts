@@ -41,15 +41,54 @@ export const clientUpsertSchema = z
       (v) => (v === "" || v === undefined ? null : v),
       z.union([z.string().trim().min(1), z.null()]).optional(),
     ),
+    reviewDestinationUrl: z.preprocess(
+      emptyToUndef,
+      z.string().trim().url("Enter a valid URL").max(2048).optional(),
+    ),
+    reviewQrImageUrl: z.preprocess(
+      emptyToUndef,
+      z.string().trim().url("Enter a valid URL").max(2048).optional(),
+    ),
+    reviewDestinations: z
+      .array(
+        z.object({
+          platform: z.string().trim().min(1, "Platform is required"),
+          reviewDestinationUrl: z.preprocess(
+            emptyToUndef,
+            z.string().trim().url("Enter a valid URL").max(2048).optional(),
+          ),
+          reviewQrImageUrl: z.preprocess(
+            emptyToUndef,
+            z.string().trim().url("Enter a valid URL").max(2048).optional(),
+          ),
+        }),
+      )
+      .optional(),
   })
   .strict();
 
 export type ClientUpsertInput = z.infer<typeof clientUpsertSchema>;
 
+function sanitizeReviewDestinations(
+  reviewDestinations: ClientUpsertInput["reviewDestinations"],
+) {
+  if (reviewDestinations === undefined) return undefined;
+  return reviewDestinations
+    .map((row) => ({
+      platform: row.platform.trim(),
+      reviewDestinationUrl: row.reviewDestinationUrl?.trim(),
+      reviewQrImageUrl: row.reviewQrImageUrl?.trim(),
+    }))
+    .filter((row) => row.platform && (row.reviewDestinationUrl || row.reviewQrImageUrl));
+}
+
 /** Map validated client body to Mongoose-compatible fields for create/update. */
 export function mongoFieldsFromClientUpsert(
   parsed: ClientUpsertInput,
 ): Record<string, unknown> {
+  const normalizedDestinations = sanitizeReviewDestinations(
+    parsed.reviewDestinations,
+  );
   const dateOrNull = (v: string | null | undefined) => {
     if (v === undefined) return undefined;
     if (v === null) return null;
@@ -84,6 +123,11 @@ export function mongoFieldsFromClientUpsert(
         : parsed.assignedManagerId === null
           ? null
           : parsed.assignedManagerId,
+    reviewDestinationUrl:
+      parsed.reviewDestinationUrl ?? normalizedDestinations?.[0]?.reviewDestinationUrl,
+    reviewQrImageUrl:
+      parsed.reviewQrImageUrl ?? normalizedDestinations?.[0]?.reviewQrImageUrl,
+    reviewDestinations: normalizedDestinations,
   };
 }
 

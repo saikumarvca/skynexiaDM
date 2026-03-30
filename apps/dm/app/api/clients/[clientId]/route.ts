@@ -16,6 +16,12 @@ interface RouteParams {
   params: Promise<{ clientId: string }>;
 }
 
+function stripUndefined(obj: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined),
+  );
+}
+
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const denied = await requireSessionApi(request);
@@ -55,10 +61,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         { status: 400 },
       );
     }
-    const fields = mongoFieldsFromClientUpsert(parsed.data);
+    const fields = stripUndefined(mongoFieldsFromClientUpsert(parsed.data));
     const client = await Client.findOneAndUpdate(
       { _id: clientId },
-      { ...fields, updatedAt: new Date() },
+      { $set: { ...fields, updatedAt: new Date() } },
       { new: true, runValidators: true },
     );
 
@@ -66,7 +72,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    return NextResponse.json(client);
+    const fresh = await Client.findById(client._id);
+    return NextResponse.json(fresh ?? client);
   } catch (error) {
     console.error("Error updating client:", error);
     return NextResponse.json(

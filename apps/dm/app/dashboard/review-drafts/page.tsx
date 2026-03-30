@@ -11,6 +11,10 @@ import dbConnect from "@/lib/mongodb";
 import ReviewDraftModel from "@/models/ReviewDraft";
 import ClientModel from "@/models/Client";
 import TeamMember from "@/models/TeamMember";
+import {
+  getOrCreateUnassignedClient,
+  UNASSIGNED_CLIENT_NAME,
+} from "@/lib/reviews/unassigned-client";
 
 import { serverFetch } from "@/lib/server-fetch";
 import { getCurrentUserTeamPermissions } from "@/lib/team/current-user-permissions";
@@ -21,6 +25,7 @@ async function getDrafts(params: {
   status?: string;
   category?: string;
   language?: string;
+  assignee?: string;
 }): Promise<ReviewDraft[]> {
   await dbConnect();
   const query: Record<string, unknown> = {};
@@ -28,20 +33,51 @@ async function getDrafts(params: {
   if (params.status) query.status = params.status;
   if (params.category) query.category = params.category;
   if (params.language) query.language = params.language;
-  const docs = await ReviewDraftModel.find(query)
+  let docs = await ReviewDraftModel.find(query)
     .populate("clientId", "name businessName")
     .sort({ createdAt: -1 })
     .lean();
+  if (params.assignee && params.assignee !== "ALL") {
+    const allocationsRaw = await serverFetch(
+      `/api/review-allocations?draftIds=${docs.map((d) => d._id.toString()).join(",")}`,
+      { cache: "no-store" },
+    );
+    const allocations = allocationsRaw.ok
+      ? ((await allocationsRaw.json()) as {
+          draftId?: string | { _id?: string };
+          assignedToUserName?: string;
+        }[])
+      : [];
+    const assignedMap = new Map<string, string>();
+    for (const a of allocations) {
+      const draftId =
+        typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
+      if (!draftId || assignedMap.has(draftId)) continue;
+      if (a.assignedToUserName) assignedMap.set(draftId, a.assignedToUserName);
+    }
+    if (params.assignee === "UNASSIGNED") {
+      docs = docs.filter((d) => !assignedMap.has(d._id.toString()));
+    }
+    if (params.assignee === "ASSIGNED") {
+      docs = docs.filter((d) => assignedMap.has(d._id.toString()));
+    }
+  }
   return docs.map((d) => JSON.parse(JSON.stringify(d)));
 }
 
 async function getClients(): Promise<Client[]> {
   await dbConnect();
+  const unassigned = await getOrCreateUnassignedClient();
   const docs = await ClientModel.find({})
     .sort({ createdAt: -1 })
     .limit(500)
     .lean();
-  return docs.map((c) => JSON.parse(JSON.stringify(c)));
+  const clients = docs.map((c) => JSON.parse(JSON.stringify(c))) as Client[];
+  const hasUnassigned = clients.some((c) => c._id === unassigned._id.toString());
+  if (!hasUnassigned) {
+    clients.unshift(JSON.parse(JSON.stringify(unassigned)) as Client);
+  }
+  return clients;
 }
 
 async function getTeamMembers(): Promise<{ _id: string; name: string }[]> {
@@ -112,12 +148,29 @@ async function archiveDraft(id: string) {
   return res.json();
 }
 
+async function reassignDraftClients(
+  items: { draftId: string; clientId: string }[],
+) {
+  "use server";
+  const res = await serverFetch(`/api/review-drafts/assign-client`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items, performedBy: "system" }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error ?? "Failed to reassign draft clients");
+  }
+  return res.json();
+}
+
 interface PageProps {
   searchParams: Promise<{
     clientId?: string;
     status?: string;
     category?: string;
     language?: string;
+    assignee?: string;
   }>;
 }
 
@@ -126,16 +179,18 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
   requireAnyPermission(team.permissions, ["manage_reviews"]);
 
   const params = await searchParams;
+  const unassignedClient = await getOrCreateUnassignedClient();
+  const selectedClientId =
+    params.clientId === "UNASSIGNED" ? unassignedClient._id.toString() : params.clientId;
   const [drafts, clients, teamMembers] = await Promise.all([
     getDrafts({
       clientId:
-        params.clientId && params.clientId !== "ALL"
-          ? params.clientId
-          : undefined,
+        selectedClientId && selectedClientId !== "ALL" ? selectedClientId : undefined,
       status:
         params.status && params.status !== "ALL" ? params.status : undefined,
       category: params.category,
       language: params.language,
+      assignee: params.assignee,
     }),
     getClients(),
     getTeamMembers(),
@@ -150,6 +205,11 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
             Manage your suggested review comment bank. Create, assign, and track
             drafts through the workflow.
           </p>
+          {params.clientId === "UNASSIGNED" ? (
+            <p className="mt-1 text-sm text-primary">
+              Viewing drafts for client: {UNASSIGNED_CLIENT_NAME}
+            </p>
+          ) : null}
         </div>
 
         <form
@@ -167,7 +227,10 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[160px]"
             >
               <option value="ALL">All clients</option>
-              {clients.map((c) => (
+              <option value="UNASSIGNED">{UNASSIGNED_CLIENT_NAME}</option>
+              {clients
+                .filter((c) => c._id !== unassignedClient._id.toString())
+                .map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.businessName}
                 </option>
@@ -189,6 +252,20 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
               <option value="Shared">Shared</option>
               <option value="Used">Used</option>
               <option value="Archived">Archived</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Assignee
+            </label>
+            <select
+              name="assignee"
+              defaultValue={params.assignee ?? "ALL"}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[140px]"
+            >
+              <option value="ALL">All</option>
+              <option value="UNASSIGNED">Unassigned</option>
+              <option value="ASSIGNED">Assigned</option>
             </select>
           </div>
           <div>
@@ -229,6 +306,7 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
           onUpdate={updateDraft}
           onDuplicate={duplicateDraft}
           onAssign={assignDraft}
+          onReassignClients={reassignDraftClients}
           onArchive={archiveDraft}
         />
       </div>

@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import ReviewDraft from "@/models/ReviewDraft";
 import Client from "@/models/Client";
 import { logActivity } from "@/lib/review-activity";
+import { getOrCreateUnassignedClient } from "@/lib/reviews/unassigned-client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,13 +25,12 @@ export async function POST(request: NextRequest) {
 
     const client = clientId
       ? await Client.findById(clientId)
-      : await Client.findOne({ status: "ACTIVE" });
+      : await getOrCreateUnassignedClient();
 
     if (!client) {
       return NextResponse.json(
         {
-          error:
-            "No client found. Provide clientId or ensure an active client exists.",
+          error: "No client found. Provide a valid clientId.",
         },
         { status: 400 },
       );

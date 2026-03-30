@@ -26,6 +26,13 @@ export interface Client {
   contractEnd?: string;
   monthlyBudget?: number;
   assignedManagerId?: string | null;
+  reviewDestinationUrl?: string;
+  reviewQrImageUrl?: string;
+  reviewDestinations?: {
+    platform: string;
+    reviewDestinationUrl?: string;
+    reviewQrImageUrl?: string;
+  }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -142,6 +149,13 @@ export interface ClientFormData {
   contractEnd?: string | null;
   monthlyBudget?: number | null;
   assignedManagerId?: string | null;
+  reviewDestinationUrl?: string;
+  reviewQrImageUrl?: string;
+  reviewDestinations?: {
+    platform: string;
+    reviewDestinationUrl?: string;
+    reviewQrImageUrl?: string;
+  }[];
 }
 
 export interface ReviewFormData {

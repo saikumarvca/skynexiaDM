@@ -22,6 +22,30 @@ function isoSliceToDdMm(iso?: string | null): string {
   return /^\d{4}-\d{2}-\d{2}$/.test(day) ? toDdMmYyyyDisplay(day) : "";
 }
 
+function normalizeUrlInput(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^www\./i.test(trimmed)) return `https://${trimmed}`;
+  // Best-effort default for common plain-domain input
+  if (/^[a-z0-9.-]+\.[a-z]{2,}/i.test(trimmed)) return `https://${trimmed}`;
+  return trimmed;
+}
+
+function sanitizeReviewDestinations(
+  rows: { platform: string; reviewDestinationUrl: string; reviewQrImageUrl: string }[],
+) {
+  return rows
+    .map((row) => ({
+      platform: row.platform.trim(),
+      reviewDestinationUrl: normalizeUrlInput(row.reviewDestinationUrl) || undefined,
+      reviewQrImageUrl: normalizeUrlInput(row.reviewQrImageUrl) || undefined,
+    }))
+    .filter(
+      (row) => row.platform && (row.reviewDestinationUrl || row.reviewQrImageUrl),
+    );
+}
+
 interface ClientFormProps {
   initialData?: Partial<ClientFormData>;
   onSubmit: (data: ClientFormData) => Promise<void>;
@@ -41,6 +65,26 @@ export function ClientForm({
 }: ClientFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [reviewDestinations, setReviewDestinations] = useState<
+    { platform: string; reviewDestinationUrl: string; reviewQrImageUrl: string }[]
+  >(
+    (initialData?.reviewDestinations?.length
+      ? initialData.reviewDestinations
+      : initialData?.reviewDestinationUrl || initialData?.reviewQrImageUrl
+        ? [
+            {
+              platform: "Other",
+              reviewDestinationUrl: initialData.reviewDestinationUrl ?? "",
+              reviewQrImageUrl: initialData.reviewQrImageUrl ?? "",
+            },
+          ]
+        : [{ platform: "Google", reviewDestinationUrl: "", reviewQrImageUrl: "" }]
+    ).map((x) => ({
+      platform: x.platform ?? "",
+      reviewDestinationUrl: x.reviewDestinationUrl ?? "",
+      reviewQrImageUrl: x.reviewQrImageUrl ?? "",
+    })),
+  );
   const [dupWarnings, setDupWarnings] = useState<{
     email?: boolean;
     businessName?: boolean;
@@ -95,6 +139,8 @@ export function ClientForm({
         ? String(initialData.monthlyBudget)
         : "",
     assignedManagerId: initialData?.assignedManagerId || "",
+    reviewDestinationUrl: initialData?.reviewDestinationUrl || "",
+    reviewQrImageUrl: initialData?.reviewQrImageUrl || "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,6 +156,8 @@ export function ClientForm({
       const contractEnd =
         parseFlexibleDateParam(formData.contractEndInput) ?? null;
       const budgetTrim = formData.monthlyBudgetInput.trim();
+      const sanitizedDestinations = sanitizeReviewDestinations(reviewDestinations);
+      const firstDestination = sanitizedDestinations[0];
       const payload: ClientFormData = {
         name: formData.name,
         businessName: formData.businessName,
@@ -127,6 +175,15 @@ export function ClientForm({
         contractEnd,
         monthlyBudget: budgetTrim === "" ? null : Number(budgetTrim),
         assignedManagerId: formData.assignedManagerId.trim() || null,
+        reviewDestinationUrl:
+          normalizeUrlInput(formData.reviewDestinationUrl) ||
+          firstDestination?.reviewDestinationUrl ||
+          undefined,
+        reviewQrImageUrl:
+          normalizeUrlInput(formData.reviewQrImageUrl) ||
+          firstDestination?.reviewQrImageUrl ||
+          undefined,
+        reviewDestinations: sanitizedDestinations,
       };
       if (
         payload.monthlyBudget !== null &&
@@ -177,6 +234,87 @@ export function ClientForm({
             onChange={(e) => handleChange("name", e.target.value)}
             required
           />
+        </div>
+        <div className="md:col-span-2 rounded-md border p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Review Destinations by Platform
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setReviewDestinations((prev) => [
+                  ...prev,
+                  {
+                    platform: "",
+                    reviewDestinationUrl: "",
+                    reviewQrImageUrl: "",
+                  },
+                ])
+              }
+            >
+              Add platform
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {reviewDestinations.map((row, idx) => (
+              <div
+                key={`dest-${idx}`}
+                className="grid grid-cols-1 gap-2 rounded border p-3 md:grid-cols-[1fr_2fr_2fr_auto]"
+              >
+                <Input
+                  value={row.platform}
+                  onChange={(e) =>
+                    setReviewDestinations((prev) =>
+                      prev.map((x, i) =>
+                        i === idx ? { ...x, platform: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  placeholder="Platform (Google/Facebook/Justdial)"
+                />
+                <Input
+                  type="text"
+                  value={row.reviewDestinationUrl}
+                  onChange={(e) =>
+                    setReviewDestinations((prev) =>
+                      prev.map((x, i) =>
+                        i === idx
+                          ? { ...x, reviewDestinationUrl: e.target.value }
+                          : x,
+                      ),
+                    )
+                  }
+                  placeholder="Review destination URL"
+                />
+                <Input
+                  type="text"
+                  value={row.reviewQrImageUrl}
+                  onChange={(e) =>
+                    setReviewDestinations((prev) =>
+                      prev.map((x, i) =>
+                        i === idx ? { ...x, reviewQrImageUrl: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  placeholder="QR image URL"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setReviewDestinations((prev) =>
+                      prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev,
+                    )
+                  }
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
         <div>
           <label

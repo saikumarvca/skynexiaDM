@@ -14,6 +14,9 @@ export function DraftCard(props: {
   assignedToName?: string;
   canArchive: boolean;
   clientName: string;
+  selectedForBulk: boolean;
+  canSelectForBulk: boolean;
+  onBulkSelectChange: (next: boolean) => void;
   onArchiveClick: () => void;
   onOpen: () => void;
   onRef: (el: HTMLDivElement | null) => void;
@@ -25,6 +28,9 @@ export function DraftCard(props: {
     assignedToName,
     canArchive,
     clientName,
+    selectedForBulk,
+    canSelectForBulk,
+    onBulkSelectChange,
     onArchiveClick,
     onOpen,
     onRef,
@@ -56,6 +62,23 @@ export function DraftCard(props: {
           <Archive className="h-4 w-4" />
         </Button>
       )}
+      <div className="absolute left-2 top-2 z-10">
+        <label
+          className={cn(
+            "inline-flex items-center gap-1 rounded-md border bg-background/90 px-2 py-1 text-[11px] text-muted-foreground",
+            !canSelectForBulk && "opacity-60",
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            disabled={!canSelectForBulk}
+            checked={selectedForBulk}
+            onChange={(e) => onBulkSelectChange(e.target.checked)}
+          />
+          Select
+        </label>
+      </div>
       <div
         role="button"
         tabIndex={0}
@@ -95,7 +118,7 @@ export function DraftCard(props: {
                 className="mt-1 text-xs text-muted-foreground truncate"
                 title={clientName}
               >
-                {clientName}
+                Client: {clientName}
               </p>
             </div>
             <span className="shrink-0 inline-flex rounded-full border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">

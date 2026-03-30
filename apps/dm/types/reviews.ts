@@ -42,6 +42,7 @@ export interface ReviewAllocation {
         subject?: string;
         reviewText?: string;
         clientName?: string;
+        clientId?: string;
       };
   assignedToUserId: string;
   assignedToUserName: string;

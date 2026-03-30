@@ -4,8 +4,8 @@ import dbConnect from "@/lib/mongodb";
 import ReviewDraft from "@/models/ReviewDraft";
 import ReviewAllocation from "@/models/ReviewAllocation";
 import PostedReview from "@/models/PostedReview";
-import Client from "@/models/Client";
 import User from "@/models/User";
+import { getOrCreateUnassignedClient } from "@/lib/reviews/unassigned-client";
 
 const SAMPLE_DRAFTS = [
   {
@@ -92,13 +92,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
-    const client = await Client.findOne({ status: "ACTIVE" });
-    if (!client) {
-      return NextResponse.json(
-        { error: "No active client found. Create a client first." },
-        { status: 400 },
-      );
-    }
+    const client = await getOrCreateUnassignedClient();
 
     const clientName = client.businessName ?? client.name;
     const body = await request.json().catch(() => ({}));
