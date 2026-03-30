@@ -16,41 +16,36 @@ const HOVER_CLOSE_MS = 220;
 
 function isAnalyticsSectionPath(p: string) {
   return (
-    p.startsWith("/dashboard/analytics") ||
-    p.startsWith("/dashboard/social-analytics") ||
-    p.startsWith("/dashboard/review-analytics") ||
-    p.startsWith("/dashboard/budget-pacing") ||
-    p.startsWith("/dashboard/leads") ||
-    p.startsWith("/dashboard/seo") ||
+    p.startsWith("/analytics") ||
+    p.startsWith("/campaigns/budget-pacing") ||
+    p.startsWith("/leads") ||
+    p.startsWith("/seo") ||
     p.startsWith("/team/performance") ||
-    p.startsWith("/dashboard/time-tracking")
+    p.startsWith("/time-tracking")
   );
 }
 
 function sectionStillActiveForPath(name: string, p: string): boolean {
   if (name === "Clients") return p.startsWith("/clients");
-  if (name === "Campaigns") return p.startsWith("/dashboard/campaigns");
+  if (name === "Campaigns") return p.startsWith("/campaigns");
   if (name === "Content")
     return (
-      p.startsWith("/dashboard/content") ||
-      p.startsWith("/dashboard/scheduled-posts")
+      p.startsWith("/content") ||
+      p.startsWith("/content/scheduled-posts")
     );
-  if (name === "SEO") return p.startsWith("/dashboard/seo");
-  if (name === "Leads") return p.startsWith("/dashboard/leads");
-  if (name === "Tasks") return p.startsWith("/dashboard/tasks");
+  if (name === "SEO") return p.startsWith("/seo");
+  if (name === "Leads") return p.startsWith("/leads");
+  if (name === "Tasks") return p.startsWith("/tasks");
   if (name === "Reviews")
     return (
-      p === "/dashboard/reviews" ||
-      p.startsWith("/dashboard/review-") ||
-      p === "/dashboard/my-assigned-reviews" ||
-      p === "/dashboard/used-reviews" ||
-      p.startsWith("/dashboard/review-requests")
+      p === "/reviews" ||
+      p.startsWith("/reviews/")
     );
   if (name === "Team") return p.startsWith("/team");
-  if (name === "Admin") return p.startsWith("/dashboard/admin");
-  if (name === "Reports") return p.startsWith("/dashboard/reports");
-  if (name === "Invoices") return p.startsWith("/dashboard/invoices");
-  if (name === "Help") return p.startsWith("/dashboard/help");
+  if (name === "Admin") return p.startsWith("/admin");
+  if (name === "Reports") return p.startsWith("/reports");
+  if (name === "Invoices") return p.startsWith("/invoices");
+  if (name === "Help") return p.startsWith("/help");
   if (name === "Analytics") return isAnalyticsSectionPath(p);
   return false;
 }
@@ -74,24 +69,20 @@ export function DashboardNavLinks({
   const navItems = buildDashboardNavItems(isAdmin, permissions);
 
   const isClientsActive = pathname.startsWith("/clients");
-  const isCampaignsActive = pathname.startsWith("/dashboard/campaigns");
+  const isCampaignsActive = pathname.startsWith("/campaigns");
   const isContentActive =
-    pathname.startsWith("/dashboard/content") ||
-    pathname.startsWith("/dashboard/scheduled-posts");
-  const isSeoActive = pathname.startsWith("/dashboard/seo");
-  const isLeadsActive = pathname.startsWith("/dashboard/leads");
-  const isTasksActive = pathname.startsWith("/dashboard/tasks");
+    pathname.startsWith("/content") ||
+    pathname.startsWith("/content/scheduled-posts");
+  const isSeoActive = pathname.startsWith("/seo");
+  const isLeadsActive = pathname.startsWith("/leads");
+  const isTasksActive = pathname.startsWith("/tasks");
   const isReviewActive =
-    pathname === "/dashboard/reviews" ||
-    pathname.startsWith("/dashboard/review-") ||
-    pathname === "/dashboard/my-assigned-reviews" ||
-    pathname === "/dashboard/used-reviews" ||
-    pathname.startsWith("/dashboard/review-requests");
+    pathname === "/reviews" || pathname.startsWith("/reviews/");
   const isTeamActive = pathname.startsWith("/team");
-  const isAdminActive = pathname.startsWith("/dashboard/admin");
-  const isReportsActive = pathname.startsWith("/dashboard/reports");
-  const isInvoicesActive = pathname.startsWith("/dashboard/invoices");
-  const isHelpActive = pathname.startsWith("/dashboard/help");
+  const isAdminActive = pathname.startsWith("/admin");
+  const isReportsActive = pathname.startsWith("/reports");
+  const isInvoicesActive = pathname.startsWith("/invoices");
+  const isHelpActive = pathname.startsWith("/help");
   const isAnalyticsActive = isAnalyticsSectionPath(pathname);
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>

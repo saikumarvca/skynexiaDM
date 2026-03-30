@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import { getCachedUser } from "@/lib/auth";
 import { PERMISSION_LIST } from "@/lib/team/permissions";
 import TeamMember from "@/models/TeamMember";
+import TeamRole from "@/models/TeamRole";
 
 export type CurrentUserTeamPermissions = {
   teamMemberId?: string;
@@ -32,23 +33,28 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
     isDeleted: { $ne: true },
     $or: [{ userId: user.userId }, { email: emailNorm }],
   })
-    .populate("roleId", "roleName permissions")
+    .select("_id roleId roleName")
     .lean();
 
   if (!member) return { permissions: [] };
 
-  const populatedRole = member.roleId as
-    | { _id: unknown; roleName?: string; permissions?: string[] }
-    | undefined;
+  const roleId =
+    member.roleId && typeof member.roleId === "object" && "toString" in member.roleId
+      ? (member.roleId as { toString(): string }).toString()
+      : member.roleId
+        ? String(member.roleId)
+        : undefined;
 
-  const perms = Array.isArray(populatedRole?.permissions)
-    ? populatedRole.permissions
-    : [];
+  const role = roleId
+    ? await TeamRole.findById(roleId).select("_id roleName permissions").lean()
+    : null;
+
+  const perms = Array.isArray(role?.permissions) ? role.permissions : [];
 
   return {
     teamMemberId: member._id?.toString?.() ?? String(member._id),
-    roleId: populatedRole?._id ? String(populatedRole._id) : undefined,
-    roleName: populatedRole?.roleName ?? member.roleName,
+    roleId: role?._id ? String(role._id) : roleId,
+    roleName: role?.roleName ?? member.roleName,
     permissions: perms,
   };
 }

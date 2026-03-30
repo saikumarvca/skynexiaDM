@@ -53,7 +53,7 @@ export function LeadsPageClient({
 
   function applyFilters(filters: Record<string, string>) {
     const params = new URLSearchParams(filters);
-    router.push(`/dashboard/leads?${params.toString()}`);
+    router.push(`/leads?${params.toString()}`);
   }
 
   return (
