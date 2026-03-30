@@ -66,6 +66,7 @@ export interface PostedReview {
   allocationId: string | { _id: string };
   draftId: string | { _id: string; subject?: string; reviewText?: string };
   postedByName: string;
+  customerContact?: string;
   platform: string;
   reviewLink?: string;
   proofUrl?: string;
@@ -120,6 +121,7 @@ export interface MarkSharedFormData {
 
 export interface MarkPostedFormData {
   postedByName: string;
+  customerContact?: string;
   platform: string;
   reviewLink: string;
   proofUrl?: string;

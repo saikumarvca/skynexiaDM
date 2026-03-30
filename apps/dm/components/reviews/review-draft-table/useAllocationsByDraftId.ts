@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 
+export type DraftAllocationSummary = {
+  assignedToName?: string;
+  platform?: string;
+};
+
 type AllocationLite = {
   _id: string;
   draftId: string | { _id?: string };
   assignedToUserId?: string;
   assignedToUserName?: string;
+  platform?: string;
   createdAt?: string;
 };
 
 export function useAllocationsByDraftId(draftIds: string[]) {
   const idsKey = useMemo(() => draftIds.join(","), [draftIds]);
   const [allocationsByDraftId, setAllocationsByDraftId] = useState<
-    Record<string, string>
+    Record<string, DraftAllocationSummary>
   >({});
 
   useEffect(() => {
@@ -29,15 +35,21 @@ export function useAllocationsByDraftId(draftIds: string[]) {
         });
         if (!res.ok) throw new Error("Failed to load allocations");
         const list = (await res.json()) as AllocationLite[];
-        const map: Record<string, string> = {};
+        const map: Record<string, DraftAllocationSummary> = {};
         for (const a of list) {
           const id =
             typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
           if (!id) continue;
           // API sorts by createdAt desc, so first hit per draft is latest.
           if (map[id]) continue;
-          if (a.assignedToUserId) {
-            map[id] = a.assignedToUserName?.trim() || "Assigned";
+          const platform = a.platform?.trim() || undefined;
+          const uid = a.assignedToUserId ?? "";
+          const isUnassignedPlaceholder = uid === "" || uid === "UNASSIGNED";
+          const assignedToName = !isUnassignedPlaceholder
+            ? a.assignedToUserName?.trim() || "Assigned"
+            : undefined;
+          if (assignedToName || platform) {
+            map[id] = { assignedToName, platform };
           }
         }
         if (!cancelled) setAllocationsByDraftId(map);

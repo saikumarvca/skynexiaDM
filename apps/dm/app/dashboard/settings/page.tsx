@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 
 export const dynamic = "force-dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Building2, Bell, Plug, Mail, Download, Package } from "lucide-react";
+import { Building2, Bell, Plug, Download, Package } from "lucide-react";
 import dbConnect from "@/lib/mongodb";
 import TeamMember from "@/models/TeamMember";
 import { requireUser } from "@/lib/auth";
@@ -10,17 +10,18 @@ import { redirect } from "next/navigation";
 import { SettingsClient } from "@/components/settings/settings-client";
 import { EmailConfigCard } from "@/components/settings/email-config-card";
 import { SocialPlatformsCard } from "@/components/settings/social-platforms-card";
+import { SettingsTeamCard } from "@/components/settings/settings-team-card";
 import Link from "next/link";
 
-async function getTeamMembers(): Promise<
+async function getTeamMembers(isAdmin: boolean): Promise<
   { _id: string; name: string; email: string; roleName?: string }[]
 > {
   try {
     await dbConnect();
-    const items = await TeamMember.find({
-      status: "Active",
-      isDeleted: { $ne: true },
-    })
+    const query = isAdmin
+      ? { isDeleted: { $ne: true } as const }
+      : { status: "Active" as const, isDeleted: { $ne: true } as const };
+    const items = await TeamMember.find(query)
       .select("_id name email roleName")
       .limit(100)
       .lean();
@@ -45,7 +46,8 @@ export default async function DashboardSettingsPage() {
     redirect("/login");
   }
 
-  const teamMembers = await getTeamMembers();
+  const isAdmin = sessionUser.role === "ADMIN";
+  const teamMembers = await getTeamMembers(isAdmin);
 
   return (
     <DashboardLayout>
@@ -65,46 +67,11 @@ export default async function DashboardSettingsPage() {
             role={sessionUser.role}
           />
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Team
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {teamMembers.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No team members yet. Add members from Team → Users.
-                </p>
-              ) : (
-                <ul className="space-y-3">
-                  {teamMembers.map((u) => (
-                    <li
-                      key={u._id}
-                      className="flex items-center justify-between rounded-md border px-3 py-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                          {u.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium">{u.name}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {u.email}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                        {u.roleName ?? "—"}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
+          <SettingsTeamCard
+            members={teamMembers}
+            isAdmin={isAdmin}
+            currentUserEmail={sessionUser.email}
+          />
 
           <Card>
             <CardHeader>

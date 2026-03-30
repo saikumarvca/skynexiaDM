@@ -318,6 +318,10 @@ export const markSharedSchema = z
 export const markPostedSchema = z
   .object({
     postedByName: z.string().trim().min(1, "Posted by name is required"),
+    customerContact: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
     platform: z.string().trim().min(1, "Platform is required"),
     reviewLink: z.string().trim().min(1, "Review link is required"),
     proofUrl: z.string().trim().min(1).optional(),

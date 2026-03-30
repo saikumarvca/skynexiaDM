@@ -12,7 +12,7 @@ export function teamRoleNameToAppUserRole(roleName?: string): UserRole {
   return "MANAGER";
 }
 
-async function findLinkedUser(
+export async function findLinkedUserForTeamMember(
   member: Pick<ITeamMember, "userId" | "email">,
 ): Promise<HydratedDocument<IUser> | null> {
   const emailNorm = member.email.trim().toLowerCase();
@@ -36,7 +36,7 @@ export async function syncLoginUserFromTeamMember(
   const appRole = teamRoleNameToAppUserRole(member.roleName);
   const isActive = member.status === "Active";
 
-  let user = await findLinkedUser(member);
+  let user = await findLinkedUserForTeamMember(member);
 
   if (options.password) {
     const passwordHash = await bcrypt.hash(options.password, 12);
@@ -77,4 +77,14 @@ export async function syncLoginUserFromTeamMember(
     member.userId = user._id.toString();
     await member.save();
   }
+}
+
+/** Disables login for the User linked to a team member (by userId or email). */
+export async function deactivateLinkedLoginForTeamMember(
+  member: Pick<ITeamMember, "userId" | "email">,
+): Promise<void> {
+  const user = await findLinkedUserForTeamMember(member);
+  if (!user) return;
+  user.isActive = false;
+  await user.save();
 }

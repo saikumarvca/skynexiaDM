@@ -123,6 +123,7 @@ async function markPosted(
   id: string,
   data: {
     postedByName: string;
+    customerContact?: string;
     platform: string;
     reviewLink: string;
     proofUrl?: string;

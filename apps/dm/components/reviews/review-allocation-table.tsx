@@ -435,6 +435,7 @@ export function ReviewAllocationTable({
         allocationId={postedAlloc?._id ?? ""}
         subject={postedAlloc ? getDraftInfo(postedAlloc).subject : undefined}
         customerName={postedAlloc?.customerName}
+        customerContact={postedAlloc?.customerContact}
         teamMembers={teamMembers}
       />
 

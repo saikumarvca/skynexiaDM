@@ -70,9 +70,6 @@ export function ReviewDraftTable({
   const [bulkAssignPlatformSubmitting, setBulkAssignPlatformSubmitting] =
     useState(false);
   const [bulkAssignedToUserId, setBulkAssignedToUserId] = useState("");
-  const [bulkCustomerName, setBulkCustomerName] = useState("");
-  const [bulkCustomerContact, setBulkCustomerContact] = useState("");
-  const [bulkPlatform, setBulkPlatform] = useState("");
   const [bulkPlatformOnly, setBulkPlatformOnly] = useState("");
   const [targetClientByDraftId, setTargetClientByDraftId] = useState<
     Record<string, string>
@@ -257,9 +254,6 @@ export function ReviewDraftTable({
             assignedToUserName: selectedUser.name,
             assignedByUserId: users[0]?._id ?? "",
             assignedByUserName: users[0]?.name ?? "system",
-            customerName: bulkCustomerName.trim() || undefined,
-            customerContact: bulkCustomerContact.trim() || undefined,
-            platform: bulkPlatform || undefined,
           }),
         ),
       );
@@ -270,26 +264,13 @@ export function ReviewDraftTable({
       );
       setBulkAssignUserOpen(false);
       setSelectedIds([]);
-      setBulkCustomerName("");
-      setBulkCustomerContact("");
-      setBulkPlatform("");
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bulk assign failed");
     } finally {
       setBulkAssignUserSubmitting(false);
     }
-  }, [
-    bulkAssignedToUserId,
-    bulkCustomerContact,
-    bulkCustomerName,
-    bulkPlatform,
-    drafts,
-    onAssign,
-    router,
-    selectedIds,
-    users,
-  ]);
+  }, [bulkAssignedToUserId, drafts, onAssign, router, selectedIds, users]);
 
   const submitBulkAssignPlatform = useCallback(async () => {
     if (!bulkPlatformOnly) {
@@ -380,7 +361,7 @@ export function ReviewDraftTable({
 
   const assignedToName = useMemo(() => {
     if (!selectedDraftId) return undefined;
-    return allocationsByDraftId[selectedDraftId];
+    return allocationsByDraftId[selectedDraftId]?.assignedToName;
   }, [allocationsByDraftId, selectedDraftId]);
 
   const renderDraftDetailsPane = useCallback(
@@ -468,7 +449,8 @@ export function ReviewDraftTable({
                 draft={d}
                 mode="grid"
                 selected={selectedDraftId === d._id}
-                assignedToName={allocationsByDraftId[d._id]}
+                assignedToName={allocationsByDraftId[d._id]?.assignedToName}
+                platform={allocationsByDraftId[d._id]?.platform}
                 canArchive={d.status !== "Archived"}
                 clientName={getDraftClientName(d)}
                 onArchiveClick={() => handleArchiveClick(d)}
@@ -492,7 +474,8 @@ export function ReviewDraftTable({
                 draft={d}
                 mode="row"
                 selected={selectedDraftId === d._id}
-                assignedToName={allocationsByDraftId[d._id]}
+                assignedToName={allocationsByDraftId[d._id]?.assignedToName}
+                platform={allocationsByDraftId[d._id]?.platform}
                 canArchive={d.status !== "Archived"}
                 clientName={getDraftClientName(d)}
                 onArchiveClick={() => handleArchiveClick(d)}
@@ -690,41 +673,6 @@ export function ReviewDraftTable({
                     {u.name}
                   </option>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Customer Name (optional)
-              </label>
-              <input
-                value={bulkCustomerName}
-                onChange={(e) => setBulkCustomerName(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                placeholder="e.g. Praveen"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Customer Contact</label>
-              <input
-                value={bulkCustomerContact}
-                onChange={(e) => setBulkCustomerContact(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                placeholder="Email or phone"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Platform</label>
-              <select
-                value={bulkPlatform}
-                onChange={(e) => setBulkPlatform(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                <option value="">Select platform</option>
-                <option value="Google">Google</option>
-                <option value="Facebook">Facebook</option>
-                <option value="Justdial">Justdial</option>
-                <option value="Website">Website</option>
-                <option value="Other">Other</option>
               </select>
             </div>
           </div>

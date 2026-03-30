@@ -25,6 +25,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const body = parsed.data;
     const {
       postedByName,
+      customerContact,
       platform,
       reviewLink,
       proofUrl,
@@ -43,6 +44,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       allocationId: id,
       draftId: existing.draftId,
       postedByName: postedByName.trim(),
+      customerContact: customerContact?.trim() || undefined,
       platform: platform.trim(),
       reviewLink: reviewLink.trim(),
       proofUrl: proofUrl?.trim() || undefined,

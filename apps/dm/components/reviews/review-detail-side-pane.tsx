@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { openWhatsAppChat, parseWhatsAppDigits } from "@/lib/whatsapp-url";
+import {
+  openWhatsAppChat,
+  openTelCall,
+  parseWhatsAppDigits,
+  buildReviewPostedFollowUpMessage,
+} from "@/lib/whatsapp-url";
 import {
   Sheet,
   SheetContent,
@@ -15,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import type { ReviewAllocation } from "@/types/reviews";
 import type { MarkSharedFormData, MarkPostedFormData } from "@/types/reviews";
+import { resolveClientReviewDestinationsPayload } from "@/lib/infer-review-destination-platform";
 
 type ClientReviewDestination = {
   platform: string;
@@ -109,7 +115,13 @@ export function ReviewDetailSidePane({
       setPostedPlatform(allocation.platform ?? "Google");
       setPostedDate(new Date().toISOString().slice(0, 10));
     }
-  }, [allocation?._id]);
+  }, [
+    allocation?._id,
+    allocation?.customerName,
+    allocation?.customerContact,
+    allocation?.platform,
+    allocation?.sentDate,
+  ]);
 
   useEffect(() => {
     const draft =
@@ -136,10 +148,16 @@ export function ReviewDetailSidePane({
       })
       .then((client) => {
         if (cancelled) return;
-        const list = client?.reviewDestinations ?? [];
-        setReviewDestinations(list);
-        setFallbackReviewDestinationUrl(client?.reviewDestinationUrl ?? "");
-        setFallbackReviewQrImageUrl(client?.reviewQrImageUrl ?? "");
+        const resolved = client
+          ? resolveClientReviewDestinationsPayload(client)
+          : {
+              reviewDestinations: [] as ClientReviewDestination[],
+              fallbackReviewDestinationUrl: "",
+              fallbackReviewQrImageUrl: "",
+            };
+        setReviewDestinations(resolved.reviewDestinations);
+        setFallbackReviewDestinationUrl(resolved.fallbackReviewDestinationUrl);
+        setFallbackReviewQrImageUrl(resolved.fallbackReviewQrImageUrl);
       })
       .catch(() => {
         if (cancelled) return;
@@ -166,11 +184,16 @@ export function ReviewDetailSidePane({
     const matched = reviewDestinations.find(
       (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
     );
+    const useLegacyFallback = reviewDestinations.length === 0;
     setReviewDestinationUrl(
-      matched?.reviewDestinationUrl ?? fallbackReviewDestinationUrl ?? "",
+      matched?.reviewDestinationUrl ??
+        (useLegacyFallback ? fallbackReviewDestinationUrl : "") ??
+        "",
     );
     setReviewQrImageUrl(
-      matched?.reviewQrImageUrl ?? fallbackReviewQrImageUrl ?? "",
+      matched?.reviewQrImageUrl ??
+        (useLegacyFallback ? fallbackReviewQrImageUrl : "") ??
+        "",
     );
   }, [
     platform,
@@ -185,6 +208,13 @@ export function ReviewDetailSidePane({
   const reviewBody = getDraftReviewText(allocation);
   const waPhone = parseWhatsAppDigits(customerContact);
   const showWaButtons = waPhone !== null;
+  const destinationMissingForSelectedPlatform = Boolean(
+    platform &&
+      reviewDestinations.length > 0 &&
+      !reviewDestinations.some(
+        (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
+      ),
+  );
   const canMarkShared = allocation.allocationStatus === "Assigned";
   const canMarkPosted =
     allocation.allocationStatus === "Assigned" ||
@@ -228,6 +258,7 @@ export function ReviewDetailSidePane({
     try {
       await onMarkPosted(allocation._id, {
         postedByName: postedByName.trim(),
+        customerContact: customerContact.trim() || undefined,
         platform: postedPlatform,
         reviewLink: reviewLink.trim(),
         proofUrl: proofUrl || undefined,
@@ -318,6 +349,12 @@ export function ReviewDetailSidePane({
                               )}
                             </Button>
                           </div>
+                        ) : destinationMissingForSelectedPlatform ? (
+                          <p className="text-sm text-muted-foreground">
+                            No review link saved for {platform}. Add it in the
+                            client&apos;s review destinations or choose another
+                            platform.
+                          </p>
                         ) : (
                           <p className="text-sm text-muted-foreground">
                             No review destination URL configured for this client.
@@ -334,6 +371,10 @@ export function ReviewDetailSidePane({
                             alt="Client review QR code"
                             className="h-28 w-28 rounded border object-contain bg-background"
                           />
+                        ) : destinationMissingForSelectedPlatform ? (
+                          <p className="text-sm text-muted-foreground">
+                            No QR image saved for {platform} for this client.
+                          </p>
                         ) : (
                           <p className="text-sm text-muted-foreground">
                             No QR image configured for this client.
@@ -485,6 +526,47 @@ export function ReviewDetailSidePane({
                     placeholder="e.g. Praveen"
                     required
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Contact Number
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      className="flex-1 min-w-0"
+                      value={customerContact}
+                      onChange={(e) => setCustomerContact(e.target.value)}
+                      placeholder="Phone (with country code) or email"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      disabled={!waPhone}
+                      title="Call"
+                      onClick={() => openTelCall(customerContact)}
+                    >
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      disabled={!waPhone}
+                      title="Follow up on WhatsApp"
+                      onClick={() => {
+                        if (!waPhone) return;
+                        openWhatsAppChat(
+                          waPhone,
+                          buildReviewPostedFollowUpMessage(postedByName),
+                        );
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 text-emerald-600" />
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">

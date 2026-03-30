@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  openWhatsAppChat,
+  openTelCall,
+  parseWhatsAppDigits,
+  buildReviewPostedFollowUpMessage,
+} from "@/lib/whatsapp-url";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +29,7 @@ interface MarkPostedModalProps {
   allocationId: string;
   subject?: string;
   customerName?: string;
+  customerContact?: string;
   markedUsedBy?: string;
   teamMembers?: { _id: string; name: string }[];
 }
@@ -33,11 +41,15 @@ export function MarkPostedModal({
   allocationId,
   subject,
   customerName: initialCustomer,
+  customerContact: initialCustomerContact,
   markedUsedBy: initialMarkedBy,
   teamMembers = [],
 }: MarkPostedModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [postedByName, setPostedByName] = useState(initialCustomer ?? "");
+  const [postedContact, setPostedContact] = useState(
+    initialCustomerContact ?? "",
+  );
   const [platform, setPlatform] = useState("Google");
   const [reviewLink, setReviewLink] = useState("");
   const [proofUrl, setProofUrl] = useState("");
@@ -47,6 +59,25 @@ export function MarkPostedModal({
   const [markedUsedBy, setMarkedUsedBy] = useState(initialMarkedBy ?? "");
   const [remarks, setRemarks] = useState("");
 
+  useEffect(() => {
+    if (!isOpen) return;
+    setPostedByName(initialCustomer ?? "");
+    setPostedContact(initialCustomerContact ?? "");
+    setPlatform("Google");
+    setReviewLink("");
+    setProofUrl("");
+    setPostedDate(new Date().toISOString().slice(0, 10));
+    setMarkedUsedBy(initialMarkedBy ?? "");
+    setRemarks("");
+  }, [
+    isOpen,
+    initialCustomer,
+    initialCustomerContact,
+    initialMarkedBy,
+  ]);
+
+  const waPhone = parseWhatsAppDigits(postedContact);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!postedByName.trim() || !platform || !reviewLink.trim() || !postedDate)
@@ -55,6 +86,7 @@ export function MarkPostedModal({
     try {
       await onSubmit({
         postedByName: postedByName.trim(),
+        customerContact: postedContact.trim() || undefined,
         platform,
         reviewLink: reviewLink.trim(),
         proofUrl: proofUrl || undefined,
@@ -65,6 +97,7 @@ export function MarkPostedModal({
       toast.success("Review marked complete");
       onClose();
       setPostedByName("");
+      setPostedContact("");
       setPlatform("Google");
       setReviewLink("");
       setProofUrl("");
@@ -104,6 +137,47 @@ export function MarkPostedModal({
               placeholder="e.g. Praveen"
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Contact Number
+            </label>
+            <div className="flex gap-2">
+              <Input
+                className="flex-1 min-w-0"
+                value={postedContact}
+                onChange={(e) => setPostedContact(e.target.value)}
+                placeholder="Phone (with country code) or email"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                disabled={!waPhone}
+                title="Call"
+                onClick={() => openTelCall(postedContact)}
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                disabled={!waPhone}
+                title="Follow up on WhatsApp"
+                onClick={() => {
+                  if (!waPhone) return;
+                  openWhatsAppChat(
+                    waPhone,
+                    buildReviewPostedFollowUpMessage(postedByName),
+                  );
+                }}
+              >
+                <MessageCircle className="h-4 w-4 text-emerald-600" />
+              </Button>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Platform *</label>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import type { MarkSharedFormData } from "@/types/reviews";
 import { openWhatsAppChat, parseWhatsAppDigits } from "@/lib/whatsapp-url";
+import { resolveClientReviewDestinationsPayload } from "@/lib/infer-review-destination-platform";
 
 interface MarkSharedModalProps {
   isOpen: boolean;
@@ -97,10 +98,16 @@ export function MarkSharedModal({
       })
       .then((client) => {
         if (cancelled) return;
-        const list = client?.reviewDestinations ?? [];
-        setReviewDestinations(list);
-        setFallbackReviewDestinationUrl(client?.reviewDestinationUrl ?? "");
-        setFallbackReviewQrImageUrl(client?.reviewQrImageUrl ?? "");
+        const resolved = client
+          ? resolveClientReviewDestinationsPayload(client)
+          : {
+              reviewDestinations: [] as ClientReviewDestination[],
+              fallbackReviewDestinationUrl: "",
+              fallbackReviewQrImageUrl: "",
+            };
+        setReviewDestinations(resolved.reviewDestinations);
+        setFallbackReviewDestinationUrl(resolved.fallbackReviewDestinationUrl);
+        setFallbackReviewQrImageUrl(resolved.fallbackReviewQrImageUrl);
       })
       .catch(() => {
         if (cancelled) return;
@@ -128,11 +135,16 @@ export function MarkSharedModal({
     const matched = reviewDestinations.find(
       (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
     );
+    const useLegacyFallback = reviewDestinations.length === 0;
     setReviewDestinationUrl(
-      matched?.reviewDestinationUrl ?? fallbackReviewDestinationUrl ?? "",
+      matched?.reviewDestinationUrl ??
+        (useLegacyFallback ? fallbackReviewDestinationUrl : "") ??
+        "",
     );
     setReviewQrImageUrl(
-      matched?.reviewQrImageUrl ?? fallbackReviewQrImageUrl ?? "",
+      matched?.reviewQrImageUrl ??
+        (useLegacyFallback ? fallbackReviewQrImageUrl : "") ??
+        "",
     );
   }, [
     platform,
@@ -155,6 +167,13 @@ export function MarkSharedModal({
 
   const waPhone = parseWhatsAppDigits(customerContact);
   const showWaButtons = waPhone !== null;
+  const destinationMissingForSelectedPlatform = Boolean(
+    platform &&
+      reviewDestinations.length > 0 &&
+      !reviewDestinations.some(
+        (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
+      ),
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,6 +253,12 @@ export function MarkSharedModal({
                         )}
                       </Button>
                     </div>
+                  ) : destinationMissingForSelectedPlatform ? (
+                    <p className="text-sm text-muted-foreground">
+                      No review link saved for {platform}. Add it in the
+                      client&apos;s review destinations or choose another
+                      platform.
+                    </p>
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       No review destination URL configured for this client.
@@ -250,6 +275,10 @@ export function MarkSharedModal({
                       alt="Client review QR code"
                       className="h-28 w-28 rounded border object-contain bg-background"
                     />
+                  ) : destinationMissingForSelectedPlatform ? (
+                    <p className="text-sm text-muted-foreground">
+                      No QR image saved for {platform} for this client.
+                    </p>
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       No QR image configured for this client.

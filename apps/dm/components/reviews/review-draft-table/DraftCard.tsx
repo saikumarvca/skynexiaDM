@@ -12,6 +12,7 @@ export function DraftCard(props: {
   mode: "row" | "grid";
   selected: boolean;
   assignedToName?: string;
+  platform?: string;
   canArchive: boolean;
   clientName: string;
   selectedForBulk: boolean;
@@ -26,6 +27,7 @@ export function DraftCard(props: {
     mode,
     selected,
     assignedToName,
+    platform,
     canArchive,
     clientName,
     selectedForBulk,
@@ -135,6 +137,11 @@ export function DraftCard(props: {
               ) : (
                 <span className="text-muted-foreground">No category</span>
               )}
+              {platform ? (
+                <span className="inline-flex rounded-full border border-border bg-background px-2 py-0.5 font-medium text-foreground">
+                  {platform}
+                </span>
+              ) : null}
               <span className="ml-auto inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                 {d.status}
               </span>
@@ -164,6 +171,11 @@ export function DraftCard(props: {
             <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
               {d.status}
             </span>
+            {platform ? (
+              <span className="inline-flex rounded-full border border-border bg-background px-2 py-0.5 font-medium text-foreground">
+                {platform}
+              </span>
+            ) : null}
             <span className="text-muted-foreground">Assigned to</span>
             {assignedToName ? (
               <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary ring-1 ring-primary/20">

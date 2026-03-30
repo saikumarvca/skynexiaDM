@@ -4,6 +4,7 @@ export interface IPostedReview extends mongoose.Document {
   allocationId: mongoose.Types.ObjectId;
   draftId: mongoose.Types.ObjectId;
   postedByName: string;
+  customerContact?: string;
   platform: string;
   reviewLink?: string;
   proofUrl?: string;
@@ -27,6 +28,7 @@ const PostedReviewSchema: mongoose.Schema = new mongoose.Schema(
       required: true,
     },
     postedByName: { type: String, required: true },
+    customerContact: { type: String },
     platform: { type: String, required: true },
     reviewLink: { type: String },
     proofUrl: { type: String },
