@@ -551,8 +551,9 @@ export function GlobalSearch({
         type="button"
         onClick={() => setOpen(true)}
         className="group flex h-10 w-full min-h-10 items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 text-sm text-muted-foreground hover:bg-muted hover:border-border/80 hover:text-foreground transition-all duration-150 sm:h-9 sm:min-h-0"
+        aria-label="Search"
       >
-        <Search className="h-3.5 w-3.5 shrink-0" />
+        <Search className="h-4 w-4 shrink-0" />
         <span className="flex-1 text-left truncate">
           Search pages, features…
         </span>

@@ -24,7 +24,7 @@ export function MobileDashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
           type="button"
           variant="ghost"
           size="icon"
-          className="h-11 w-11 shrink-0 md:hidden"
+          className="h-10 w-10 shrink-0 md:hidden"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />

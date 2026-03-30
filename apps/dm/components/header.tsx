@@ -40,9 +40,9 @@ export function Header({
   };
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 shadow-sm sm:gap-4 sm:px-6">
+    <header className="flex h-14 shrink-0 items-center gap-1.5 border-b bg-background px-2 shadow-sm sm:h-16 sm:gap-4 sm:px-6">
       <MobileDashboardNav isAdmin={isAdmin} />
-      <span className="hidden shrink-0 text-sm font-medium text-muted-foreground sm:block">
+      <span className="hidden shrink-0 text-sm font-medium text-muted-foreground md:block">
         Digital Marketing
       </span>
       <div className="min-w-0 flex-1">
@@ -53,7 +53,7 @@ export function Header({
         <Button
           variant="ghost"
           size="sm"
-          className="hidden h-10 px-3 sm:inline-flex"
+          className="hidden h-10 px-3 md:inline-flex"
           onClick={onLogout}
         >
           Logout
@@ -61,7 +61,7 @@ export function Header({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full sm:hidden"
+          className="h-10 w-10 rounded-full md:hidden"
           onClick={onLogout}
           aria-label="Log out"
         >
