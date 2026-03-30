@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import { getCachedUser } from "@/lib/auth";
 import { PERMISSION_LIST } from "@/lib/team/permissions";
 import TeamMember from "@/models/TeamMember";
+import "@/models/TeamRole";
 
 export type CurrentUserTeamPermissions = {
   teamMemberId?: string;
