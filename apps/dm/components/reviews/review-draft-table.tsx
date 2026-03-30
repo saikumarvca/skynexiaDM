@@ -66,10 +66,14 @@ export function ReviewDraftTable({
   const [reassignSubmitting, setReassignSubmitting] = useState(false);
   const [bulkAssignUserOpen, setBulkAssignUserOpen] = useState(false);
   const [bulkAssignUserSubmitting, setBulkAssignUserSubmitting] = useState(false);
+  const [bulkAssignPlatformOpen, setBulkAssignPlatformOpen] = useState(false);
+  const [bulkAssignPlatformSubmitting, setBulkAssignPlatformSubmitting] =
+    useState(false);
   const [bulkAssignedToUserId, setBulkAssignedToUserId] = useState("");
   const [bulkCustomerName, setBulkCustomerName] = useState("");
   const [bulkCustomerContact, setBulkCustomerContact] = useState("");
   const [bulkPlatform, setBulkPlatform] = useState("");
+  const [bulkPlatformOnly, setBulkPlatformOnly] = useState("");
   const [targetClientByDraftId, setTargetClientByDraftId] = useState<
     Record<string, string>
   >({});
@@ -95,7 +99,7 @@ export function ReviewDraftTable({
     [drafts, search],
   );
   const selectableDrafts = useMemo(
-    () => filtered.filter((d) => d.status === "Available"),
+    () => filtered.filter((d) => d.status !== "Archived"),
     [filtered],
   );
 
@@ -175,6 +179,11 @@ export function ReviewDraftTable({
     setBulkAssignedToUserId((prev) => prev || users[0]?._id || "");
     setBulkAssignUserOpen(true);
   }, [selectedIds.length, users]);
+
+  const openBulkAssignPlatform = useCallback(() => {
+    if (selectedIds.length === 0) return;
+    setBulkAssignPlatformOpen(true);
+  }, [selectedIds.length]);
 
   const toggleSelectedDraft = useCallback((draftId: string, next: boolean) => {
     setSelectedIds((prev) =>
@@ -282,6 +291,93 @@ export function ReviewDraftTable({
     users,
   ]);
 
+  const submitBulkAssignPlatform = useCallback(async () => {
+    if (!bulkPlatformOnly) {
+      toast.error("Select a platform");
+      return;
+    }
+    if (selectedIds.length === 0) {
+      toast.error("No drafts selected");
+      return;
+    }
+    setBulkAssignPlatformSubmitting(true);
+    try {
+      const url = new URL("/api/review-allocations", window.location.origin);
+      url.searchParams.set("draftIds", selectedIds.join(","));
+      const res = await fetch(url.pathname + url.search, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to load allocations");
+      const allocations = (await res.json()) as Array<{
+        _id: string;
+        draftId: string | { _id?: string };
+      }>;
+
+      const latestAllocationIdByDraftId: Record<string, string> = {};
+      for (const a of allocations) {
+        const draftId =
+          typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
+        if (!draftId || latestAllocationIdByDraftId[draftId]) continue;
+        latestAllocationIdByDraftId[draftId] = a._id;
+      }
+
+      const targetAllocationIds = selectedIds
+        .map((id) => latestAllocationIdByDraftId[id])
+        .filter(Boolean);
+      const missingDraftIds = selectedIds.filter(
+        (id) => !latestAllocationIdByDraftId[id],
+      );
+
+      const patchResults = await Promise.allSettled(
+        targetAllocationIds.map((allocationId) =>
+          fetch(`/api/review-allocations/${allocationId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              platform: bulkPlatformOnly,
+              performedBy: users[0]?.name ?? "system",
+            }),
+          }),
+        ),
+      );
+      const createResults = await Promise.allSettled(
+        missingDraftIds.map((draftId) =>
+          onAssign(draftId, {
+            draftId,
+            assignedToUserId: "UNASSIGNED",
+            assignedToUserName: "Unassigned",
+            assignedByUserId: users[0]?._id ?? "system",
+            assignedByUserName: users[0]?.name ?? "system",
+            platform: bulkPlatformOnly,
+          }),
+        ),
+      );
+
+      const successCount =
+        patchResults.filter(
+          (r) => r.status === "fulfilled" && r.value.ok,
+        ).length +
+        createResults.filter((r) => r.status === "fulfilled").length;
+      const failedCount =
+        patchResults.length -
+        patchResults.filter((r) => r.status === "fulfilled" && r.value.ok).length +
+        (createResults.length -
+          createResults.filter((r) => r.status === "fulfilled").length);
+      const createdCount = createResults.filter(
+        (r) => r.status === "fulfilled",
+      ).length;
+      toast.success(
+        `Platform assignment done: ${successCount} success, ${failedCount} failed${createdCount ? ` (${createdCount} created)` : ""}`,
+      );
+      setBulkAssignPlatformOpen(false);
+      setBulkPlatformOnly("");
+      setSelectedIds([]);
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk platform assign failed");
+    } finally {
+      setBulkAssignPlatformSubmitting(false);
+    }
+  }, [bulkPlatformOnly, onAssign, router, selectedIds, users]);
+
   const assignedToName = useMemo(() => {
     if (!selectedDraftId) return undefined;
     return allocationsByDraftId[selectedDraftId];
@@ -340,6 +436,7 @@ export function ReviewDraftTable({
           selectedCount={selectedIds.length}
           onBulkAssignClientClick={openBulkReassign}
           onBulkAssignUserClick={openBulkAssignUser}
+          onBulkAssignPlatformClick={openBulkAssignPlatform}
         />
 
         <div className="mb-3 flex items-center gap-3 text-sm">
@@ -377,7 +474,7 @@ export function ReviewDraftTable({
                 onArchiveClick={() => handleArchiveClick(d)}
                 onOpen={() => handleRowClick(d)}
                 selectedForBulk={selectedIds.includes(d._id)}
-                canSelectForBulk={d.status === "Available"}
+                canSelectForBulk={d.status !== "Archived"}
                 onBulkSelectChange={(next: boolean) =>
                   toggleSelectedDraft(d._id, next)
                 }
@@ -401,7 +498,7 @@ export function ReviewDraftTable({
                 onArchiveClick={() => handleArchiveClick(d)}
                 onOpen={() => handleRowClick(d)}
                 selectedForBulk={selectedIds.includes(d._id)}
-                canSelectForBulk={d.status === "Available"}
+                canSelectForBulk={d.status !== "Archived"}
                 onBulkSelectChange={(next: boolean) =>
                   toggleSelectedDraft(d._id, next)
                 }
@@ -640,6 +737,48 @@ export function ReviewDraftTable({
               onClick={submitBulkAssignUser}
             >
               {bulkAssignUserSubmitting ? "Assigning..." : "Assign User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkAssignPlatformOpen} onOpenChange={setBulkAssignPlatformOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Platform to Selected Drafts</DialogTitle>
+            <DialogDescription>
+              Update platform for selected drafts without changing assigned user.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Platform *</label>
+              <select
+                value={bulkPlatformOnly}
+                onChange={(e) => setBulkPlatformOnly(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              >
+                <option value="">Select platform</option>
+                <option value="Google">Google</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Justdial">Justdial</option>
+                <option value="Website">Website</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkAssignPlatformOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={bulkAssignPlatformSubmitting || selectedIds.length === 0}
+              onClick={submitBulkAssignPlatform}
+            >
+              {bulkAssignPlatformSubmitting ? "Assigning..." : "Assign Platform"}
             </Button>
           </DialogFooter>
         </DialogContent>

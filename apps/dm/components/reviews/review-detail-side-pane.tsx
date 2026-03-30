@@ -77,6 +77,9 @@ export function ReviewDetailSidePane({
   const [reviewDestinations, setReviewDestinations] = useState<
     ClientReviewDestination[]
   >([]);
+  const [fallbackReviewDestinationUrl, setFallbackReviewDestinationUrl] =
+    useState("");
+  const [fallbackReviewQrImageUrl, setFallbackReviewQrImageUrl] = useState("");
   const [copiedDestination, setCopiedDestination] = useState(false);
 
   useEffect(() => {
@@ -100,6 +103,9 @@ export function ReviewDetailSidePane({
       allocation && typeof allocation.draftId === "object" ? allocation.draftId : null;
     const clientId = draft && "clientId" in draft ? draft.clientId : undefined;
     if (!allocation || !clientId) {
+      setReviewDestinations([]);
+      setFallbackReviewDestinationUrl("");
+      setFallbackReviewQrImageUrl("");
       setReviewDestinationUrl("");
       setReviewQrImageUrl("");
       return;
@@ -119,22 +125,14 @@ export function ReviewDetailSidePane({
         if (cancelled) return;
         const list = client?.reviewDestinations ?? [];
         setReviewDestinations(list);
-        const matched =
-          list.find(
-            (d) =>
-              platform &&
-              normalizePlatform(d.platform) === normalizePlatform(platform),
-          ) ?? list[0];
-        setReviewDestinationUrl(
-          matched?.reviewDestinationUrl ?? client?.reviewDestinationUrl ?? "",
-        );
-        setReviewQrImageUrl(
-          matched?.reviewQrImageUrl ?? client?.reviewQrImageUrl ?? "",
-        );
+        setFallbackReviewDestinationUrl(client?.reviewDestinationUrl ?? "");
+        setFallbackReviewQrImageUrl(client?.reviewQrImageUrl ?? "");
       })
       .catch(() => {
         if (cancelled) return;
         setReviewDestinations([]);
+        setFallbackReviewDestinationUrl("");
+        setFallbackReviewQrImageUrl("");
         setReviewDestinationUrl("");
         setReviewQrImageUrl("");
       })
@@ -144,7 +142,29 @@ export function ReviewDetailSidePane({
     return () => {
       cancelled = true;
     };
-  }, [allocation, platform]);
+  }, [allocation]);
+
+  useEffect(() => {
+    if (!platform) {
+      setReviewDestinationUrl("");
+      setReviewQrImageUrl("");
+      return;
+    }
+    const matched = reviewDestinations.find(
+      (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
+    );
+    setReviewDestinationUrl(
+      matched?.reviewDestinationUrl ?? fallbackReviewDestinationUrl ?? "",
+    );
+    setReviewQrImageUrl(
+      matched?.reviewQrImageUrl ?? fallbackReviewQrImageUrl ?? "",
+    );
+  }, [
+    platform,
+    reviewDestinations,
+    fallbackReviewDestinationUrl,
+    fallbackReviewQrImageUrl,
+  ]);
 
   if (!allocation) return null;
 

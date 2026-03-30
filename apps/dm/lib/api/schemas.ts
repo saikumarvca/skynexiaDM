@@ -11,6 +11,18 @@ const isoDateOrNull = z.union([
   z.null(),
 ]);
 
+const httpUrlSchema = z.string().trim().url("Enter a valid URL").max(2048);
+const dataImageUrlSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\r\n]+$/,
+    "Enter a valid image data URL",
+  )
+  .max(2_000_000, "Image is too large");
+
+const reviewQrImageSchema = z.union([httpUrlSchema, dataImageUrlSchema]);
+
 export const clientUpsertSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
@@ -43,11 +55,11 @@ export const clientUpsertSchema = z
     ),
     reviewDestinationUrl: z.preprocess(
       emptyToUndef,
-      z.string().trim().url("Enter a valid URL").max(2048).optional(),
+      httpUrlSchema.optional(),
     ),
     reviewQrImageUrl: z.preprocess(
       emptyToUndef,
-      z.string().trim().url("Enter a valid URL").max(2048).optional(),
+      reviewQrImageSchema.optional(),
     ),
     reviewDestinations: z
       .array(
@@ -55,11 +67,11 @@ export const clientUpsertSchema = z
           platform: z.string().trim().min(1, "Platform is required"),
           reviewDestinationUrl: z.preprocess(
             emptyToUndef,
-            z.string().trim().url("Enter a valid URL").max(2048).optional(),
+            httpUrlSchema.optional(),
           ),
           reviewQrImageUrl: z.preprocess(
             emptyToUndef,
-            z.string().trim().url("Enter a valid URL").max(2048).optional(),
+            reviewQrImageSchema.optional(),
           ),
         }),
       )
@@ -89,6 +101,21 @@ export function mongoFieldsFromClientUpsert(
   const normalizedDestinations = sanitizeReviewDestinations(
     parsed.reviewDestinations,
   );
+  const fallbackDestination =
+    parsed.reviewDestinationUrl || parsed.reviewQrImageUrl
+      ? {
+          platform: "Google",
+          reviewDestinationUrl: parsed.reviewDestinationUrl,
+          reviewQrImageUrl: parsed.reviewQrImageUrl,
+        }
+      : undefined;
+  const resolvedDestinations =
+    normalizedDestinations && normalizedDestinations.length > 0
+      ? normalizedDestinations
+      : fallbackDestination
+        ? [fallbackDestination]
+        : undefined;
+  const firstResolvedDestination = resolvedDestinations?.[0];
   const dateOrNull = (v: string | null | undefined) => {
     if (v === undefined) return undefined;
     if (v === null) return null;
@@ -124,10 +151,10 @@ export function mongoFieldsFromClientUpsert(
           ? null
           : parsed.assignedManagerId,
     reviewDestinationUrl:
-      parsed.reviewDestinationUrl ?? normalizedDestinations?.[0]?.reviewDestinationUrl,
+      parsed.reviewDestinationUrl ?? firstResolvedDestination?.reviewDestinationUrl,
     reviewQrImageUrl:
-      parsed.reviewQrImageUrl ?? normalizedDestinations?.[0]?.reviewQrImageUrl,
-    reviewDestinations: normalizedDestinations,
+      parsed.reviewQrImageUrl ?? firstResolvedDestination?.reviewQrImageUrl,
+    reviewDestinations: resolvedDestinations,
   };
 }
 

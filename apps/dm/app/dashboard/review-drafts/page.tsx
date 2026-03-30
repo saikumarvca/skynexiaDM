@@ -26,6 +26,7 @@ async function getDrafts(params: {
   category?: string;
   language?: string;
   assignee?: string;
+  platform?: string;
 }): Promise<ReviewDraft[]> {
   await dbConnect();
   const query: Record<string, unknown> = {};
@@ -37,7 +38,10 @@ async function getDrafts(params: {
     .populate("clientId", "name businessName")
     .sort({ createdAt: -1 })
     .lean();
-  if (params.assignee && params.assignee !== "ALL") {
+  if (
+    (params.assignee && params.assignee !== "ALL") ||
+    (params.platform && params.platform !== "ALL")
+  ) {
     const allocationsRaw = await serverFetch(
       `/api/review-allocations?draftIds=${docs.map((d) => d._id.toString()).join(",")}`,
       { cache: "no-store" },
@@ -46,20 +50,32 @@ async function getDrafts(params: {
       ? ((await allocationsRaw.json()) as {
           draftId?: string | { _id?: string };
           assignedToUserName?: string;
+          platform?: string;
         }[])
       : [];
     const assignedMap = new Map<string, string>();
+    const platformMap = new Map<string, string>();
     for (const a of allocations) {
       const draftId =
         typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
       if (!draftId || assignedMap.has(draftId)) continue;
       if (a.assignedToUserName) assignedMap.set(draftId, a.assignedToUserName);
+      if (a.platform) platformMap.set(draftId, a.platform);
     }
     if (params.assignee === "UNASSIGNED") {
       docs = docs.filter((d) => !assignedMap.has(d._id.toString()));
     }
     if (params.assignee === "ASSIGNED") {
       docs = docs.filter((d) => assignedMap.has(d._id.toString()));
+    }
+    if (params.platform && params.platform !== "ALL") {
+      if (params.platform === "UNASSIGNED") {
+        docs = docs.filter((d) => !(platformMap.get(d._id.toString()) ?? "").trim());
+      } else {
+        docs = docs.filter(
+          (d) => (platformMap.get(d._id.toString()) ?? "") === params.platform,
+        );
+      }
     }
   }
   return docs.map((d) => JSON.parse(JSON.stringify(d)));
@@ -171,6 +187,7 @@ interface PageProps {
     category?: string;
     language?: string;
     assignee?: string;
+    platform?: string;
   }>;
 }
 
@@ -191,6 +208,7 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
       category: params.category,
       language: params.language,
       assignee: params.assignee,
+      platform: params.platform,
     }),
     getClients(),
     getTeamMembers(),
@@ -289,6 +307,24 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
               placeholder="Language"
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[120px]"
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Platform
+            </label>
+            <select
+              name="platform"
+              defaultValue={params.platform ?? "ALL"}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[140px]"
+            >
+              <option value="ALL">All</option>
+              <option value="UNASSIGNED">Unassigned</option>
+              <option value="Google">Google</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Justdial">Justdial</option>
+              <option value="Website">Website</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div className="flex items-end">
             <Button type="submit" variant="outline">

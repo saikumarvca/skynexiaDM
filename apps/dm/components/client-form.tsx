@@ -46,6 +46,27 @@ function sanitizeReviewDestinations(
     );
 }
 
+const REVIEW_PLATFORM_OPTIONS = [
+  "Google",
+  "Facebook",
+  "Justdial",
+  "Website",
+  "Other",
+] as const;
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") resolve(result);
+      else reject(new Error("Could not read file"));
+    };
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 interface ClientFormProps {
   initialData?: Partial<ClientFormData>;
   onSubmit: (data: ClientFormData) => Promise<void>;
@@ -73,7 +94,7 @@ export function ClientForm({
       : initialData?.reviewDestinationUrl || initialData?.reviewQrImageUrl
         ? [
             {
-              platform: "Other",
+              platform: "Google",
               reviewDestinationUrl: initialData.reviewDestinationUrl ?? "",
               reviewQrImageUrl: initialData.reviewQrImageUrl ?? "",
             },
@@ -89,6 +110,7 @@ export function ClientForm({
     email?: boolean;
     businessName?: boolean;
   }>({});
+  const [uploadingQrIndex, setUploadingQrIndex] = useState<number | null>(null);
   const dupAbortRef = useRef<AbortController | null>(null);
 
   const checkDuplicate = useCallback(
@@ -218,6 +240,32 @@ export function ClientForm({
     ];
   }, [managers, formData.assignedManagerId]);
 
+  const handleQrFileSelected = async (idx: number, file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file for QR");
+      return;
+    }
+    if (file.size > 1_500_000) {
+      toast.error("QR image is too large. Please use an image under 1.5 MB.");
+      return;
+    }
+    setUploadingQrIndex(idx);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setReviewDestinations((prev) =>
+        prev.map((row, i) =>
+          i === idx ? { ...row, reviewQrImageUrl: dataUrl } : row,
+        ),
+      );
+      toast.success("QR image uploaded");
+    } catch {
+      toast.error("Could not read QR image");
+    } finally {
+      setUploadingQrIndex(null);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -262,9 +310,9 @@ export function ClientForm({
             {reviewDestinations.map((row, idx) => (
               <div
                 key={`dest-${idx}`}
-                className="grid grid-cols-1 gap-2 rounded border p-3 md:grid-cols-[1fr_2fr_2fr_auto]"
+                className="grid grid-cols-1 gap-2 rounded border p-3 md:grid-cols-[1fr_2fr_2fr_auto_auto]"
               >
-                <Input
+                <select
                   value={row.platform}
                   onChange={(e) =>
                     setReviewDestinations((prev) =>
@@ -273,8 +321,15 @@ export function ClientForm({
                       ),
                     )
                   }
-                  placeholder="Platform (Google/Facebook/Justdial)"
-                />
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                >
+                  <option value="">Select platform</option>
+                  {REVIEW_PLATFORM_OPTIONS.map((platform) => (
+                    <option key={platform} value={platform}>
+                      {platform}
+                    </option>
+                  ))}
+                </select>
                 <Input
                   type="text"
                   value={row.reviewDestinationUrl}
@@ -301,6 +356,19 @@ export function ClientForm({
                   }
                   placeholder="QR image URL"
                 />
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-md border px-3 text-sm font-medium hover:bg-muted">
+                  {uploadingQrIndex === idx ? "Uploading..." : "Upload QR"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      void handleQrFileSelected(idx, file);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                </label>
                 <Button
                   type="button"
                   variant="outline"

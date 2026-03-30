@@ -19,6 +19,7 @@ export function ReviewDraftTableToolbar(props: {
   selectedCount: number;
   onBulkAssignClientClick: () => void;
   onBulkAssignUserClick: () => void;
+  onBulkAssignPlatformClick: () => void;
 }) {
   const {
     search,
@@ -34,6 +35,7 @@ export function ReviewDraftTableToolbar(props: {
     selectedCount,
     onBulkAssignClientClick,
     onBulkAssignUserClick,
+    onBulkAssignPlatformClick,
   } = props;
 
   return (
@@ -124,6 +126,13 @@ export function ReviewDraftTableToolbar(props: {
         onClick={onBulkAssignUserClick}
       >
         Assign User ({selectedCount})
+      </Button>
+      <Button
+        variant="outline"
+        disabled={selectedCount === 0}
+        onClick={onBulkAssignPlatformClick}
+      >
+        Assign Platform ({selectedCount})
       </Button>
     </div>
   );
