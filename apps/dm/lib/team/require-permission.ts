@@ -12,7 +12,7 @@ export function hasAnyPermission(
 export function requireAnyPermission(
   perms: string[],
   requiredAnyOf: string[] | undefined,
-  redirectTo = "/dashboard",
+  redirectTo = "/login",
 ) {
   if (!hasAnyPermission(perms, requiredAnyOf)) redirect(redirectTo);
 }
