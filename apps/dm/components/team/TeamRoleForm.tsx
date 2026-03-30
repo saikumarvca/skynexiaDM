@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PERMISSION_LIST } from "@/lib/team/permissions";
+import {
+  PERMISSION_DEFINITIONS,
+  PERMISSION_LIST,
+  type PermissionCategory,
+} from "@/lib/team/permissions";
 
 interface TeamRoleFormProps {
   roleId?: string;
@@ -25,6 +29,7 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
   const [permissions, setPermissions] = useState<Set<string>>(
     new Set(initialData?.permissions ?? []),
   );
+  const [permQuery, setPermQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,6 +40,29 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
       else next.add(perm);
       return next;
     });
+  }
+
+  function selectAllVisible() {
+    const q = permQuery.trim().toLowerCase();
+    const visible = PERMISSION_DEFINITIONS.filter((d) => {
+      if (!q) return true;
+      return (
+        d.key.toLowerCase().includes(q) ||
+        d.label.toLowerCase().includes(q) ||
+        (d.description ?? "").toLowerCase().includes(q) ||
+        d.category.toLowerCase().includes(q)
+      );
+    }).map((d) => d.key);
+
+    setPermissions((prev) => {
+      const next = new Set(prev);
+      for (const k of visible) next.add(k);
+      return next;
+    });
+  }
+
+  function clearAll() {
+    setPermissions(new Set());
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -63,6 +91,37 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
       setLoading(false);
     }
   }
+
+  const q = permQuery.trim().toLowerCase();
+  const filteredDefs = PERMISSION_DEFINITIONS.filter((d) => {
+    if (!q) return true;
+    return (
+      d.key.toLowerCase().includes(q) ||
+      d.label.toLowerCase().includes(q) ||
+      (d.description ?? "").toLowerCase().includes(q) ||
+      d.category.toLowerCase().includes(q)
+    );
+  });
+
+  const defsByCategory = filteredDefs.reduce(
+    (acc, d) => {
+      (acc[d.category] ||= []).push(d);
+      return acc;
+    },
+    {} as Record<PermissionCategory, typeof PERMISSION_DEFINITIONS>,
+  );
+
+  const categoryOrder: PermissionCategory[] = [
+    "Team & Access",
+    "Clients",
+    "Campaigns",
+    "Content & SEO",
+    "Leads",
+    "Tasks",
+    "Reviews",
+    "Analytics",
+    "Settings",
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,21 +155,74 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
         <label className="mb-2 block text-sm font-medium text-muted-foreground">
           Permissions
         </label>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {PERMISSION_LIST.map((perm) => (
-            <label
-              key={perm}
-              className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-muted/50"
-            >
-              <input
-                type="checkbox"
-                checked={permissions.has(perm)}
-                onChange={() => togglePerm(perm)}
-                className="h-4 w-4"
-              />
-              <span className="text-sm">{perm.replace(/_/g, " ")}</span>
-            </label>
-          ))}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <Input
+              value={permQuery}
+              onChange={(e) => setPermQuery(e.target.value)}
+              placeholder="Search permissions…"
+            />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={selectAllVisible}
+              >
+                Select visible
+              </Button>
+              <Button type="button" variant="outline" onClick={clearAll}>
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            Selected: {permissions.size} / {PERMISSION_LIST.length}
+          </div>
+
+          {filteredDefs.length === 0 ? (
+            <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+              No permissions match “{permQuery}”.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {categoryOrder
+                .filter((c) => (defsByCategory[c] ?? []).length > 0)
+                .map((category) => (
+                  <div key={category} className="space-y-2">
+                    <div className="text-sm font-medium">{category}</div>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {(defsByCategory[category] ?? []).map((d) => (
+                        <label
+                          key={d.key}
+                          className="flex cursor-pointer gap-3 rounded border p-3 hover:bg-muted/50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={permissions.has(d.key)}
+                            onChange={() => togglePerm(d.key)}
+                            className="mt-0.5 h-4 w-4"
+                          />
+                          <span className="min-w-0">
+                            <span className="block text-sm font-medium">
+                              {d.label}
+                            </span>
+                            {d.description ? (
+                              <span className="block text-xs text-muted-foreground">
+                                {d.description}
+                              </span>
+                            ) : null}
+                            <span className="mt-1 block text-[11px] text-muted-foreground">
+                              {d.key}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex gap-2">

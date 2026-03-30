@@ -28,6 +28,13 @@ export type SourceModule =
 export type WorkloadStatus = "Available" | "Balanced" | "Busy" | "Overloaded";
 
 export const PERMISSION_LIST = [
+  // View-only / execution permissions (use these for "workers")
+  "view_tasks",
+  "work_assigned_tasks",
+  "view_reviews",
+  "work_assigned_reviews",
+
+  // Management permissions (use these for leads/managers/admins)
   "manage_clients",
   "manage_campaigns",
   "manage_content",
