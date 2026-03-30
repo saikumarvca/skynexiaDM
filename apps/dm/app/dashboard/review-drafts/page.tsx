@@ -49,24 +49,29 @@ async function getDrafts(params: {
     const allocations = allocationsRaw.ok
       ? ((await allocationsRaw.json()) as {
           draftId?: string | { _id?: string };
+          assignedToUserId?: string;
           assignedToUserName?: string;
           platform?: string;
         }[])
       : [];
-    const assignedMap = new Map<string, string>();
+    const assignedIdSet = new Set<string>();
     const platformMap = new Map<string, string>();
     for (const a of allocations) {
       const draftId =
         typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
-      if (!draftId || assignedMap.has(draftId)) continue;
-      if (a.assignedToUserName) assignedMap.set(draftId, a.assignedToUserName);
-      if (a.platform) platformMap.set(draftId, a.platform);
+      if (!draftId) continue;
+      if (!assignedIdSet.has(draftId) && a.assignedToUserId) {
+        assignedIdSet.add(draftId);
+      }
+      if (!platformMap.has(draftId) && a.platform) {
+        platformMap.set(draftId, a.platform);
+      }
     }
     if (params.assignee === "UNASSIGNED") {
-      docs = docs.filter((d) => !assignedMap.has(d._id.toString()));
+      docs = docs.filter((d) => !assignedIdSet.has(d._id.toString()));
     }
     if (params.assignee === "ASSIGNED") {
-      docs = docs.filter((d) => assignedMap.has(d._id.toString()));
+      docs = docs.filter((d) => assignedIdSet.has(d._id.toString()));
     }
     if (params.platform && params.platform !== "ALL") {
       if (params.platform === "UNASSIGNED") {

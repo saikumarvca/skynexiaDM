@@ -26,8 +26,21 @@ async function getAllocations(params: {
   await dbConnect();
   const query: Record<string, unknown> = {};
   if (params.status) query.allocationStatus = params.status;
-  if (params.assignedToUserId) query.assignedToUserId = params.assignedToUserId;
-  if (params.platform) query.platform = params.platform;
+  if (params.assignedToUserId) {
+    if (params.assignedToUserId === "UNASSIGNED") {
+      query.$or = [
+        { assignedToUserId: { $exists: false } },
+        { assignedToUserId: null },
+        { assignedToUserId: "" },
+        { assignedToUserId: "UNASSIGNED" },
+      ];
+    } else {
+      query.assignedToUserId = params.assignedToUserId;
+    }
+  }
+  if (params.platform && params.platform !== "UNASSIGNED") {
+    query.platform = params.platform;
+  }
   if (params.dateFrom || params.dateTo) {
     query.assignedDate = {};
     if (params.dateFrom)
@@ -50,6 +63,11 @@ async function getAllocations(params: {
       } | null;
       return draft?.clientId?.toString?.() === params.clientId;
     });
+  }
+  if (params.platform === "UNASSIGNED") {
+    allocations = allocations.filter(
+      (a) => !String((a.platform as string | undefined) ?? "").trim(),
+    );
   }
   return allocations.map((a) => JSON.parse(JSON.stringify(a)));
 }
@@ -167,7 +185,7 @@ export default async function ReviewAllocationsPage({
         params.assignedTo && params.assignedTo !== "ALL"
           ? params.assignedTo
           : undefined,
-      platform: params.platform,
+      platform: params.platform && params.platform !== "ALL" ? params.platform : undefined,
       dateFrom: params.dateFrom,
       dateTo: params.dateTo,
     }),
@@ -244,6 +262,7 @@ export default async function ReviewAllocationsPage({
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[140px]"
             >
               <option value="ALL">All</option>
+              <option value="UNASSIGNED">Unassigned</option>
               {teamMembers.map((u) => (
                 <option key={u._id} value={u._id}>
                   {u.name}
@@ -255,12 +274,19 @@ export default async function ReviewAllocationsPage({
             <label className="mb-1 block text-sm font-medium text-muted-foreground">
               Platform
             </label>
-            <input
+            <select
               name="platform"
-              defaultValue={params.platform ?? ""}
-              placeholder="e.g. Google"
+              defaultValue={params.platform ?? "ALL"}
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[120px]"
-            />
+            >
+              <option value="ALL">All</option>
+              <option value="UNASSIGNED">Unassigned</option>
+              <option value="Google">Google</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Justdial">Justdial</option>
+              <option value="Website">Website</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-muted-foreground">
@@ -293,6 +319,7 @@ export default async function ReviewAllocationsPage({
 
         <ReviewAllocationTable
           allocations={allocations}
+          teamMembers={teamMembers}
           onMarkShared={markShared}
           onMarkPosted={markPosted}
           onCancel={cancelAllocation}

@@ -23,6 +23,9 @@ interface MarkSharedModalProps {
   allocationId: string;
   subject?: string;
   clientId?: string;
+  defaultPlatform?: string;
+  defaultCustomerName?: string;
+  defaultCustomerContact?: string;
 }
 
 type ClientReviewDestination = {
@@ -44,6 +47,9 @@ export function MarkSharedModal({
   allocationId,
   subject,
   clientId,
+  defaultPlatform,
+  defaultCustomerName,
+  defaultCustomerContact,
 }: MarkSharedModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDestination, setIsLoadingDestination] = useState(false);
@@ -62,6 +68,14 @@ export function MarkSharedModal({
   const [sentDate, setSentDate] = useState(
     new Date().toISOString().slice(0, 10),
   );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setCustomerName(defaultCustomerName ?? "");
+    setCustomerContact(defaultCustomerContact ?? "");
+    setPlatform(defaultPlatform ?? "");
+    setSentDate(new Date().toISOString().slice(0, 10));
+  }, [defaultCustomerContact, defaultCustomerName, defaultPlatform, isOpen]);
 
   useEffect(() => {
     if (!isOpen || !clientId) return;

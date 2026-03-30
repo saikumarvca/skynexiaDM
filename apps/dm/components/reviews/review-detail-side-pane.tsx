@@ -44,6 +44,7 @@ interface ReviewDetailSidePaneProps {
   onMarkShared: (id: string, data: MarkSharedFormData) => Promise<void>;
   onMarkPosted: (id: string, data: MarkPostedFormData) => Promise<void>;
   onRefresh: () => void;
+  teamMembers?: { _id: string; name: string }[];
 }
 
 export function ReviewDetailSidePane({
@@ -53,6 +54,7 @@ export function ReviewDetailSidePane({
   onMarkShared,
   onMarkPosted,
   onRefresh,
+  teamMembers = [],
 }: ReviewDetailSidePaneProps) {
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,8 +177,7 @@ export function ReviewDetailSidePane({
     allocation.allocationStatus === "Shared with Customer";
 
   const handleCopy = async () => {
-    const text = `Subject: ${subject}\n\nDescription:\n${description}`;
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(description);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -242,7 +243,7 @@ export function ReviewDetailSidePane({
               type="button"
               onClick={handleCopy}
               className="flex-shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              title="Copy subject and description"
+              title="Copy description"
             >
               {copied ? (
                 <Check className="h-4 w-4 text-emerald-600" />
@@ -462,11 +463,18 @@ export function ReviewDetailSidePane({
                   <label className="block text-sm font-medium mb-1.5">
                     Marked Used By
                   </label>
-                  <Input
+                  <select
                     value={markedUsedBy}
                     onChange={(e) => setMarkedUsedBy(e.target.value)}
-                    placeholder="Team member name"
-                  />
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="">Select team member</option>
+                    {teamMembers.map((member) => (
+                      <option key={member._id} value={member.name}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">

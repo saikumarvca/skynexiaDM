@@ -748,6 +748,7 @@ export function ReviewDraftTable({
             <DialogTitle>Assign Platform to Selected Drafts</DialogTitle>
             <DialogDescription>
               Update platform for selected drafts without changing assigned user.
+              If a draft has no allocation yet, this creates an unassigned allocation.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">

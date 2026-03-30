@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 type AllocationLite = {
   _id: string;
   draftId: string | { _id?: string };
+  assignedToUserId?: string;
   assignedToUserName?: string;
   createdAt?: string;
 };
@@ -35,7 +36,9 @@ export function useAllocationsByDraftId(draftIds: string[]) {
           if (!id) continue;
           // API sorts by createdAt desc, so first hit per draft is latest.
           if (map[id]) continue;
-          if (a.assignedToUserName) map[id] = a.assignedToUserName;
+          if (a.assignedToUserId) {
+            map[id] = a.assignedToUserName?.trim() || "Assigned";
+          }
         }
         if (!cancelled) setAllocationsByDraftId(map);
       } catch (e) {

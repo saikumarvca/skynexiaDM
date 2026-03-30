@@ -23,6 +23,7 @@ interface MarkPostedModalProps {
   subject?: string;
   customerName?: string;
   markedUsedBy?: string;
+  teamMembers?: { _id: string; name: string }[];
 }
 
 export function MarkPostedModal({
@@ -33,6 +34,7 @@ export function MarkPostedModal({
   subject,
   customerName: initialCustomer,
   markedUsedBy: initialMarkedBy,
+  teamMembers = [],
 }: MarkPostedModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [postedByName, setPostedByName] = useState(initialCustomer ?? "");
@@ -154,11 +156,18 @@ export function MarkPostedModal({
             <label className="block text-sm font-medium mb-1">
               Marked Used By
             </label>
-            <Input
+            <select
               value={markedUsedBy}
               onChange={(e) => setMarkedUsedBy(e.target.value)}
-              placeholder="Team member name"
-            />
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+            >
+              <option value="">Select team member</option>
+              {teamMembers.map((member) => (
+                <option key={member._id} value={member.name}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Remarks</label>

@@ -39,13 +39,24 @@ function getDraftInfo(a: ReviewAllocation) {
 function getDraftClientId(a: ReviewAllocation) {
   const d = a.draftId;
   if (typeof d === "object" && d) {
-    return (d as { clientId?: string }).clientId;
+    const raw = (d as { clientId?: string | { _id?: string; toString?: () => string } })
+      .clientId;
+    if (!raw) return undefined;
+    if (typeof raw === "string") return raw;
+    if (typeof raw === "object") {
+      if (raw._id && typeof raw._id === "string") return raw._id;
+      if (typeof raw.toString === "function") {
+        const v = raw.toString();
+        return v === "[object Object]" ? undefined : v;
+      }
+    }
   }
   return undefined;
 }
 
 interface ReviewAllocationTableProps {
   allocations: ReviewAllocation[];
+  teamMembers?: { _id: string; name: string }[];
   onMarkShared: (
     id: string,
     data: {
@@ -74,6 +85,7 @@ interface ReviewAllocationTableProps {
 
 export function ReviewAllocationTable({
   allocations,
+  teamMembers = [],
   onMarkShared,
   onMarkPosted,
   onCancel,
@@ -397,6 +409,9 @@ export function ReviewAllocationTable({
         allocationId={sharedAlloc?._id ?? ""}
         subject={sharedAlloc ? getDraftInfo(sharedAlloc).subject : undefined}
         clientId={sharedAlloc ? getDraftClientId(sharedAlloc) : undefined}
+        defaultPlatform={sharedAlloc?.platform}
+        defaultCustomerName={sharedAlloc?.customerName}
+        defaultCustomerContact={sharedAlloc?.customerContact}
       />
 
       <MarkPostedModal
@@ -412,6 +427,7 @@ export function ReviewAllocationTable({
         allocationId={postedAlloc?._id ?? ""}
         subject={postedAlloc ? getDraftInfo(postedAlloc).subject : undefined}
         customerName={postedAlloc?.customerName}
+        teamMembers={teamMembers}
       />
 
       <ReviewActivityTimeline
@@ -430,6 +446,7 @@ export function ReviewAllocationTable({
         onMarkShared={onMarkShared}
         onMarkPosted={onMarkPosted}
         onRefresh={() => router.refresh()}
+        teamMembers={teamMembers}
       />
     </>
   );
