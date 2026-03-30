@@ -161,7 +161,7 @@ export function PostsCalendar({ posts }: PostsCalendarProps) {
                       key={post._id}
                       onClick={() =>
                         router.push(
-                          `/content/scheduled-posts/${post._id}/edit`,
+                          `/dashboard/scheduled-posts/${post._id}/edit`,
                         )
                       }
                       className={`w-full truncate rounded border px-1 py-0.5 text-left text-[10px] font-medium leading-tight transition-opacity hover:opacity-80 ${statusChipClass(post.status)}`}

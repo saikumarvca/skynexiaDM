@@ -59,22 +59,22 @@ export function OperationsView({ data }: { data: DashboardPageData }) {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href="/tasks">
+              <Link href="/dashboard/tasks">
                 Tasks <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/content/scheduled-posts">
+              <Link href="/dashboard/scheduled-posts">
                 Scheduled posts <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/leads">
+              <Link href="/dashboard/leads">
                 Leads <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/campaigns">
+              <Link href="/dashboard/campaigns">
                 Campaigns <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </Button>

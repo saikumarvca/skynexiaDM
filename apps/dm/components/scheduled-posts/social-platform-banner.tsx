@@ -34,7 +34,7 @@ export function SocialPlatformBanner() {
       <span>
         <strong>Not configured:</strong> {unconfigured.join(", ")}. Posts will
         fail to publish on these platforms. Configure environment variables in{" "}
-        <a href="/settings" className="underline">
+        <a href="/dashboard/settings" className="underline">
           Settings
         </a>
         .

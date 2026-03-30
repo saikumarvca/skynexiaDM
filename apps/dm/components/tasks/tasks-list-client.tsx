@@ -99,7 +99,7 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
 
   function applyFilters(filters: Record<string, string>) {
     const params = new URLSearchParams(filters);
-    router.push(`/tasks?${params.toString()}`);
+    router.push(`/dashboard/tasks?${params.toString()}`);
   }
 
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
@@ -376,7 +376,7 @@ export function TasksListClient({ tasks }: TasksListClientProps) {
       {visibleTasks.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
           <p>No tasks match your filters.</p>
-          <Link href="/tasks/new">
+          <Link href="/dashboard/tasks/new">
             <Button className="mt-4" variant="outline">
               Add your first task
             </Button>

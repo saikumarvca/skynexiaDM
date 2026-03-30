@@ -6,8 +6,6 @@ import dbConnect from "@/lib/mongodb";
 import ClientModel from "@/models/Client";
 import { getCachedUser } from "@/lib/auth";
 import { getDashboardPageData } from "@/lib/dashboard/page-data";
-import { getCurrentUserTeamPermissions } from "@/lib/team/current-user-permissions";
-import { WelcomeAccessPanel } from "@/components/access/welcome-access-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -35,21 +33,6 @@ function DashboardFallback() {
 export default async function DashboardPage() {
   const user = await getCachedUser();
   const isAdmin = user.role === "ADMIN";
-  const team = await getCurrentUserTeamPermissions();
-  const hasDashboardAccess =
-    isAdmin || team.permissions.includes("view_dashboard");
-
-  if (!hasDashboardAccess) {
-    return (
-      <DashboardLayout>
-        <WelcomeAccessPanel
-          userName={user.name}
-          isAdmin={isAdmin}
-          permissions={team.permissions}
-        />
-      </DashboardLayout>
-    );
-  }
 
   const [data, recentClients] = await Promise.all([
     getDashboardPageData({ isAdmin }),

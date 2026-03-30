@@ -65,19 +65,19 @@ export const ALL_ITEMS: SearchItem[] = [
   },
   {
     name: "Analytics",
-    href: "/analytics",
+    href: "/dashboard/analytics",
     group: "Analytics",
     icon: BarChart3,
   },
   {
     name: "Settings",
-    href: "/settings",
+    href: "/dashboard/settings",
     group: "Settings",
     icon: Settings,
   },
   {
     name: "Item master",
-    href: "/settings/item-master",
+    href: "/dashboard/settings/item-master",
     group: "Settings",
     icon: Package,
     keywords: "invoice catalog sku products services billing",
@@ -108,13 +108,13 @@ export const ALL_ITEMS: SearchItem[] = [
   // Campaigns
   {
     name: "All Campaigns",
-    href: "/campaigns",
+    href: "/dashboard/campaigns",
     group: "Campaigns",
     icon: Target,
   },
   {
     name: "New Campaign",
-    href: "/campaigns/new",
+    href: "/dashboard/campaigns/new",
     group: "Campaigns",
     icon: Target,
     keywords: "create campaign",
@@ -123,13 +123,13 @@ export const ALL_ITEMS: SearchItem[] = [
   // Leads
   {
     name: "All Leads",
-    href: "/leads",
+    href: "/dashboard/leads",
     group: "Leads",
     icon: TrendingUp,
   },
   {
     name: "New Lead",
-    href: "/leads/new",
+    href: "/dashboard/leads/new",
     group: "Leads",
     icon: TrendingUp,
     keywords: "create lead",
@@ -138,40 +138,40 @@ export const ALL_ITEMS: SearchItem[] = [
   // Content
   {
     name: "Content Bank",
-    href: "/content",
+    href: "/dashboard/content",
     group: "Content",
     icon: Layers,
   },
   {
     name: "New Content",
-    href: "/content/new",
+    href: "/dashboard/content/new",
     group: "Content",
     icon: Layers,
     keywords: "create content",
   },
   {
     name: "Scheduled posts",
-    href: "/content/scheduled-posts",
+    href: "/dashboard/scheduled-posts",
     group: "Content",
     icon: CalendarClock,
     keywords: "calendar publish",
   },
   {
     name: "New scheduled post",
-    href: "/content/scheduled-posts/new",
+    href: "/dashboard/scheduled-posts/new",
     group: "Content",
     icon: CalendarClock,
   },
   {
     name: "SEO / Keywords",
-    href: "/seo",
+    href: "/dashboard/seo",
     group: "Content",
     icon: Search,
     keywords: "seo keywords",
   },
   {
     name: "New Keyword",
-    href: "/seo/new",
+    href: "/dashboard/seo/new",
     group: "Content",
     icon: Search,
     keywords: "add keyword",
@@ -180,13 +180,13 @@ export const ALL_ITEMS: SearchItem[] = [
   // Tasks
   {
     name: "All Tasks",
-    href: "/tasks",
+    href: "/dashboard/tasks",
     group: "Tasks",
     icon: ClipboardList,
   },
   {
     name: "New Task",
-    href: "/tasks/new",
+    href: "/dashboard/tasks/new",
     group: "Tasks",
     icon: ClipboardList,
     keywords: "create task",
@@ -195,46 +195,46 @@ export const ALL_ITEMS: SearchItem[] = [
   // Reviews
   {
     name: "Reviews Overview",
-    href: "/reviews",
+    href: "/dashboard/reviews",
     group: "Reviews",
     icon: FileText,
   },
   {
     name: "Review Drafts",
-    href: "/reviews/drafts",
+    href: "/dashboard/review-drafts",
     group: "Reviews",
     icon: ClipboardCheck,
     keywords: "draft bank",
   },
   {
     name: "Review Allocations",
-    href: "/reviews/allocations",
+    href: "/dashboard/review-allocations",
     group: "Reviews",
     icon: UserPlus,
     keywords: "assign review",
   },
   {
     name: "My Assigned Reviews",
-    href: "/reviews/my-assigned",
+    href: "/dashboard/my-assigned-reviews",
     group: "Reviews",
     icon: UserCheck,
   },
   {
     name: "Used Reviews",
-    href: "/reviews/used",
+    href: "/dashboard/used-reviews",
     group: "Reviews",
     icon: CheckCircle,
     keywords: "posted reviews",
   },
   {
     name: "Review Analytics",
-    href: "/reviews/analytics",
+    href: "/dashboard/review-analytics",
     group: "Reviews",
     icon: BarChart3,
   },
   {
     name: "Review templates",
-    href: "/reviews/templates",
+    href: "/dashboard/review-templates",
     group: "Reviews",
     icon: LayoutTemplate,
     keywords: "prefill review",
@@ -243,13 +243,13 @@ export const ALL_ITEMS: SearchItem[] = [
   // Analytics
   {
     name: "Dashboard Analytics",
-    href: "/analytics",
+    href: "/dashboard/analytics",
     group: "Analytics",
     icon: BarChart3,
   },
   {
     name: "Review Analytics",
-    href: "/analytics/reviews",
+    href: "/dashboard/review-analytics",
     group: "Analytics",
     icon: BarChart3,
   },
@@ -319,7 +319,7 @@ export const ALL_ITEMS: SearchItem[] = [
   // Settings
   {
     name: "Admin users",
-    href: "/admin/users",
+    href: "/dashboard/admin/users",
     group: "Settings",
     icon: Shield,
     keywords: "accounts rbac",
@@ -327,7 +327,7 @@ export const ALL_ITEMS: SearchItem[] = [
   },
   {
     name: "Settings",
-    href: "/settings",
+    href: "/dashboard/settings",
     group: "Settings",
     icon: Settings,
   },

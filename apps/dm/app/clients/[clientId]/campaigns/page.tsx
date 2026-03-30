@@ -28,13 +28,13 @@ export default async function ClientCampaignsPage({
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/campaigns?clientId=${clientId}`}>
+            <Link href={`/dashboard/campaigns?clientId=${clientId}`}>
               <Button variant="outline">
                 <Target className="mr-2 h-4 w-4" />
                 View campaigns
               </Button>
             </Link>
-            <Link href={`/campaigns/new?clientId=${clientId}`}>
+            <Link href={`/dashboard/campaigns/new?clientId=${clientId}`}>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 New campaign

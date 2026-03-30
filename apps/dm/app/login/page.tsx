@@ -6,18 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 
-function formatRetryAfter(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
-}
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = useMemo(
-    () => searchParams.get("next") || "/welcome",
+    () => searchParams.get("next") || "/dashboard",
     [searchParams],
   );
 
@@ -38,22 +31,7 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        const retryAfterHeader = res.headers.get("Retry-After");
-        const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN;
-        if (
-          res.status === 429 &&
-          Number.isFinite(retryAfterSec) &&
-          retryAfterSec > 0
-        ) {
-          throw new Error(
-            `${data.error || "Too many login attempts."} Try again in ${formatRetryAfter(
-              retryAfterSec,
-            )}.`,
-          );
-        }
-        throw new Error(data.error || "Login failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Login failed");
       router.replace(nextPath);
       router.refresh();
     } catch (err) {
@@ -108,7 +86,7 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute inset-y-0 right-0 flex items-center rounded-r-md border-0 bg-transparent px-3 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-0"
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (

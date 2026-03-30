@@ -131,15 +131,15 @@ export function GrowthView({ data }: { data: DashboardPageData }) {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button className="w-full" asChild>
-              <Link href="/analytics">
+              <Link href="/dashboard/analytics">
                 Open analytics <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/leads">Leads list</Link>
+              <Link href="/dashboard/leads">Leads list</Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/campaigns">Campaigns</Link>
+              <Link href="/dashboard/campaigns">Campaigns</Link>
             </Button>
           </CardContent>
         </Card>

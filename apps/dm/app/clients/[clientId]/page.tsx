@@ -507,13 +507,13 @@ export default async function ClientDetailPage({
               Manage campaigns for this client.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/campaigns?clientId=${client._id}`}>
+              <Link href={`/dashboard/campaigns?clientId=${client._id}`}>
                 <Button variant="outline">
                   <Target className="mr-2 h-4 w-4" />
                   View campaigns
                 </Button>
               </Link>
-              <Link href={`/campaigns/new?clientId=${client._id}`}>
+              <Link href={`/dashboard/campaigns/new?clientId=${client._id}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   New campaign
@@ -528,13 +528,13 @@ export default async function ClientDetailPage({
               Manage content assets for this client.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/content?clientId=${client._id}`}>
+              <Link href={`/dashboard/content?clientId=${client._id}`}>
                 <Button variant="outline">
                   <Layers className="mr-2 h-4 w-4" />
                   View content
                 </Button>
               </Link>
-              <Link href={`/content/new?clientId=${client._id}`}>
+              <Link href={`/dashboard/content/new?clientId=${client._id}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   New content
@@ -549,13 +549,13 @@ export default async function ClientDetailPage({
               Track keywords and SEO for this client.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/seo?clientId=${client._id}`}>
+              <Link href={`/dashboard/seo?clientId=${client._id}`}>
                 <Button variant="outline">
                   <Search className="mr-2 h-4 w-4" />
                   View keywords
                 </Button>
               </Link>
-              <Link href={`/seo/new?clientId=${client._id}`}>
+              <Link href={`/dashboard/seo/new?clientId=${client._id}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   Add keyword
@@ -570,13 +570,13 @@ export default async function ClientDetailPage({
               View and manage leads generated for this client.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/leads?clientId=${client._id}`}>
+              <Link href={`/dashboard/leads?clientId=${client._id}`}>
                 <Button variant="outline">
                   <LineChart className="mr-2 h-4 w-4" />
                   View leads
                 </Button>
               </Link>
-              <Link href={`/leads/new?clientId=${client._id}`}>
+              <Link href={`/dashboard/leads/new?clientId=${client._id}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   Add lead
@@ -591,13 +591,13 @@ export default async function ClientDetailPage({
               Track work items related to this client.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href={`/tasks?clientId=${client._id}`}>
+              <Link href={`/dashboard/tasks?clientId=${client._id}`}>
                 <Button variant="outline">
                   <ListChecks className="mr-2 h-4 w-4" />
                   View tasks
                 </Button>
               </Link>
-              <Link href={`/tasks/new?clientId=${client._id}`}>
+              <Link href={`/dashboard/tasks/new?clientId=${client._id}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   Add task

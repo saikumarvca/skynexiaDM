@@ -28,7 +28,7 @@ const items = [
     iconClass: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
   },
   {
-    href: "/reviews/drafts",
+    href: "/dashboard/review-drafts",
     title: "Review drafts",
     description: "Shape and assign review copy before publishing",
     icon: FileEdit,
@@ -36,7 +36,7 @@ const items = [
     iconClass: "bg-violet-500/15 text-violet-600 dark:text-violet-400",
   },
   {
-    href: "/analytics",
+    href: "/dashboard/analytics",
     title: "Analytics",
     description: "Spot trends and performance at a glance",
     icon: BarChart3,
@@ -44,7 +44,7 @@ const items = [
     iconClass: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   },
   {
-    href: "/tasks",
+    href: "/dashboard/tasks",
     title: "Tasks",
     description: "Stay on top of work across the team",
     icon: ClipboardList,
@@ -52,7 +52,7 @@ const items = [
     iconClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
   },
   {
-    href: "/content/scheduled-posts",
+    href: "/dashboard/scheduled-posts",
     title: "Scheduled posts",
     description: "Plan what goes out and when",
     icon: CalendarClock,

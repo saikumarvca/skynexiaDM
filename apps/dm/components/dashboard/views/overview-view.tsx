@@ -108,7 +108,7 @@ export function OverviewView({
           icon={FileText}
           description="All reviews in the system"
           accent="sky"
-          href="/reviews"
+          href="/dashboard/reviews"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:60ms]"
         />
         <StatsCard
@@ -117,7 +117,7 @@ export function OverviewView({
           icon={CheckCircle}
           description="Ready to assign or publish"
           accent="emerald"
-          href="/reviews?status=UNUSED"
+          href="/dashboard/reviews?status=UNUSED"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:120ms]"
         />
         <StatsCard
@@ -126,7 +126,7 @@ export function OverviewView({
           icon={Archive}
           description="Already in the wild"
           accent="violet"
-          href="/reviews?status=USED"
+          href="/dashboard/reviews?status=USED"
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both [animation-delay:180ms]"
         />
       </div>
@@ -159,7 +159,7 @@ export function OverviewView({
         </CardHeader>
         <CardContent className="grid gap-3 p-4 pt-5 sm:grid-cols-2 lg:grid-cols-4">
           <AttentionTile
-            href="/content/scheduled-posts"
+            href="/dashboard/scheduled-posts"
             value={data.scheduledToday}
             label="Scheduled today"
             hint="Posts set to publish"
@@ -167,7 +167,7 @@ export function OverviewView({
             accentClass="bg-cyan-500/15 text-cyan-600 dark:text-cyan-400"
           />
           <AttentionTile
-            href="/tasks"
+            href="/dashboard/tasks"
             value={data.openTasks}
             label="Open tasks"
             hint="Todo, in progress, or blocked"
@@ -175,7 +175,7 @@ export function OverviewView({
             accentClass="bg-amber-500/15 text-amber-700 dark:text-amber-400"
           />
           <AttentionTile
-            href="/reviews/requests"
+            href="/dashboard/review-requests"
             value={data.reviewRequestsPending}
             label="Pending requests"
             hint="Awaiting your response"
@@ -183,7 +183,7 @@ export function OverviewView({
             accentClass="bg-sky-500/15 text-sky-600 dark:text-sky-400"
           />
           <AttentionTile
-            href="/reviews/drafts"
+            href="/dashboard/review-drafts"
             value={data.reviewDrafts}
             label="Review drafts"
             hint="In the drafting pipeline"

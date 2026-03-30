@@ -110,7 +110,7 @@ const baseNavigation: DashboardNavItem[] = [
       },
       {
         name: "Google Reviews",
-        href: "/clients/google-reviews",
+        href: "/dashboard/google-reviews",
         icon: CheckCircle,
         requiredAnyOf: ["manage_reviews", "view_reviews"],
       },
@@ -118,31 +118,31 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Campaigns",
-    href: "/campaigns",
+    href: "/dashboard/campaigns",
     icon: Target,
     requiredAnyOf: ["manage_campaigns", "view_campaigns"],
     children: [
       {
         name: "All Campaigns",
-        href: "/campaigns",
+        href: "/dashboard/campaigns",
         icon: Target,
         requiredAnyOf: ["manage_campaigns", "view_campaigns"],
       },
       {
         name: "New Campaign",
-        href: "/campaigns/new",
+        href: "/dashboard/campaigns/new",
         icon: Plus,
         requiredAnyOf: ["manage_campaigns"],
       },
       {
         name: "Budget Pacing",
-        href: "/campaigns/budget-pacing",
+        href: "/dashboard/budget-pacing",
         icon: AlertTriangle,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "Archived",
-        href: "/campaigns?archived=1",
+        href: "/dashboard/campaigns?archived=1",
         icon: Archive,
         requiredAnyOf: ["manage_campaigns"],
       },
@@ -150,31 +150,31 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Content",
-    href: "/content",
+    href: "/dashboard/content",
     icon: Layers,
     requiredAnyOf: ["manage_content", "view_content"],
     children: [
       {
         name: "Content Bank",
-        href: "/content",
+        href: "/dashboard/content",
         icon: Layers,
         requiredAnyOf: ["manage_content", "view_content"],
       },
       {
         name: "New Content",
-        href: "/content/new",
+        href: "/dashboard/content/new",
         icon: Plus,
         requiredAnyOf: ["manage_content"],
       },
       {
         name: "Scheduled Posts",
-        href: "/content/scheduled-posts",
+        href: "/dashboard/scheduled-posts",
         icon: CalendarClock,
         requiredAnyOf: ["manage_content", "view_content"],
       },
       {
         name: "New Scheduled Post",
-        href: "/content/scheduled-posts/new",
+        href: "/dashboard/scheduled-posts/new",
         icon: CalendarClock,
         requiredAnyOf: ["manage_content"],
       },
@@ -182,25 +182,25 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "SEO",
-    href: "/seo",
+    href: "/dashboard/seo",
     icon: Search,
     requiredAnyOf: ["manage_seo", "view_seo"],
     children: [
       {
         name: "Keywords",
-        href: "/seo",
+        href: "/dashboard/seo",
         icon: Hash,
         requiredAnyOf: ["manage_seo", "view_seo"],
       },
       {
         name: "Add Keyword",
-        href: "/seo/new",
+        href: "/dashboard/seo/new",
         icon: Plus,
         requiredAnyOf: ["manage_seo"],
       },
       {
         name: "Competitors",
-        href: "/seo/competitors",
+        href: "/dashboard/seo/competitors",
         icon: Globe,
         requiredAnyOf: ["manage_seo", "view_seo"],
       },
@@ -208,25 +208,25 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Leads",
-    href: "/leads",
+    href: "/dashboard/leads",
     icon: TrendingUp,
     requiredAnyOf: ["manage_leads", "view_leads"],
     children: [
       {
         name: "All Leads",
-        href: "/leads",
+        href: "/dashboard/leads",
         icon: TrendingUp,
         requiredAnyOf: ["manage_leads", "view_leads"],
       },
       {
         name: "Kanban Board",
-        href: "/leads?view=kanban",
+        href: "/dashboard/leads?view=kanban",
         icon: Columns3,
         requiredAnyOf: ["manage_leads", "view_leads"],
       },
       {
         name: "Add Lead",
-        href: "/leads/new",
+        href: "/dashboard/leads/new",
         icon: Plus,
         requiredAnyOf: ["manage_leads"],
       },
@@ -234,7 +234,7 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Tasks",
-    href: "/tasks",
+    href: "/dashboard/tasks",
     icon: ClipboardList,
     requiredAnyOf: [
       "manage_tasks",
@@ -245,13 +245,13 @@ const baseNavigation: DashboardNavItem[] = [
     children: [
       {
         name: "All Tasks",
-        href: "/tasks",
+        href: "/dashboard/tasks",
         icon: ListChecks,
         requiredAnyOf: ["manage_tasks", "view_tasks"],
       },
       {
         name: "New Task",
-        href: "/tasks/new",
+        href: "/dashboard/tasks/new",
         icon: Plus,
         requiredAnyOf: ["manage_tasks"],
       },
@@ -259,7 +259,7 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Reviews",
-    href: "/reviews",
+    href: "/dashboard/reviews",
     icon: FileText,
     requiredAnyOf: [
       "manage_reviews",
@@ -270,49 +270,49 @@ const baseNavigation: DashboardNavItem[] = [
     children: [
       {
         name: "Overview",
-        href: "/reviews",
+        href: "/dashboard/reviews",
         icon: FileText,
         requiredAnyOf: ["manage_reviews", "view_reviews"],
       },
       {
         name: "Review Drafts",
-        href: "/reviews/drafts",
+        href: "/dashboard/review-drafts",
         icon: ClipboardCheck,
         requiredAnyOf: ["manage_reviews"],
       },
       {
         name: "Review Allocations",
-        href: "/reviews/allocations",
+        href: "/dashboard/review-allocations",
         icon: UserPlus,
         requiredAnyOf: ["manage_reviews", "assign_reviews"],
       },
       {
         name: "My Assigned Reviews",
-        href: "/reviews/my-assigned",
+        href: "/dashboard/my-assigned-reviews",
         icon: UserCheck,
         requiredAnyOf: ["work_assigned_reviews", "view_reviews", "manage_reviews"],
       },
       {
         name: "Used Reviews",
-        href: "/reviews/used",
+        href: "/dashboard/used-reviews",
         icon: CheckCircle,
         requiredAnyOf: ["manage_reviews"],
       },
       {
         name: "Review Analytics",
-        href: "/reviews/analytics",
+        href: "/dashboard/review-analytics",
         icon: BarChart3,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "Review templates",
-        href: "/reviews/templates",
+        href: "/dashboard/review-templates",
         icon: LayoutTemplate,
         requiredAnyOf: ["manage_reviews"],
       },
       {
         name: "Review Requests",
-        href: "/reviews/requests",
+        href: "/dashboard/review-requests",
         icon: Mail,
         requiredAnyOf: ["manage_reviews"],
       },
@@ -376,43 +376,43 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Analytics",
-    href: "/analytics",
+    href: "/dashboard/analytics",
     icon: BarChart3,
     requiredAnyOf: ["view_analytics"],
     children: [
       {
         name: "Overview",
-        href: "/analytics",
+        href: "/dashboard/analytics",
         icon: BarChart3,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "Social",
-        href: "/analytics/social",
+        href: "/dashboard/social-analytics",
         icon: BarChart2,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "Reviews",
-        href: "/analytics/reviews",
+        href: "/dashboard/review-analytics",
         icon: Activity,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "Budget & pacing",
-        href: "/campaigns/budget-pacing",
+        href: "/dashboard/budget-pacing",
         icon: AlertTriangle,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "Pipeline",
-        href: "/leads",
+        href: "/dashboard/leads",
         icon: TrendingUp,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "SEO",
-        href: "/seo",
+        href: "/dashboard/seo",
         icon: Hash,
         requiredAnyOf: ["view_analytics"],
       },
@@ -424,7 +424,7 @@ const baseNavigation: DashboardNavItem[] = [
       },
       {
         name: "Time",
-        href: "/time-tracking",
+        href: "/dashboard/time-tracking",
         icon: Clock,
         requiredAnyOf: ["view_analytics"],
       },
@@ -432,19 +432,19 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Reports",
-    href: "/reports",
+    href: "/dashboard/reports",
     icon: Mail,
     requiredAnyOf: ["view_analytics"],
     children: [
       {
         name: "Scheduled Reports",
-        href: "/reports",
+        href: "/dashboard/reports",
         icon: Mail,
         requiredAnyOf: ["view_analytics"],
       },
       {
         name: "New Schedule",
-        href: "/reports/new",
+        href: "/dashboard/reports/new",
         icon: Plus,
         requiredAnyOf: ["view_analytics"],
       },
@@ -452,25 +452,25 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Invoices",
-    href: "/invoices",
+    href: "/dashboard/invoices",
     icon: DollarSign,
     requiredAnyOf: ["manage_clients", "view_clients"],
     children: [
       {
         name: "All Invoices",
-        href: "/invoices",
+        href: "/dashboard/invoices",
         icon: DollarSign,
         requiredAnyOf: ["manage_clients", "view_clients"],
       },
       {
         name: "Accounts receivable",
-        href: "/invoices/accounts-receivable",
+        href: "/dashboard/invoices/accounts-receivable",
         icon: Wallet,
         requiredAnyOf: ["manage_clients"],
       },
       {
         name: "New Invoice",
-        href: "/invoices/new",
+        href: "/dashboard/invoices/new",
         icon: Plus,
         requiredAnyOf: ["manage_clients"],
       },
@@ -478,30 +478,30 @@ const baseNavigation: DashboardNavItem[] = [
   },
   {
     name: "Time Tracking",
-    href: "/time-tracking",
+    href: "/dashboard/time-tracking",
     icon: Clock,
     requiredAnyOf: ["manage_team", "view_analytics"],
   },
   {
     name: "Integrations",
-    href: "/integrations",
+    href: "/dashboard/integrations",
     icon: Zap,
     requiredAnyOf: ["manage_settings"],
   },
   {
     name: "Settings",
-    href: "/settings",
+    href: "/dashboard/settings",
     icon: Settings,
     requiredAnyOf: ["manage_settings"],
   },
   {
     name: "Help",
-    href: "/help/documentation/overview",
+    href: "/dashboard/help/documentation/overview",
     icon: HelpCircle,
     children: [
       {
         name: "Documentation",
-        href: "/help/documentation/overview",
+        href: "/dashboard/help/documentation/overview",
         icon: BookOpen,
       },
     ],
@@ -521,16 +521,16 @@ export function buildDashboardNavItems(
   if (isAdmin) {
     const adminItem: DashboardNavItem = {
       name: "Admin",
-      href: "/admin/users",
+      href: "/dashboard/admin/users",
       icon: Shield,
       children: [
-        { name: "Users", href: "/admin/users", icon: Shield },
+        { name: "Users", href: "/dashboard/admin/users", icon: Shield },
         {
           name: "Audit Log",
-          href: "/admin/audit-log",
+          href: "/dashboard/admin/audit-log",
           icon: ScrollText,
         },
-        { name: "Webhooks", href: "/admin/webhooks", icon: Webhook },
+        { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: Webhook },
       ],
     };
 
