@@ -22,6 +22,12 @@ export type PermissionDefinition = {
 
 const PERMISSION_DEFINITIONS_BASE: PermissionDefinition[] = [
   {
+    key: "view_dashboard",
+    label: "View dashboard",
+    description: "Access the dashboard home and dashboard route group.",
+    category: "Analytics",
+  },
+  {
     key: "view_clients",
     label: "View clients",
     description: "See client records (read-only).",

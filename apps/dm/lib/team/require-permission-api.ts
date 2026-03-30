@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import { requireUserFromRequest } from "@/lib/auth";
+import { PERMISSION_LIST } from "@/lib/team/permissions";
 import TeamMember from "@/models/TeamMember";
 
 function normalizeEmail(email: string) {
@@ -12,6 +13,12 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
   teamMemberId?: string;
 }> {
   const user = await requireUserFromRequest(req);
+
+  // Full bypass for platform admins.
+  if (user.role === "ADMIN") {
+    return { perms: [...PERMISSION_LIST] };
+  }
+
   await dbConnect();
 
   const emailNorm = normalizeEmail(user.email);

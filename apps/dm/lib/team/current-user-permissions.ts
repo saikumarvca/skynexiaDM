@@ -1,6 +1,7 @@
 import { cache } from "react";
 import dbConnect from "@/lib/mongodb";
 import { getCachedUser } from "@/lib/auth";
+import { PERMISSION_LIST } from "@/lib/team/permissions";
 import TeamMember from "@/models/TeamMember";
 
 export type CurrentUserTeamPermissions = {
@@ -16,6 +17,14 @@ function normalizeEmail(email: string) {
 
 async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissions> {
   const user = await getCachedUser();
+
+  if (user.role === "ADMIN") {
+    return {
+      roleName: "Admin",
+      permissions: [...PERMISSION_LIST],
+    };
+  }
+
   await dbConnect();
 
   const emailNorm = normalizeEmail(user.email);

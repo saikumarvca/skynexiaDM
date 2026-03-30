@@ -112,6 +112,7 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
   );
 
   const categoryOrder: PermissionCategory[] = [
+    "Settings",
     "Team & Access",
     "Clients",
     "Campaigns",
@@ -120,7 +121,6 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
     "Tasks",
     "Reviews",
     "Analytics",
-    "Settings",
   ];
 
   return (
@@ -130,6 +130,14 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
           {error}
         </div>
       )}
+      <div className="flex gap-2">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Saving..." : "Save"}
+        </Button>
+        <Button type="button" variant="outline" onClick={() => router.back()}>
+          Cancel
+        </Button>
+      </div>
       <div>
         <label className="mb-1 block text-sm font-medium text-muted-foreground">
           Role Name *
@@ -224,14 +232,6 @@ export function TeamRoleForm({ roleId, initialData }: TeamRoleFormProps) {
             </div>
           )}
         </div>
-      </div>
-      <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Save"}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
       </div>
     </form>
   );

@@ -64,7 +64,12 @@ export type DashboardNavItem =
     };
 
 const baseNavigation: DashboardNavItem[] = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: Home,
+    requiredAnyOf: ["view_dashboard"],
+  },
   {
     name: "Connect",
     href: "/connect-wall",
@@ -513,6 +518,29 @@ export function buildDashboardNavItems(
   isAdmin: boolean,
   perms: string[] = [],
 ): DashboardNavItem[] {
+  if (isAdmin) {
+    const adminItem: DashboardNavItem = {
+      name: "Admin",
+      href: "/dashboard/admin/users",
+      icon: Shield,
+      children: [
+        { name: "Users", href: "/dashboard/admin/users", icon: Shield },
+        {
+          name: "Audit Log",
+          href: "/dashboard/admin/audit-log",
+          icon: ScrollText,
+        },
+        { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: Webhook },
+      ],
+    };
+
+    const idx = baseNavigation.findIndex((x) => x.name === "Settings");
+    if (idx === -1) return [...baseNavigation, adminItem];
+    const full = [...baseNavigation];
+    full.splice(idx, 0, adminItem);
+    return full;
+  }
+
   const filtered = baseNavigation
     .map((item) => {
       if (!("children" in item) || !item.children) return item;
@@ -524,24 +552,5 @@ export function buildDashboardNavItems(
       if ("children" in item && item.children) return item.children.length > 0;
       return true;
     });
-
-  if (!isAdmin) return filtered;
-  const idx = baseNavigation.findIndex((x) => x.name === "Settings");
-  if (idx === -1) return filtered;
-  const next = [...filtered];
-  next.splice(idx, 0, {
-    name: "Admin",
-    href: "/dashboard/admin/users",
-    icon: Shield,
-    children: [
-      { name: "Users", href: "/dashboard/admin/users", icon: Shield },
-      {
-        name: "Audit Log",
-        href: "/dashboard/admin/audit-log",
-        icon: ScrollText,
-      },
-      { name: "Webhooks", href: "/dashboard/admin/webhooks", icon: Webhook },
-    ],
-  });
-  return next;
+  return filtered;
 }

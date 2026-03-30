@@ -16,6 +16,7 @@ const DEFAULT_ROLES = [
     roleName: "Manager",
     description: "Manage team and assignments",
     permissions: [
+      "view_dashboard",
       "view_clients",
       "view_campaigns",
       "view_content",
@@ -42,6 +43,7 @@ const DEFAULT_ROLES = [
     roleName: "Marketing Executive",
     description: "Marketing and campaign execution",
     permissions: [
+      "view_dashboard",
       "view_clients",
       "view_campaigns",
       "view_content",
@@ -66,6 +68,7 @@ const DEFAULT_ROLES = [
     roleName: "Review Manager",
     description: "Review drafts and allocations",
     permissions: [
+      "view_dashboard",
       "view_clients",
       "view_tasks",
       "work_assigned_tasks",
@@ -82,12 +85,18 @@ const DEFAULT_ROLES = [
   {
     roleName: "Review Worker",
     description: "Work only on reviews assigned to you",
-    permissions: ["view_clients", "view_reviews", "work_assigned_reviews"],
+    permissions: [
+      "view_dashboard",
+      "view_clients",
+      "view_reviews",
+      "work_assigned_reviews",
+    ],
   },
   {
     roleName: "Sales",
     description: "Sales and leads",
     permissions: [
+      "view_dashboard",
       "view_clients",
       "view_leads",
       "view_tasks",
@@ -102,6 +111,7 @@ const DEFAULT_ROLES = [
     roleName: "Support",
     description: "Customer support",
     permissions: [
+      "view_dashboard",
       "view_clients",
       "view_leads",
       "view_tasks",
