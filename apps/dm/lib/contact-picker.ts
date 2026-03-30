@@ -1,5 +1,5 @@
 /**
- * Web Contact Picker API — phone numbers only. Primarily Android Chrome over HTTPS.
+ * Web Contact Picker API — name + phone (no email). Primarily Android Chrome over HTTPS.
  */
 
 interface ContactsSelectOptions {
@@ -7,9 +7,18 @@ interface ContactsSelectOptions {
 }
 
 interface ContactPickerResult {
+  name?: string[];
   tel?: string[];
   email?: string[];
 }
+
+export type PickContactOutcome =
+  | { status: "cancelled" }
+  | {
+      status: "picked";
+      name: string | null;
+      phone: string | null;
+    };
 
 interface ContactsManager {
   select(
@@ -31,19 +40,31 @@ export function isContactPickerSupported(): boolean {
   return getContactsManager() !== undefined;
 }
 
-/**
- * Opens the system contact picker (tel only). Returns the first phone number or null.
- */
-export async function pickContactPhone(): Promise<string | null> {
-  const contacts = getContactsManager();
-  if (!contacts) return null;
-
-  const selected = await contacts.select(["tel"], { multiple: false });
-  if (!selected?.length) return null;
-
-  const tels = selected[0]?.tel;
-  if (!tels?.length) return null;
-
-  const raw = tels.find((t) => t && t.trim().length > 0)?.trim();
+function firstNonEmpty(values: string[] | undefined): string | null {
+  if (!values?.length) return null;
+  const raw = values.find((v) => v && v.trim().length > 0)?.trim();
   return raw ?? null;
+}
+
+/**
+ * Opens the system contact picker for display name and phone. Does not request email.
+ * Empty array means the user dismissed the dialog (`status: "cancelled"`).
+ */
+export async function pickContactNameAndPhone(): Promise<PickContactOutcome> {
+  const contacts = getContactsManager();
+  if (!contacts) {
+    return { status: "cancelled" };
+  }
+
+  const selected = await contacts.select(["name", "tel"], { multiple: false });
+  if (!selected?.length) {
+    return { status: "cancelled" };
+  }
+
+  const row = selected[0];
+  return {
+    status: "picked",
+    name: firstNonEmpty(row?.name),
+    phone: firstNonEmpty(row?.tel),
+  };
 }

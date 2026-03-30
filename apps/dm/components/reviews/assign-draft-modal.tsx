@@ -125,6 +125,7 @@ export function AssignDraftModal({
           <CustomerContactInputRow
             value={customerContact}
             onChange={setCustomerContact}
+            onCustomerNameChange={setCustomerName}
           />
           <div>
             <label className="block text-sm font-medium mb-1">Platform</label>

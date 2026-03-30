@@ -399,6 +399,7 @@ export function ReviewDetailSidePane({
                 <CustomerContactInputRow
                   value={customerContact}
                   onChange={setCustomerContact}
+                  onCustomerNameChange={setCustomerName}
                   labelClassName="block text-sm font-medium mb-1.5"
                 />
                 <div>
