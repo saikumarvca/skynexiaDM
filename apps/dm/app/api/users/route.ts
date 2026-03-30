@@ -7,6 +7,7 @@ import {
   requireUserFromCookieHeader,
   requireUserFromRequest,
 } from "@/lib/auth";
+import { ApiError, toErrorResponse } from "@/lib/api-errors";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,17 +20,8 @@ export async function GET(request: NextRequest) {
       .sort({ name: 1 });
     return NextResponse.json(users);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "UNAUTHENTICATED")
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      if (error.message === "FORBIDDEN")
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
     console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch users" },
-      { status: 500 },
-    );
+    return toErrorResponse(error, { fallbackMessage: "Failed to fetch users" });
   }
 }
 
@@ -50,18 +42,24 @@ export async function POST(req: Request) {
     const password = body.password ?? "";
 
     if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "name, email, and password are required" },
-        { status: 400 },
+      return toErrorResponse(
+        new ApiError({
+          status: 400,
+          code: "BAD_REQUEST",
+          message: "name, email, and password are required",
+        }),
       );
     }
 
     await dbConnect();
     const exists = await User.findOne({ email }).select("_id");
     if (exists)
-      return NextResponse.json(
-        { error: "Email already exists" },
-        { status: 409 },
+      return toErrorResponse(
+        new ApiError({
+          status: 409,
+          code: "CONFLICT",
+          message: "Email already exists",
+        }),
       );
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -80,16 +78,7 @@ export async function POST(req: Request) {
       isActive: created.isActive,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    if (error instanceof Error && error.message === "UNAUTHENTICATED") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     console.error("Error creating user:", error);
-    return NextResponse.json(
-      { error: "Failed to create user" },
-      { status: 500 },
-    );
+    return toErrorResponse(error, { fallbackMessage: "Failed to create user" });
   }
 }

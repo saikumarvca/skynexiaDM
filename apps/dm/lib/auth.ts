@@ -5,12 +5,13 @@ import { cookies } from "next/headers";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { DM_SESSION_COOKIE_NAME } from "@/lib/session-cookie-name";
+import type { UserRole } from "@/models/User";
 
 export type SessionUser = {
   userId: string;
   email: string;
   name: string;
-  role: string;
+  role: UserRole;
 };
 
 function requireAuthSecret(): string {
@@ -99,18 +100,9 @@ export function getSessionCookieName() {
   return DM_SESSION_COOKIE_NAME;
 }
 
-export async function requireUserFromRequest(
-  req: NextRequest,
-): Promise<SessionUser> {
-  const token = getSessionTokenFromRequest(req);
-  if (!token) throw new Error("UNAUTHENTICATED");
-  const payload = verifySessionToken(token);
-  if (!payload) throw new Error("UNAUTHENTICATED");
-
+async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
   await dbConnect();
-  const user = await User.findById(payload.uid).select(
-    "_id email name role isActive",
-  );
+  const user = await User.findById(userId).select("_id email name role isActive");
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
 
   return {
@@ -119,6 +111,16 @@ export async function requireUserFromRequest(
     name: user.name,
     role: user.role,
   };
+}
+
+export async function requireUserFromRequest(
+  req: NextRequest,
+): Promise<SessionUser> {
+  const token = getSessionTokenFromRequest(req);
+  if (!token) throw new Error("UNAUTHENTICATED");
+  const payload = verifySessionToken(token);
+  if (!payload) throw new Error("UNAUTHENTICATED");
+  return loadActiveSessionUserById(payload.uid);
 }
 
 export async function requireUserFromCookieHeader(
@@ -128,19 +130,7 @@ export async function requireUserFromCookieHeader(
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = verifySessionToken(token);
   if (!payload) throw new Error("UNAUTHENTICATED");
-
-  await dbConnect();
-  const user = await User.findById(payload.uid).select(
-    "_id email name role isActive",
-  );
-  if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
-
-  return {
-    userId: user._id.toString(),
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  };
+  return loadActiveSessionUserById(payload.uid);
 }
 
 export async function requireUser(): Promise<SessionUser> {
@@ -148,19 +138,7 @@ export async function requireUser(): Promise<SessionUser> {
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = verifySessionToken(token);
   if (!payload) throw new Error("UNAUTHENTICATED");
-
-  await dbConnect();
-  const user = await User.findById(payload.uid).select(
-    "_id email name role isActive",
-  );
-  if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
-
-  return {
-    userId: user._id.toString(),
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  };
+  return loadActiveSessionUserById(payload.uid);
 }
 
 /** One user fetch per request when layout + pages both need the session. */

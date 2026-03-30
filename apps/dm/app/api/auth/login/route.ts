@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import { createSessionToken, getSessionCookieName } from "@/lib/auth";
+import { createSessionToken } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { ApiError, toErrorResponse } from "@/lib/api-errors";
+import { setSessionCookie, SESSION_MAX_AGE_SECONDS } from "@/lib/session-cookie";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,14 +13,15 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-forwarded-for") ||
       req.headers.get("x-real-ip") ||
       "127.0.0.1";
-    const { allowed, retryAfter } = checkRateLimit(ip);
+    const { allowed, retryAfter } = await checkRateLimit(ip);
     if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many login attempts. Try again later." },
-        {
+      return toErrorResponse(
+        new ApiError({
           status: 429,
-          headers: { "Retry-After": String(retryAfter) },
-        },
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many login attempts. Try again later.",
+          retryAfter,
+        }),
       );
     }
 
@@ -27,9 +30,12 @@ export async function POST(req: NextRequest) {
     const password = body.password ?? "";
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 },
+      return toErrorResponse(
+        new ApiError({
+          status: 400,
+          code: "BAD_REQUEST",
+          message: "Email and password are required",
+        }),
       );
     }
 
@@ -38,20 +44,26 @@ export async function POST(req: NextRequest) {
       "_id email name role passwordHash isActive",
     );
     if (!user || !user.isActive || !user.passwordHash) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 },
+      return toErrorResponse(
+        new ApiError({
+          status: 401,
+          code: "UNAUTHORIZED",
+          message: "Invalid credentials",
+        }),
       );
     }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok)
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 },
+      return toErrorResponse(
+        new ApiError({
+          status: 401,
+          code: "UNAUTHORIZED",
+          message: "Invalid credentials",
+        }),
       );
 
-    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14; // 14 days
+    const exp = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
     const token = createSessionToken({ uid: user._id.toString(), exp });
 
     const res = NextResponse.json({
@@ -62,16 +74,10 @@ export async function POST(req: NextRequest) {
         role: user.role,
       },
     });
-    res.cookies.set(getSessionCookieName(), token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 14,
-    });
+    setSessionCookie(res, token);
     return res;
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+    return toErrorResponse(e, { fallbackMessage: "Login failed" });
   }
 }

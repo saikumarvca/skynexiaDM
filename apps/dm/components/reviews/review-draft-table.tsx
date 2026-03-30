@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ReviewDraftForm } from "./review-draft-form";
@@ -39,7 +39,10 @@ export function ReviewDraftTable({
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"row" | "grid">("row");
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
-  const selectedDraft = drafts.find((d) => d._id === selectedDraftId) ?? null;
+  const selectedDraft = useMemo(
+    () => drafts.find((d) => d._id === selectedDraftId) ?? null,
+    [drafts, selectedDraftId],
+  );
   const [formOpen, setFormOpen] = useState(false);
   const [editDraft, setEditDraft] = useState<ReviewDraft | null>(null);
   const [assignDraft, setAssignDraft] = useState<ReviewDraft | null>(null);
@@ -70,20 +73,22 @@ export function ReviewDraftTable({
     [drafts, search],
   );
 
-  const handleCopy = async (d: ReviewDraft) => {
+  const handleCopy = useCallback(async (d: ReviewDraft) => {
     try {
       await navigator.clipboard.writeText(d.reviewText);
+      toast.success("Copied to clipboard");
     } catch (e) {
       console.error(e);
+      toast.error("Could not copy to clipboard");
     }
-  };
+  }, []);
 
-  const closeDetailsPane = () => {
+  const closeDetailsPane = useCallback(() => {
     setPaneOpen(false);
     setSelectedDraftId(null);
-  };
+  }, []);
 
-  const handleRowClick = (d: ReviewDraft) => {
+  const handleRowClick = useCallback((d: ReviewDraft) => {
     setSelectedDraftId(d._id);
     setPaneOpen(true);
     requestAnimationFrame(() => {
@@ -94,9 +99,9 @@ export function ReviewDraftTable({
         computePaneTop(d._id);
       }
     });
-  };
+  }, [computePaneTop]);
 
-  const handleArchiveClick = async (d: ReviewDraft) => {
+  const handleArchiveClick = useCallback(async (d: ReviewDraft) => {
     if (!confirm("Archive this draft?")) return;
     try {
       await onArchive(d._id);
@@ -105,37 +110,64 @@ export function ReviewDraftTable({
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to archive draft");
     }
-  };
+  }, [onArchive, router]);
 
-  const renderDraftDetailsPane = () => (
-    <ReviewDraftDetailsPane
-      draft={selectedDraft}
-      clients={clients}
-      users={users}
-      assignedToName={
-        selectedDraftId ? allocationsByDraftId[selectedDraftId] : undefined
+  const handleEdit = useCallback((draft: ReviewDraft) => {
+    setEditDraft(draft);
+    setFormOpen(true);
+  }, []);
+
+  const handleDuplicate = useCallback(
+    async (id: string) => {
+      try {
+        await onDuplicate(id);
+        toast.success("Draft duplicated");
+        router.refresh();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Failed to duplicate draft");
       }
-      onClose={closeDetailsPane}
-      onEdit={(draft) => {
-        setEditDraft(draft);
-        setFormOpen(true);
-      }}
-      onDuplicate={async (id) => {
-        try {
-          await onDuplicate(id);
-          toast.success("Draft duplicated");
-          router.refresh();
-        } catch (e) {
-          toast.error(
-            e instanceof Error ? e.message : "Failed to duplicate draft",
-          );
-        }
-      }}
-      onCopy={handleCopy}
-      onAssign={(draft) => setAssignDraft(draft)}
-      onArchive={handleArchiveClick}
-      onViewHistory={openActivity}
-    />
+    },
+    [onDuplicate, router],
+  );
+
+  const handleAssign = useCallback((draft: ReviewDraft) => {
+    setAssignDraft(draft);
+  }, []);
+
+  const assignedToName = useMemo(() => {
+    if (!selectedDraftId) return undefined;
+    return allocationsByDraftId[selectedDraftId];
+  }, [allocationsByDraftId, selectedDraftId]);
+
+  const renderDraftDetailsPane = useCallback(
+    () => (
+      <ReviewDraftDetailsPane
+        draft={selectedDraft}
+        clients={clients}
+        users={users}
+        assignedToName={assignedToName}
+        onClose={closeDetailsPane}
+        onEdit={handleEdit}
+        onDuplicate={handleDuplicate}
+        onCopy={handleCopy}
+        onAssign={handleAssign}
+        onArchive={handleArchiveClick}
+        onViewHistory={openActivity}
+      />
+    ),
+    [
+      assignedToName,
+      clients,
+      closeDetailsPane,
+      handleArchiveClick,
+      handleAssign,
+      handleCopy,
+      handleDuplicate,
+      handleEdit,
+      openActivity,
+      selectedDraft,
+      users,
+    ],
   );
 
   return (
@@ -152,7 +184,9 @@ export function ReviewDraftTable({
             setEditDraft(null);
             setFormOpen(true);
           }}
-          onExportClick={() => window.open(`/api/review-drafts/export`, "_blank")}
+            onExportClick={() =>
+              window.open(`/api/review-drafts/export`, "_blank", "noopener,noreferrer")
+            }
           onImportPickClick={() => fileInputRef.current?.click()}
           onImportFileChange={handleImportFile}
         />
