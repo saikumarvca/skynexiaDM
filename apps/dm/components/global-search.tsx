@@ -313,7 +313,7 @@ export function GlobalSearch({
                                 <button
                                   key={c._id}
                                   onClick={() =>
-                                    navigate(`/dashboard/campaigns`)
+                                    navigate(`/campaigns`)
                                   }
                                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
                                 >
@@ -345,7 +345,7 @@ export function GlobalSearch({
                               {liveResults.leads.map((l) => (
                                 <button
                                   key={l._id}
-                                  onClick={() => navigate(`/dashboard/leads`)}
+                                  onClick={() => navigate(`/leads`)}
                                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
                                 >
                                   <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
@@ -374,7 +374,7 @@ export function GlobalSearch({
                               {liveResults.tasks.map((t) => (
                                 <button
                                   key={t._id}
-                                  onClick={() => navigate(`/dashboard/tasks`)}
+                                  onClick={() => navigate(`/tasks`)}
                                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
                                 >
                                   <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
@@ -412,7 +412,7 @@ export function GlobalSearch({
                               {liveResults.reviews.map((r) => (
                                 <button
                                   key={r._id}
-                                  onClick={() => navigate(`/dashboard/reviews`)}
+                                  onClick={() => navigate(`/reviews`)}
                                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
                                 >
                                   <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">
@@ -440,7 +440,7 @@ export function GlobalSearch({
                               {liveResults.content.map((ci) => (
                                 <button
                                   key={ci._id}
-                                  onClick={() => navigate(`/dashboard/content`)}
+                                  onClick={() => navigate(`/content`)}
                                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground/80 hover:bg-muted/60 transition-colors"
                                 >
                                   <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 bg-muted">

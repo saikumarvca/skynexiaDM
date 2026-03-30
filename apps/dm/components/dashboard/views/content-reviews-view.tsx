@@ -69,27 +69,27 @@ export function ContentReviewsView({ data }: { data: DashboardPageData }) {
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard/review-drafts">
+                <Link href="/reviews/drafts">
                   Drafts <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard/review-allocations">
+                <Link href="/reviews/allocations">
                   Allocations <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard/review-templates">
+                <Link href="/reviews/templates">
                   Templates <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard/review-analytics">
+                <Link href="/reviews/analytics">
                   Review analytics <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard/content">
+                <Link href="/content">
                   Content bank <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>

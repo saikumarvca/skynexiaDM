@@ -18,7 +18,7 @@ export function ContentPageClient({ children }: ContentPageClientProps) {
 
   function applyFilters(filters: Record<string, string>) {
     const params = new URLSearchParams(filters);
-    router.push(`/dashboard/content?${params.toString()}`);
+    router.push(`/content?${params.toString()}`);
   }
 
   return (

@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
+import ReviewsOverviewPage from "@/app/dashboard/reviews/page";
 
-export default function ReviewsRedirectPage() {
-  redirect("/dashboard/reviews");
-}
+export default ReviewsOverviewPage;

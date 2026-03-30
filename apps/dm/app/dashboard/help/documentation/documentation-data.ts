@@ -110,7 +110,7 @@ export function filterDocumentationSections(
 }
 
 /** Base path for documentation (index redirects to …/overview). */
-export const DOCUMENTATION_BASE_PATH = "/dashboard/help/documentation" as const;
+export const DOCUMENTATION_BASE_PATH = "/help/documentation" as const;
 
 export function documentationTopicHref(topicId: string): string {
   return `${DOCUMENTATION_BASE_PATH}/${encodeURIComponent(topicId)}`;
@@ -152,7 +152,7 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "screen-help-docs",
         title: "Help — Documentation",
-        href: "/dashboard/help/documentation/overview",
+        href: "/help/documentation/overview",
         summary:
           "This page. Browse topics using the sidebar, use the search box to filter by keyword, and click Screen guide links to open the matching app screen. On mobile, tap the menu icon to open the topic drawer.",
         keywords: ["help", "docs", "guide"],
@@ -223,7 +223,7 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "clients-google-reviews",
         title: "Google Reviews (sync)",
-        href: "/dashboard/google-reviews",
+        href: "/clients/google-reviews",
         summary:
           "Connect Google Business profiles to a client and pull recent reviews on demand or via the daily cron. Synced reviews appear in the Reviews module queue ready for draft allocation.",
         keywords: ["GBP", "sync", "google", "business"],
@@ -328,28 +328,28 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "camp-all",
         title: "All Campaigns",
-        href: "/dashboard/campaigns",
+        href: "/campaigns",
         summary:
           "List and filter campaigns by client, platform, status, and date range. Open a campaign to edit spend entries, dates, and platform details. Active campaigns show a live pacing badge.",
       },
       {
         id: "camp-new",
         title: "New Campaign",
-        href: "/dashboard/campaigns/new",
+        href: "/campaigns/new",
         summary:
           "Create a campaign: pick client, platform (Google Ads, Meta, LinkedIn, Twitter, TikTok, or Other), budget window, total and daily budget targets. It appears in Budget Pacing immediately when status is set to ACTIVE.",
       },
       {
         id: "camp-pacing",
         title: "Budget Pacing",
-        href: "/dashboard/budget-pacing",
+        href: "/campaigns/budget-pacing",
         summary:
           "Health view showing spend vs budget across all active campaigns. Campaigns display a coloured pacing badge: green (on track), amber (over/under-pacing), red (critical). Filter by client to focus on one account.",
       },
       {
         id: "camp-archived",
         title: "Archived campaigns",
-        href: "/dashboard/campaigns?archived=1",
+        href: "/campaigns?archived=1",
         summary:
           "Historical campaigns removed from the default list but kept for reporting. Archived campaigns do not appear in Budget Pacing or analytics selectors.",
       },
@@ -434,28 +434,28 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "content-bank",
         title: "Content Bank",
-        href: "/dashboard/content",
+        href: "/content",
         summary:
           "Browse reusable assets and copy per client. Filter by type (copy, image, video, carousel) or tags. Open items to edit or attach to a new scheduled post.",
       },
       {
         id: "content-new",
         title: "New Content",
-        href: "/dashboard/content/new",
+        href: "/content/new",
         summary:
           "Create a library item: attach client, content type, body text, media URL, and searchable tags for later scheduling.",
       },
       {
         id: "content-scheduled",
         title: "Scheduled Posts",
-        href: "/dashboard/scheduled-posts",
+        href: "/content/scheduled-posts",
         summary:
           "List of upcoming and past posts sorted by scheduledAt. Shows status badge, approval flag, platform, and client. Use filters to narrow by status or client.",
       },
       {
         id: "content-scheduled-new",
         title: "New Scheduled Post",
-        href: "/dashboard/scheduled-posts/new",
+        href: "/content/scheduled-posts/new",
         summary:
           "Compose a post: select platform and client, write copy, attach media URL, set schedule time, and optionally enable client approval gate.",
       },
@@ -516,21 +516,21 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "seo-keywords",
         title: "Keywords",
-        href: "/dashboard/seo",
+        href: "/seo",
         summary:
           "Table of tracked keywords per client showing current rank, previous rank, rank change delta, and search volume. Rank direction arrows indicate improvement or decline. Click a keyword for full history chart.",
       },
       {
         id: "seo-new",
         title: "Add Keyword",
-        href: "/dashboard/seo/new",
+        href: "/seo/new",
         summary:
           "Register a keyword to track: term, target URL, client, search volume estimate, and keyword difficulty. Once added, rank history begins accumulating on the next cron run.",
       },
       {
         id: "seo-competitors",
         title: "Competitors",
-        href: "/dashboard/seo/competitors",
+        href: "/seo/competitors",
         summary:
           "Add and manage competitor domains per client. The competitor tracking view shows a side-by-side rank table: your client vs each competitor for every monitored keyword. Alerts fire when a competitor overtakes the client.",
       },
@@ -579,14 +579,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "leads-all",
         title: "All Leads",
-        href: "/dashboard/leads",
+        href: "/leads",
         summary:
           "Sortable list view with stage, owner, score, estimated value, and next follow-up date. Click a lead to open the detail page with activity timeline and CRM fields.",
       },
       {
         id: "leads-kanban",
         title: "Kanban Board",
-        href: "/dashboard/leads?view=kanban",
+        href: "/leads?view=kanban",
         summary:
           "Drag-and-drop pipeline: cards arranged in columns by stage. Dragging a card updates its stage instantly. Card shows lead name, client, score badge, and estimated value.",
         keywords: ["board", "pipeline", "drag"],
@@ -594,7 +594,7 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "leads-new",
         title: "Add Lead",
-        href: "/dashboard/leads/new",
+        href: "/leads/new",
         summary:
           "Manually create a lead: name, company, contact email, phone, source, assigned owner, estimated value, and initial stage. Leads arriving via integrations are created automatically.",
       },
@@ -671,14 +671,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "tasks-all",
         title: "All Tasks",
-        href: "/dashboard/tasks",
+        href: "/tasks",
         summary:
           "Filter by status, assignee, client, priority, and due date. Overdue tasks are highlighted. Click a task to open its detail — update status, add notes, or reassign.",
       },
       {
         id: "tasks-new",
         title: "New Task",
-        href: "/dashboard/tasks/new",
+        href: "/tasks/new",
         summary:
           "Create a task: title, description, client, priority, due date, linked campaign or lead (optional), and one or more assignees.",
       },
@@ -727,56 +727,56 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "rev-overview",
         title: "Reviews overview",
-        href: "/dashboard/reviews",
+        href: "/reviews",
         summary:
           "Entry point for review response workflows: total counts by status, recent synced reviews, filters by client and platform, and navigation into drafts and allocations.",
       },
       {
         id: "rev-drafts",
         title: "Review Drafts",
-        href: "/dashboard/review-drafts",
+        href: "/reviews/drafts",
         summary:
           "Write and edit draft responses before they are allocated. Apply a template, customise, and save. Drafts in this view have not yet been assigned to a platform for posting.",
       },
       {
         id: "rev-allocations",
         title: "Review Allocations",
-        href: "/dashboard/review-allocations",
+        href: "/reviews/allocations",
         summary:
           "Managers assign approved drafts to team members for posting to the client's platform account. Each allocation records the assignee, target platform, and deadline.",
       },
       {
         id: "rev-my",
         title: "My Assigned Reviews",
-        href: "/dashboard/my-assigned-reviews",
+        href: "/reviews/my-assigned",
         summary:
           "Writer-centric inbox showing reviews currently allocated to the signed-in user. Complete drafts or mark as posted from here.",
       },
       {
         id: "rev-used",
         title: "Used Reviews",
-        href: "/dashboard/used-reviews",
+        href: "/reviews/used",
         summary:
           "Archive of responses that have been marked as posted. Useful for tone reference, compliance checks, and reporting on volume.",
       },
       {
         id: "rev-analytics",
         title: "Review Analytics",
-        href: "/dashboard/review-analytics",
+        href: "/reviews/analytics",
         summary:
           "Aggregate stats: total reviews by client, response rate (drafted / total synced), average sentiment score, and review velocity (reviews per week) over a selectable period.",
       },
       {
         id: "rev-templates",
         title: "Review templates",
-        href: "/dashboard/review-templates",
+        href: "/reviews/templates",
         summary:
           "Maintain reusable snippets with variable placeholders. Edit individual templates at /dashboard/review-templates/[templateId]/edit.",
       },
       {
         id: "rev-requests",
         title: "Review Requests",
-        href: "/dashboard/review-requests",
+        href: "/reviews/requests",
         summary:
           "Configure and send campaigns asking customers to leave a review. Emails sent via the configured provider (Resend or SMTP).",
       },
@@ -977,14 +977,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "ana-overview",
         title: "Analytics — Overview",
-        href: "/dashboard/analytics",
+        href: "/analytics",
         summary:
           "High-level KPIs and summary charts: MRR, open lead pipeline value, active campaigns, posts published, tasks completed.",
       },
       {
         id: "ana-social",
         title: "Analytics — Social",
-        href: "/dashboard/social-analytics",
+        href: "/analytics/social",
         summary:
           "Engagement trends, per-platform breakdowns, and top posts. Same as Social Analytics topic, accessible from the hub.",
       },
@@ -1093,14 +1093,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "rep-list",
         title: "Scheduled Reports",
-        href: "/dashboard/reports",
+        href: "/reports",
         summary:
           "All automated report schedules: name, client, frequency, last sent date, next send date, and active/paused toggle. Click a row to edit the schedule or trigger a send.",
       },
       {
         id: "rep-new",
         title: "New Report Schedule",
-        href: "/dashboard/reports/new",
+        href: "/reports/new",
         summary:
           "Configure a new automated report: pick sections to include, frequency (WEEKLY, MONTHLY, QUARTERLY), day/time, timezone, and recipient email addresses (internal + client).",
       },
@@ -1153,14 +1153,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "inv-all",
         title: "All Invoices",
-        href: "/dashboard/invoices",
+        href: "/invoices",
         summary:
           "Invoice list filterable by client, status, and date range. Each row shows invoice number, client, total, status badge, due date, and issue date. Open a row for the full invoice detail and actions.",
       },
       {
         id: "inv-ar",
         title: "Accounts Receivable",
-        href: "/dashboard/invoices/accounts-receivable",
+        href: "/invoices/accounts-receivable",
         summary:
           "Finance-focused view showing outstanding and aging invoices grouped into buckets: Current (due in future), 1–30 days overdue, 31–60 days, 61–90 days, and 90+ days. Use this for follow-up prioritisation.",
         keywords: ["AR", "aging", "overdue", "receivable"],
@@ -1168,7 +1168,7 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "inv-new",
         title: "New Invoice",
-        href: "/dashboard/invoices/new",
+        href: "/invoices/new",
         summary:
           "Invoice builder: select client, set issue date and due date, add line items (description, quantity, unit price), optional notes and tax rate. Total is calculated automatically. Save as DRAFT until ready to send.",
       },
@@ -1245,14 +1245,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "time-home",
         title: "Time Tracking",
-        href: "/dashboard/time-tracking",
+        href: "/time-tracking",
         summary:
           "Weekly grid showing hours logged per team member. Filter by member or client. Click any cell to see individual entries for that member/day. Navigate weeks using prev/next arrows.",
       },
       {
         id: "time-new",
         title: "Log time",
-        href: "/dashboard/time-tracking/new",
+        href: "/time-tracking/new",
         summary:
           "Single entry form: date, client, optional linked task, duration in minutes, billable toggle, optional hourly rate, and a description of work done.",
       },
@@ -1301,14 +1301,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "int-list",
         title: "Integrations",
-        href: "/dashboard/integrations",
+        href: "/integrations",
         summary:
           "Active inbound connectors listed with type, status (ACTIVE/PAUSED), last event time, and processed/error counts. Copy the ingest URL and rotate API keys from each card.",
       },
       {
         id: "int-new",
         title: "New Integration",
-        href: "/dashboard/integrations/new",
+        href: "/integrations/new",
         summary:
           "Choose provider type, name the integration, assign to a client (optional), configure field mapping, and generate the API key. Copy the key immediately — it is shown only once.",
       },
@@ -1462,21 +1462,21 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "adm-users",
         title: "Users (admin)",
-        href: "/dashboard/admin/users",
+        href: "/admin/users",
         summary:
           "Create team accounts, deactivate access, reset passwords, and assign admin vs standard role. Deactivating a user revokes their active session immediately.",
       },
       {
         id: "adm-audit",
         title: "Audit Log",
-        href: "/dashboard/admin/audit-log",
+        href: "/admin/audit-log",
         summary:
           "Immutable history of creates, updates, and deletes across every module. Includes actor ID, IP address, resource type, resource ID, action, and timestamp. Filter by actor, resource type, or date range.",
       },
       {
         id: "adm-webhooks",
         title: "Webhooks",
-        href: "/dashboard/admin/webhooks",
+        href: "/admin/webhooks",
         summary:
           "Register outbound webhook URLs and shared secrets for HMAC-signed event payloads. Events are delivered as POST requests to the configured URL.",
       },
@@ -1531,14 +1531,14 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       {
         id: "set-account",
         title: "Account Settings",
-        href: "/dashboard/settings",
+        href: "/settings",
         summary:
           "Update display name, email address, and password for the signed-in user. Changes to email address take effect immediately.",
       },
       {
         id: "set-item-master",
         title: "Item Master",
-        href: "/dashboard/settings/item-master",
+        href: "/settings/item-master",
         summary:
           "Pre-define reusable billing line items: description, default unit price, and category. Used when building invoices to auto-fill line item details. Manage the catalogue here.",
         keywords: ["catalog", "products", "billing", "line items"],

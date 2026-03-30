@@ -76,7 +76,7 @@ export function Header({
           className="h-10 w-10 rounded-full"
           asChild
         >
-          <Link href="/dashboard/settings" aria-label="Settings">
+          <Link href="/settings" aria-label="Settings">
             <Settings className="h-4 w-4" />
           </Link>
         </Button>

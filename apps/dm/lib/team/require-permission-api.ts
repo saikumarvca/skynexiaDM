@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUserFromRequest } from "@/lib/auth";
 import { PERMISSION_LIST } from "@/lib/team/permissions";
 import TeamMember from "@/models/TeamMember";
+import TeamRole from "@/models/TeamRole";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -26,12 +27,22 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
     isDeleted: { $ne: true },
     $or: [{ userId: user.userId }, { email: emailNorm }],
   })
-    .populate("roleId", "permissions")
+    .select("_id roleId")
     .lean();
 
-  const role = member?.roleId as { permissions?: string[] } | undefined;
+  const roleId =
+    member?.roleId &&
+    typeof member.roleId === "object" &&
+    "toString" in member.roleId
+      ? (member.roleId as { toString(): string }).toString()
+      : member?.roleId
+        ? String(member.roleId)
+        : undefined;
+  const role = roleId
+    ? await TeamRole.findById(roleId).select("permissions").lean()
+    : null;
   return {
-    perms: Array.isArray(role?.permissions) ? role!.permissions! : [],
+    perms: Array.isArray(role?.permissions) ? role.permissions : [],
     teamMemberId: member?._id?.toString?.() ?? (member?._id ? String(member._id) : undefined),
   };
 }
