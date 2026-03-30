@@ -72,6 +72,8 @@ export function ReviewAllocationTable({
   showMyAssignedOnly = false,
   viewMode = "table",
 }: ReviewAllocationTableProps) {
+  const effectiveViewMode =
+    viewMode === "table" && showMyAssignedOnly ? "responsive" : viewMode;
   const router = useRouter();
   const [sharedAlloc, setSharedAlloc] = useState<ReviewAllocation | null>(null);
   const [postedAlloc, setPostedAlloc] = useState<ReviewAllocation | null>(null);
@@ -99,10 +101,10 @@ export function ReviewAllocationTable({
 
   return (
     <>
-      {viewMode === "table" || viewMode === "responsive" ? (
+      {effectiveViewMode === "table" || effectiveViewMode === "responsive" ? (
         <div
           className={`max-w-full overflow-x-auto rounded-lg border bg-card shadow-sm ${
-            viewMode === "responsive" ? "hidden md:block" : ""
+            effectiveViewMode === "responsive" ? "hidden md:block" : ""
           }`}
         >
           <Table className="min-w-[920px]">
@@ -257,10 +259,10 @@ export function ReviewAllocationTable({
         </div>
       ) : null}
 
-      {viewMode === "cards" || viewMode === "responsive" ? (
+      {effectiveViewMode === "cards" || effectiveViewMode === "responsive" ? (
         <div
           className={`grid gap-4 sm:grid-cols-2 xl:grid-cols-3 ${
-            viewMode === "responsive" ? "md:hidden" : ""
+            effectiveViewMode === "responsive" ? "md:hidden" : ""
           }`}
         >
           {allocations.map((a) => {

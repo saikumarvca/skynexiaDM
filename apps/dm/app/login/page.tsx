@@ -17,7 +17,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = useMemo(
-    () => searchParams.get("next") || "/welcome",
+    () => searchParams.get("next") || "/dashboard",
     [searchParams],
   );
 
