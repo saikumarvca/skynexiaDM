@@ -331,3 +331,37 @@ export const markPostedSchema = z
     performedBy: z.string().trim().min(1).optional(),
   })
   .strict();
+
+const contactBookTagsSchema = z
+  .array(z.string().trim().min(1).max(64))
+  .max(50)
+  .optional();
+
+export const contactBookCreateSchema = z
+  .object({
+    displayName: z.string().trim().min(1, "Name is required").max(200),
+    phone: z.preprocess(emptyToUndef, z.string().trim().max(80).optional()),
+    email: z.preprocess(emptyToUndef, z.string().trim().email().max(200).optional()),
+    notes: z.preprocess(emptyToUndef, z.string().trim().max(4000).optional()),
+    tags: contactBookTagsSchema,
+  })
+  .strict();
+
+export const contactBookPatchSchema = z
+  .object({
+    displayName: z.string().trim().min(1).max(200).optional(),
+    phone: z.preprocess(
+      emptyToUndef,
+      z.union([z.string().trim().max(80), z.null()]).optional(),
+    ),
+    email: z.preprocess(
+      emptyToUndef,
+      z.union([z.string().trim().email().max(200), z.null()]).optional(),
+    ),
+    notes: z.preprocess(
+      emptyToUndef,
+      z.union([z.string().trim().max(4000), z.null()]).optional(),
+    ),
+    tags: z.union([z.array(z.string().trim().min(1).max(64)).max(50), z.null()]).optional(),
+  })
+  .strict();

@@ -39,6 +39,11 @@ import {
   HelpCircle,
   BookOpen,
   Wallet,
+  BookUser,
+  Megaphone,
+  ThumbsUp,
+  Share2,
+  Tv,
 } from "lucide-react";
 
 export type DashboardNavChild = {
@@ -83,6 +88,12 @@ const baseNavigation: DashboardNavItem[] = [
       "view_reviews",
       "work_assigned_reviews",
     ],
+  },
+  {
+    name: "Contact book",
+    href: "/dashboard/contact-book",
+    icon: BookUser,
+    requiredAnyOf: ["view_dashboard"],
   },
   {
     name: "Clients",
@@ -315,6 +326,52 @@ const baseNavigation: DashboardNavItem[] = [
         href: "/reviews/requests",
         icon: Mail,
         requiredAnyOf: ["manage_reviews"],
+      },
+    ],
+  },
+  {
+    name: "Posts",
+    href: "/posts",
+    icon: Megaphone,
+    requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
+    children: [
+      {
+        name: "Overview",
+        href: "/posts",
+        icon: Megaphone,
+        requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
+      },
+      {
+        name: "Post likes",
+        href: "/posts/like",
+        icon: ThumbsUp,
+        requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
+      },
+      {
+        name: "Post shares",
+        href: "/posts/share",
+        icon: Share2,
+        requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
+      },
+    ],
+  },
+  {
+    name: "Channels",
+    href: "/channels",
+    icon: Tv,
+    requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
+    children: [
+      {
+        name: "Overview",
+        href: "/channels",
+        icon: Tv,
+        requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
+      },
+      {
+        name: "Subscribe",
+        href: "/channels/subscribe",
+        icon: Users,
+        requiredAnyOf: ["view_analytics", "view_content", "manage_content"],
       },
     ],
   },

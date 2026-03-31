@@ -20,6 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { CustomerContactInputRow } from "@/components/reviews/customer-contact-input-row";
 import type { MarkPostedFormData } from "@/types/reviews";
 
 interface MarkPostedModalProps {
@@ -138,47 +139,46 @@ export function MarkPostedModal({
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Contact Number
-            </label>
-            <div className="flex gap-2">
-              <Input
-                className="flex-1 min-w-0"
-                value={postedContact}
-                onChange={(e) => setPostedContact(e.target.value)}
-                placeholder="Phone (with country code) or email"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                disabled={!waPhone}
-                title="Call"
-                onClick={() => openTelCall(postedContact)}
-              >
-                <Phone className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                disabled={!waPhone}
-                title="Follow up on WhatsApp"
-                onClick={() => {
-                  if (!waPhone) return;
-                  openWhatsAppChat(
-                    waPhone,
-                    buildReviewPostedFollowUpMessage(postedByName),
-                  );
-                }}
-              >
-                <MessageCircle className="h-4 w-4 text-emerald-600" />
-              </Button>
-            </div>
-          </div>
+          <CustomerContactInputRow
+            label="Contact Number"
+            value={postedContact}
+            onChange={setPostedContact}
+            onCustomerNameChange={setPostedByName}
+            placeholder="Phone (with country code) or email"
+            contactBookFilterTags={["Review request"]}
+            endAdornment={
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  disabled={!waPhone}
+                  title="Call"
+                  onClick={() => openTelCall(postedContact)}
+                >
+                  <Phone className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  disabled={!waPhone}
+                  title="Follow up on WhatsApp"
+                  onClick={() => {
+                    if (!waPhone) return;
+                    openWhatsAppChat(
+                      waPhone,
+                      buildReviewPostedFollowUpMessage(postedByName),
+                    );
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4 text-emerald-600" />
+                </Button>
+              </>
+            }
+          />
           <div>
             <label className="block text-sm font-medium mb-1">Platform *</label>
             <select

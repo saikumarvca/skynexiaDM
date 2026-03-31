@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSessionApi } from "@/lib/require-session-api";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 import dbConnect from "@/lib/mongodb";
 import ReviewDraft from "@/models/ReviewDraft";
 
@@ -8,14 +9,20 @@ export async function GET(request: NextRequest) {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
 
+    const authz = await requireAnyPermissionApi(request, ["manage_reviews"]);
+    if (authz.denied) return authz.denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const clientId = searchParams.get("clientId");
 
-    const query: Record<string, unknown> = {};
-    if (status && status !== "ALL") query.status = status;
+    // Default: exclude archived unless explicitly requested
+    const query: Record<string, unknown> =
+      status && status !== "ALL"
+        ? { status }
+        : { status: { $ne: "Archived" } };
     if (clientId) query.clientId = clientId;
 
     const drafts = await ReviewDraft.find(query)

@@ -41,6 +41,10 @@ function sectionStillActiveForPath(name: string, p: string): boolean {
       p === "/reviews" ||
       p.startsWith("/reviews/")
     );
+  if (name === "Posts")
+    return p === "/posts" || p.startsWith("/posts/");
+  if (name === "Channels")
+    return p === "/channels" || p.startsWith("/channels/");
   if (name === "Team") return p.startsWith("/team");
   if (name === "Admin") return p.startsWith("/admin");
   if (name === "Reports") return p.startsWith("/reports");
@@ -78,6 +82,10 @@ export function DashboardNavLinks({
   const isTasksActive = pathname.startsWith("/tasks");
   const isReviewActive =
     pathname === "/reviews" || pathname.startsWith("/reviews/");
+  const isPostsActive =
+    pathname === "/posts" || pathname.startsWith("/posts/");
+  const isChannelsActive =
+    pathname === "/channels" || pathname.startsWith("/channels/");
   const isTeamActive = pathname.startsWith("/team");
   const isAdminActive = pathname.startsWith("/admin");
   const isReportsActive = pathname.startsWith("/reports");
@@ -94,6 +102,8 @@ export function DashboardNavLinks({
     Leads: isLeadsActive,
     Tasks: isTasksActive,
     Reviews: isReviewActive,
+    Posts: isPostsActive,
+    Channels: isChannelsActive,
     Team: isTeamActive,
     Admin: isAdminActive,
     Reports: isReportsActive,
@@ -158,6 +168,13 @@ export function DashboardNavLinks({
     if (isReviewActive) setExpandedSections((p) => ({ ...p, Reviews: true }));
   }, [pathname, isReviewActive]);
   useEffect(() => {
+    if (isPostsActive) setExpandedSections((p) => ({ ...p, Posts: true }));
+  }, [pathname, isPostsActive]);
+  useEffect(() => {
+    if (isChannelsActive)
+      setExpandedSections((p) => ({ ...p, Channels: true }));
+  }, [pathname, isChannelsActive]);
+  useEffect(() => {
     if (isTeamActive) setExpandedSections((p) => ({ ...p, Team: true }));
   }, [pathname, isTeamActive]);
   useEffect(() => {
@@ -191,6 +208,8 @@ export function DashboardNavLinks({
         Leads: isLeadsActive,
         Tasks: isTasksActive,
         Reviews: isReviewActive,
+        Posts: isPostsActive,
+        Channels: isChannelsActive,
         Team: isTeamActive,
         Admin: isAdminActive,
         Reports: isReportsActive,
@@ -223,6 +242,8 @@ export function DashboardNavLinks({
     if (name === "Leads") return isLeadsActive;
     if (name === "Tasks") return isTasksActive;
     if (name === "Reviews") return isReviewActive;
+    if (name === "Posts") return isPostsActive;
+    if (name === "Channels") return isChannelsActive;
     if (name === "Team") return isTeamActive;
     if (name === "Admin") return isAdminActive;
     if (name === "Reports") return isReportsActive;

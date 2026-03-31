@@ -83,6 +83,14 @@ export interface DashboardPageData {
   reviewDrafts: number;
   reviewAllocations: number;
   reviewRequestsPending: number;
+  /** Pipeline funnel: assigned → shared → posted, with week-over-week delta. */
+  reviewFunnel: {
+    assigned: number;
+    shared: number;
+    posted: number;
+    postedThisWeek: number;
+    postedLastWeek: number;
+  };
   /** Counts per Lead.status for Growth funnel. */
   leadStatusBreakdown: Record<string, number>;
   /** Present only when loaded with isAdmin; otherwise null. */

@@ -283,70 +283,16 @@ export function ReviewDraftTable({
     }
     setBulkAssignPlatformSubmitting(true);
     try {
-      const url = new URL("/api/review-allocations", window.location.origin);
-      url.searchParams.set("draftIds", selectedIds.join(","));
-      const res = await fetch(url.pathname + url.search, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load allocations");
-      const allocations = (await res.json()) as Array<{
-        _id: string;
-        draftId: string | { _id?: string };
-      }>;
-
-      const latestAllocationIdByDraftId: Record<string, string> = {};
-      for (const a of allocations) {
-        const draftId =
-          typeof a.draftId === "string" ? a.draftId : (a.draftId?._id ?? "");
-        if (!draftId || latestAllocationIdByDraftId[draftId]) continue;
-        latestAllocationIdByDraftId[draftId] = a._id;
-      }
-
-      const targetAllocationIds = selectedIds
-        .map((id) => latestAllocationIdByDraftId[id])
-        .filter(Boolean);
-      const missingDraftIds = selectedIds.filter(
-        (id) => !latestAllocationIdByDraftId[id],
-      );
-
-      const patchResults = await Promise.allSettled(
-        targetAllocationIds.map((allocationId) =>
-          fetch(`/api/review-allocations/${allocationId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              platform: bulkPlatformOnly,
-              performedBy: users[0]?.name ?? "system",
-            }),
-          }),
-        ),
-      );
-      const createResults = await Promise.allSettled(
-        missingDraftIds.map((draftId) =>
-          onAssign(draftId, {
-            draftId,
-            assignedToUserId: "UNASSIGNED",
-            assignedToUserName: "Unassigned",
-            assignedByUserId: users[0]?._id ?? "system",
-            assignedByUserName: users[0]?.name ?? "system",
-            platform: bulkPlatformOnly,
-          }),
-        ),
-      );
-
-      const successCount =
-        patchResults.filter(
-          (r) => r.status === "fulfilled" && r.value.ok,
-        ).length +
-        createResults.filter((r) => r.status === "fulfilled").length;
-      const failedCount =
-        patchResults.length -
-        patchResults.filter((r) => r.status === "fulfilled" && r.value.ok).length +
-        (createResults.length -
-          createResults.filter((r) => r.status === "fulfilled").length);
-      const createdCount = createResults.filter(
-        (r) => r.status === "fulfilled",
-      ).length;
+      // Single bulk-patch call instead of N+1 individual PATCHes
+      const res = await fetch("/api/review-allocations/bulk-patch", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ draftIds: selectedIds, platform: bulkPlatformOnly }),
+      });
+      if (!res.ok) throw new Error("Failed to bulk assign platform");
+      const { modifiedCount } = (await res.json()) as { modifiedCount: number };
       toast.success(
-        `Platform assignment done: ${successCount} success, ${failedCount} failed${createdCount ? ` (${createdCount} created)` : ""}`,
+        `Platform set to "${bulkPlatformOnly}" on ${modifiedCount} allocation${modifiedCount !== 1 ? "s" : ""}`,
       );
       setBulkAssignPlatformOpen(false);
       setBulkPlatformOnly("");
@@ -357,7 +303,7 @@ export function ReviewDraftTable({
     } finally {
       setBulkAssignPlatformSubmitting(false);
     }
-  }, [bulkPlatformOnly, onAssign, router, selectedIds, users]);
+  }, [bulkPlatformOnly, router, selectedIds]);
 
   const assignedToName = useMemo(() => {
     if (!selectedDraftId) return undefined;
@@ -582,6 +528,7 @@ export function ReviewDraftTable({
         }}
         draft={assignDraft}
         users={users}
+        clients={clients}
         assignedByUserId={users[0]?._id ?? ""}
         assignedByUserName={users[0]?.name ?? "system"}
         isNonReusableUsed={

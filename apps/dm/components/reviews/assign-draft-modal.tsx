@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { ReviewDraft, AssignDraftFormData } from "@/types/reviews";
+import type { Client } from "@/types";
 import { CustomerContactInputRow } from "@/components/reviews/customer-contact-input-row";
 
 interface User {
@@ -26,10 +27,13 @@ interface AssignDraftModalProps {
   onSubmit: (data: AssignDraftFormData) => Promise<void>;
   draft: ReviewDraft | null;
   users: User[];
+  clients?: Client[];
   assignedByUserId: string;
   assignedByUserName: string;
   isNonReusableUsed?: boolean;
 }
+
+const DEFAULT_PLATFORMS = ["Google", "Facebook", "Justdial", "Website", "Other"];
 
 export function AssignDraftModal({
   isOpen,
@@ -37,6 +41,7 @@ export function AssignDraftModal({
   onSubmit,
   draft,
   users,
+  clients,
   assignedByUserId,
   assignedByUserName,
   isNonReusableUsed = false,
@@ -46,12 +51,46 @@ export function AssignDraftModal({
   const [customerName, setCustomerName] = useState("");
   const [customerContact, setCustomerContact] = useState("");
   const [platform, setPlatform] = useState("");
+  const [contactSuggestions, setContactSuggestions] = useState<
+    { customerContact: string; customerName: string }[]
+  >([]);
+
+  // Derive the draft's client, then surface only platforms that client has configured
+  const draftClientId =
+    draft?.clientId != null
+      ? typeof draft.clientId === "string"
+        ? draft.clientId
+        : (draft.clientId as { _id?: string })?._id ?? ""
+      : "";
+  const matchingClient = clients?.find((c) => c._id === draftClientId);
+  const availablePlatforms =
+    matchingClient?.reviewDestinations && matchingClient.reviewDestinations.length > 0
+      ? matchingClient.reviewDestinations.map((d) => d.platform)
+      : DEFAULT_PLATFORMS;
 
   useEffect(() => {
     if (users.length > 0 && !assignedToUserId) {
       setAssignedToUserId(users[0]?._id ?? "");
     }
   }, [users, assignedToUserId]);
+
+  // Fetch past contacts for this client when the modal opens
+  useEffect(() => {
+    if (!isOpen || !draftClientId) return;
+    let cancelled = false;
+    fetch(`/api/review-allocations?groupByContact=true&clientId=${draftClientId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (!cancelled)
+          setContactSuggestions(
+            (data as { customerContact: string; customerName: string }[]) ?? [],
+          );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, draftClientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +165,33 @@ export function AssignDraftModal({
             value={customerContact}
             onChange={setCustomerContact}
             onCustomerNameChange={setCustomerName}
+            contactBookFilterTags={["Review request"]}
           />
+          {contactSuggestions.length > 0 && !customerContact && (
+            <div>
+              <p className="mb-1 text-xs text-muted-foreground">
+                Recent contacts for this client:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {contactSuggestions.map((s) => (
+                  <button
+                    key={s.customerContact}
+                    type="button"
+                    onClick={() => {
+                      setCustomerContact(s.customerContact);
+                      if (s.customerName && !customerName)
+                        setCustomerName(s.customerName);
+                    }}
+                    className="rounded border border-border bg-muted px-2 py-0.5 text-xs hover:bg-accent"
+                  >
+                    {s.customerName
+                      ? `${s.customerName} · ${s.customerContact}`
+                      : s.customerContact}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">Platform</label>
             <select
@@ -135,12 +200,18 @@ export function AssignDraftModal({
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
             >
               <option value="">Select platform</option>
-              <option value="Google">Google</option>
-              <option value="Facebook">Facebook</option>
-              <option value="Justdial">Justdial</option>
-              <option value="Website">Website</option>
-              <option value="Other">Other</option>
+              {availablePlatforms.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
             </select>
+            {matchingClient?.reviewDestinations &&
+              matchingClient.reviewDestinations.length > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Showing platforms configured for this client
+                </p>
+              )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

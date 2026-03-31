@@ -20,6 +20,8 @@ import {
   Timer,
   GitBranch,
   LayoutDashboard,
+  Megaphone,
+  Tv,
 } from "lucide-react";
 
 /* ─────────────────────────── types ─────────────────────────── */
@@ -941,7 +943,12 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       },
       {
         heading: "Social analytics shortcut",
-        body: "Opens /dashboard/social-analytics — same data as the Social Analytics section, accessed via the analytics hub for convenience.",
+        body: "Opens /analytics/social (and the same UI at /dashboard/social-analytics). Query parameters such as clientId, platform, sortBy, limit, and top are preserved.",
+      },
+      {
+        heading: "Posts and channels",
+        body: "Post engagement focused views: /posts, /posts/like, /posts/share. Channel subscriber list: /channels and /channels/subscribe. See the Posts and Channels documentation topics.",
+        type: "info",
       },
       {
         heading: "Review analytics shortcut",
@@ -986,7 +993,20 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
         title: "Analytics — Social",
         href: "/analytics/social",
         summary:
-          "Engagement trends, per-platform breakdowns, and top posts. Same as Social Analytics topic, accessible from the hub.",
+          "Post metrics table and platform totals. Query params: clientId, platform, sortBy, limit, top.",
+      },
+      {
+        id: "ana-posts-hub",
+        title: "Posts — overview",
+        href: "/posts",
+        summary:
+          "Hub linking to post likes, post shares, scheduled posts, and social analytics.",
+      },
+      {
+        id: "ana-channels-hub",
+        title: "Channels — overview",
+        href: "/channels",
+        summary: "Hub linking to channel subscriber metrics.",
       },
       {
         id: "ana-reviews",
@@ -1073,13 +1093,115 @@ export const DOCUMENTATION_SECTIONS: DocSection[] = [
       },
       {
         heading: "Social analytics summary API",
-        body: "GET /api/social-analytics?clientId=X&from=YYYY-MM-DD&to=YYYY-MM-DD\nReturns aggregate metrics grouped by platform and date for the given client and range.",
+        body: "GET /api/social-analytics?clientId=&platform=&sortBy=likes|shares|engagement|fetchedAt&limit=&top=true\nReturns { metrics, platformTotals }. With top=true, rows are sorted by engagement rate. sortBy is ignored when top=true. Use /analytics/social in the app — all query parameters are forwarded to the dashboard.",
         type: "code",
+      },
+      {
+        heading: "Posts — likes and shares",
+        body: "Focused views live under Posts in the sidebar: /posts (hub), /posts/like (table sorted by likes), /posts/share (by shares). They use the same PostMetrics data as this topic. The hub also links to Scheduled Posts and /analytics/social.",
+        type: "info",
       },
       {
         heading: "Missing data",
         body: "If metrics are missing for a published post, check: (1) the post has status PUBLISHED in the database, (2) the platform API credentials are valid and not rate-limited, (3) the sync cron has run since the 24-hour window elapsed. You can manually trigger the cron from the Cron Jobs reference.",
         type: "warning",
+      },
+    ],
+  },
+
+  /* ── 11b. POSTS (engagement) ── */
+  {
+    id: "posts",
+    title: "Posts",
+    icon: Megaphone,
+    screenGuides: [
+      {
+        id: "posts-hub",
+        title: "Posts — overview",
+        href: "/posts",
+        summary:
+          "Hub with links to post likes, post shares, scheduled posts, and social analytics.",
+        keywords: ["engagement", "metrics", "social"],
+      },
+      {
+        id: "posts-likes",
+        title: "Post likes",
+        href: "/posts/like",
+        summary:
+          "Table of synced post metrics sorted by like count. Filter by client ID and platform.",
+        keywords: ["thumbs", "engagement"],
+      },
+      {
+        id: "posts-shares",
+        title: "Post shares",
+        href: "/posts/share",
+        summary:
+          "Table of synced post metrics sorted by share count. Same filters as Post likes.",
+        keywords: ["reshare", "engagement"],
+      },
+      {
+        id: "posts-analytics-social",
+        title: "Social analytics (hub)",
+        href: "/analytics/social",
+        summary:
+          "Full metrics table and platform totals; optional sortBy, limit, and top query params.",
+        keywords: ["analytics", "hub"],
+      },
+    ],
+    content: [
+      {
+        heading: "Who can access",
+        body: "Users with any of: view_analytics, view_content, or manage_content.",
+        type: "info",
+      },
+      {
+        heading: "Data source",
+        body: "Post likes and post shares read the same PostMetrics collection as Social Analytics (populated after publish, typically via /api/cron/sync-post-metrics once integrations are wired).",
+      },
+      {
+        heading: "API",
+        body: "GET /api/social-analytics — see Social Analytics topic for parameters.",
+        type: "code",
+      },
+    ],
+  },
+
+  /* ── 11c. CHANNELS ── */
+  {
+    id: "channels",
+    title: "Channels",
+    icon: Tv,
+    screenGuides: [
+      {
+        id: "channels-hub",
+        title: "Channels — overview",
+        href: "/channels",
+        summary:
+          "Introduction and link to subscriber metrics. Data appears after ChannelMetrics records are created by integrations or sync jobs.",
+      },
+      {
+        id: "channels-subscribe",
+        title: "Channel subscribers",
+        href: "/channels/subscribe",
+        summary:
+          "List channel snapshots: client, platform, channel name, channel ID, subscriber count, last fetched. Filter by client ID, platform, or text search on name/ID.",
+        keywords: ["youtube", "subscribers"],
+      },
+    ],
+    content: [
+      {
+        heading: "Who can access",
+        body: "Users with any of: view_analytics, view_content, or manage_content.",
+        type: "info",
+      },
+      {
+        heading: "ChannelMetrics model",
+        body: "Each row stores clientId, platform, channelId, optional channelName, subscriberCount, and fetchedAt. Uniqueness is enforced per client, platform, and channelId.",
+      },
+      {
+        heading: "API",
+        body: "GET /api/channel-metrics?clientId=&platform=&search=&sortBy=fetchedAt|subscribers&limit=\nReturns { channels }. Sort defaults to fetchedAt descending.",
+        type: "code",
       },
     ],
   },

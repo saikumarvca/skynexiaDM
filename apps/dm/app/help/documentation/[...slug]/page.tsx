@@ -10,6 +10,8 @@ import ReviewsPage from "@/app/dashboard/help/documentation/reviews/page";
 import TeamPage from "@/app/dashboard/help/documentation/team/page";
 import AnalyticsHubPage from "@/app/dashboard/help/documentation/analytics-hub/page";
 import SocialAnalyticsPage from "@/app/dashboard/help/documentation/social-analytics/page";
+import PostsDocPage from "@/app/dashboard/help/documentation/posts/page";
+import ChannelsDocPage from "@/app/dashboard/help/documentation/channels/page";
 import ReportsPage from "@/app/dashboard/help/documentation/reports/page";
 import InvoicesPage from "@/app/dashboard/help/documentation/invoices/page";
 import TimeTrackingPage from "@/app/dashboard/help/documentation/time-tracking/page";
@@ -32,6 +34,8 @@ const TOPIC_COMPONENTS: Record<string, any> = {
   team: TeamPage,
   "analytics-hub": AnalyticsHubPage,
   "social-analytics": SocialAnalyticsPage,
+  posts: PostsDocPage,
+  channels: ChannelsDocPage,
   reports: ReportsPage,
   invoices: InvoicesPage,
   "time-tracking": TimeTrackingPage,

@@ -26,6 +26,19 @@ function scheduledTodayBounds() {
   return { start, end };
 }
 
+function weekBounds() {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday
+  const startOfThisWeek = new Date(now);
+  startOfThisWeek.setDate(now.getDate() - dayOfWeek);
+  startOfThisWeek.setHours(0, 0, 0, 0);
+
+  const startOfLastWeek = new Date(startOfThisWeek);
+  startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+
+  return { startOfThisWeek, startOfLastWeek };
+}
+
 function readAppVersion(): string {
   try {
     const raw = readFileSync(join(process.cwd(), "package.json"), "utf8");
@@ -41,6 +54,7 @@ export async function getDashboardPageData(options: {
 }): Promise<DashboardPageData> {
   await dbConnect();
   const { start, end } = scheduledTodayBounds();
+  const { startOfThisWeek, startOfLastWeek } = weekBounds();
 
   const [
     totalClients,
@@ -56,6 +70,11 @@ export async function getDashboardPageData(options: {
     reviewAllocations,
     reviewRequestsPending,
     leadAgg,
+    funnelAssigned,
+    funnelShared,
+    funnelPosted,
+    funnelPostedThisWeek,
+    funnelPostedLastWeek,
   ] = await Promise.all([
     Client.countDocuments({ status: { $ne: "ARCHIVED" } }),
     Review.countDocuments({ status: { $ne: "ARCHIVED" } }),
@@ -77,6 +96,19 @@ export async function getDashboardPageData(options: {
     Lead.aggregate<{ _id: string; count: number }>([
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]),
+    ReviewAllocation.countDocuments({ allocationStatus: "Assigned" }),
+    ReviewAllocation.countDocuments({ allocationStatus: "Shared with Customer" }),
+    ReviewAllocation.countDocuments({
+      allocationStatus: { $in: ["Posted", "Used"] },
+    }),
+    ReviewAllocation.countDocuments({
+      allocationStatus: { $in: ["Posted", "Used"] },
+      postedDate: { $gte: startOfThisWeek },
+    }),
+    ReviewAllocation.countDocuments({
+      allocationStatus: { $in: ["Posted", "Used"] },
+      postedDate: { $gte: startOfLastWeek, $lt: startOfThisWeek },
+    }),
   ]);
 
   const leadStatusBreakdown: Record<string, number> = {};
@@ -190,6 +222,13 @@ export async function getDashboardPageData(options: {
     reviewDrafts,
     reviewAllocations,
     reviewRequestsPending,
+    reviewFunnel: {
+      assigned: funnelAssigned,
+      shared: funnelShared,
+      posted: funnelPosted,
+      postedThisWeek: funnelPostedThisWeek,
+      postedLastWeek: funnelPostedLastWeek,
+    },
     leadStatusBreakdown,
     technical,
   };

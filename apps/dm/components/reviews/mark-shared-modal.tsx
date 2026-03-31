@@ -304,6 +304,7 @@ export function MarkSharedModal({
             value={customerContact}
             onChange={setCustomerContact}
             onCustomerNameChange={setCustomerName}
+            contactBookFilterTags={["Review request"]}
           />
           <div>
             <label className="block text-sm font-medium mb-1">Platform</label>

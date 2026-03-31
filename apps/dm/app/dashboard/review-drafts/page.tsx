@@ -204,7 +204,7 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
   const unassignedClient = await getOrCreateUnassignedClient();
   const selectedClientId =
     params.clientId === "UNASSIGNED" ? unassignedClient._id.toString() : params.clientId;
-  const [drafts, clients, teamMembers] = await Promise.all([
+  const [drafts, clients, teamMembers, unassignedCount] = await Promise.all([
     getDrafts({
       clientId:
         selectedClientId && selectedClientId !== "ALL" ? selectedClientId : undefined,
@@ -217,6 +217,10 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
     }),
     getClients(),
     getTeamMembers(),
+    ReviewDraftModel.countDocuments({
+      clientId: unassignedClient._id,
+      status: { $nin: ["Archived"] },
+    }),
   ]);
 
   return (
@@ -232,6 +236,16 @@ export default async function ReviewDraftsPage({ searchParams }: PageProps) {
             <p className="mt-1 text-sm text-primary">
               Viewing drafts for client: {UNASSIGNED_CLIENT_NAME}
             </p>
+          ) : null}
+          {unassignedCount > 0 && params.clientId !== "UNASSIGNED" ? (
+            <a
+              href="/dashboard/review-drafts?clientId=UNASSIGNED"
+              className="mt-2 inline-flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-950/60"
+            >
+              <span className="font-semibold">{unassignedCount}</span>
+              {unassignedCount === 1 ? "draft is" : "drafts are"} not assigned to
+              any client — assign them →
+            </a>
           ) : null}
         </div>
 

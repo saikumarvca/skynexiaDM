@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import ReviewAllocation from "@/models/ReviewAllocation";
 import ReviewDraft from "@/models/ReviewDraft";
 import PostedReview from "@/models/PostedReview";
+import Review from "@/models/Review";
 import { logActivity } from "@/lib/review-activity";
 import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { markPostedSchema } from "@/lib/api/schemas";
@@ -40,6 +41,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return apiError(404, "Allocation not found", "NOT_FOUND");
     }
 
+    const draft = await ReviewDraft.findById(existing.draftId).lean();
+
     const postedReview = new PostedReview({
       allocationId: id,
       draftId: existing.draftId,
@@ -66,6 +69,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       status: "Used",
       updatedAt: now,
     });
+
+    // Bridge to the Review model so the legacy review dashboard stays in sync
+    if (draft) {
+      await Review.create({
+        clientId: draft.clientId,
+        shortLabel: draft.subject,
+        reviewText: draft.reviewText,
+        category: draft.category,
+        language: draft.language,
+        ratingStyle: draft.suggestedRating ?? "5",
+        status: "USED",
+        platform: platform.trim(),
+        source: "IMPORT",
+        usedCount: 1,
+      }).catch((err: unknown) => {
+        // Non-fatal — log but don't fail the request
+        console.warn("Failed to bridge draft to Review model:", err);
+      });
+    }
 
     await logActivity({
       entityType: "POSTED_REVIEW",

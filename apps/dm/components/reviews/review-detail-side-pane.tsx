@@ -401,6 +401,7 @@ export function ReviewDetailSidePane({
                   onChange={setCustomerContact}
                   onCustomerNameChange={setCustomerName}
                   labelClassName="block text-sm font-medium mb-1.5"
+                  contactBookFilterTags={["Review request"]}
                 />
                 <div>
                   <label className="block text-sm font-medium mb-1.5">

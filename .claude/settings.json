@@ -16,7 +16,10 @@
       "Bash(find /c/Users/Administrator/Downloads/skynexiaDM/apps/dm -name *DashboardNav* -o -name *dashboard-nav*)",
       "Bash(grep -r \"buildDashboardNavItems\\\\|navItems\\\\|navigation\" c:UsersAdministratorDownloadsskynexiaDMappsdm --include=*.ts --include=*.tsx -l)",
       "Bash(grep -r \"TODO\\\\|FIXME\\\\|XXX\\\\|HACK\" /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/app --include=*.ts --include=*.tsx)",
-      "Bash(grep -l \"export default\" /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/models/*.ts)"
+      "Bash(grep -l \"export default\" /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/models/*.ts)",
+      "Bash(ls -la \"c:\\\\Users\\\\Administrator\\\\Downloads\\\\skynexiaDM\\\\apps\\\\dm\\\\app\\\\api\\\\reviews\"\" 2>/dev/null || echo \"No reviews API directory \")",
+      "Bash(find /c/Users/Administrator/Downloads/skynexiaDM/apps/dm/app/api -name *review* -type d)",
+      "Bash(ls \"c:\\\\Users\\\\Administrator\\\\Downloads\\\\skynexiaDM\\\\apps\\\\dm\\\\app\\\\api\\\\review-drafts\"\" 2>/dev/null || echo \"dir not found \")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\notifications\\[id]",
@@ -24,7 +27,8 @@
       "c:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\tasks",
       "c:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\keywords\\[keywordId]",
       "c:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\webhooks\\[id]",
-      "c:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\saved-filters"
+      "c:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\saved-filters",
+      "c:\\Users\\Administrator\\Downloads\\skynexiaDM\\apps\\dm\\app\\api\\review-drafts\\[id]"
     ]
   }
 }

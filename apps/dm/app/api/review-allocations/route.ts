@@ -29,6 +29,48 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
+    const groupByContact = searchParams.get("groupByContact");
+
+    // Special mode: return unique customer contacts for a client (used for autocomplete)
+    if (groupByContact === "true" && clientId) {
+      const contacts = await ReviewAllocation.aggregate([
+        {
+          $lookup: {
+            from: "reviewdrafts",
+            localField: "draftId",
+            foreignField: "_id",
+            as: "draft",
+          },
+        },
+        { $unwind: { path: "$draft", preserveNullAndEmpty: false } },
+        {
+          $match: {
+            "draft.clientId": clientId,
+            customerContact: { $exists: true, $ne: null, $ne: "" },
+          },
+        },
+        {
+          $group: {
+            _id: "$customerContact",
+            customerName: { $last: "$customerName" },
+            lastUsedAt: { $max: "$assignedDate" },
+            usedCount: { $sum: 1 },
+          },
+        },
+        { $sort: { usedCount: -1, lastUsedAt: -1 } },
+        { $limit: 20 },
+        {
+          $project: {
+            _id: 0,
+            customerContact: "$_id",
+            customerName: 1,
+            lastUsedAt: 1,
+            usedCount: 1,
+          },
+        },
+      ]);
+      return NextResponse.json(contacts);
+    }
 
     const query: Record<string, unknown> = {};
     if (status && status !== "ALL") query.allocationStatus = status;

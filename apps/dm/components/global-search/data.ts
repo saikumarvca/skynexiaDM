@@ -21,6 +21,10 @@ import {
   UserPlus,
   Users,
   Users2,
+  Megaphone,
+  ThumbsUp,
+  Share2,
+  Tv,
 } from "lucide-react";
 import type { Group, SearchItem } from "./types";
 
@@ -30,6 +34,16 @@ export const GROUPS: Group[] = [
     name: "Reviews",
     icon: FileText,
     description: "Drafts, Allocations, Analytics",
+  },
+  {
+    name: "Posts",
+    icon: Megaphone,
+    description: "Likes, shares, scheduled post metrics",
+  },
+  {
+    name: "Channels",
+    icon: Tv,
+    description: "Subscriber metrics by channel",
   },
   { name: "Team", icon: Users2, description: "Users, Roles, Workload" },
   { name: "Clients", icon: Users, description: "Client list, Add client" },
@@ -238,6 +252,43 @@ export const ALL_ITEMS: SearchItem[] = [
     group: "Reviews",
     icon: LayoutTemplate,
     keywords: "prefill review",
+  },
+
+  // Posts
+  {
+    name: "Posts Overview",
+    href: "/posts",
+    group: "Posts",
+    icon: Megaphone,
+  },
+  {
+    name: "Post likes",
+    href: "/posts/like",
+    group: "Posts",
+    icon: ThumbsUp,
+    keywords: "engagement metrics",
+  },
+  {
+    name: "Post shares",
+    href: "/posts/share",
+    group: "Posts",
+    icon: Share2,
+    keywords: "engagement metrics",
+  },
+
+  // Channels
+  {
+    name: "Channels Overview",
+    href: "/channels",
+    group: "Channels",
+    icon: Tv,
+  },
+  {
+    name: "Channel subscribers",
+    href: "/channels/subscribe",
+    group: "Channels",
+    icon: Users,
+    keywords: "subscribe youtube",
   },
 
   // Analytics

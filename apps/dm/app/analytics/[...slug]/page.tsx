@@ -12,15 +12,7 @@ export default async function AnalyticsSlugPage({
   const { slug } = await params;
   const path = slug.join("/");
   if (path === "social") {
-    const sp = await searchParams;
-    const clientId =
-      typeof sp.clientId === "string" ? sp.clientId : undefined;
-    const platform = typeof sp.platform === "string" ? sp.platform : undefined;
-    return (
-      <SocialAnalyticsPage
-        searchParams={Promise.resolve({ clientId, platform })}
-      />
-    );
+    return <SocialAnalyticsPage searchParams={searchParams} />;
   }
   if (path === "reviews") return <ReviewAnalyticsPage />;
   notFound();
