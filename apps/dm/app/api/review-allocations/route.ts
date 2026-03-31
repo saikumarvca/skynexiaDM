@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
             as: "draft",
           },
         },
-        { $unwind: { path: "$draft", preserveNullAndEmpty: false } },
+        { $unwind: { path: "$draft", preserveNullAndEmptyArrays: false } },
         {
           $match: {
             "draft.clientId": clientId,
-            customerContact: { $exists: true, $ne: null, $ne: "" },
+            customerContact: { $exists: true, $nin: [null, ""] },
           },
         },
         {
