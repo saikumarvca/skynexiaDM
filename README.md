@@ -1,159 +1,194 @@
-# Turborepo starter
+# SkynexiaDM Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+Digital marketing operations platform built as a Turborepo monorepo.
 
-## Using this example
+The primary product is `apps/dm` (client operations dashboard), with `apps/admin` used as a lightweight UI playground for shared components.
 
-Run the following command:
+## What This Repository Contains
 
-```sh
-npx create-turbo@latest
+- `apps/dm`: Main Next.js application (port `3152`) with App Router pages, APIs, auth, and MongoDB models.
+- `apps/admin`: Secondary Next.js application (port `3153`) for UI/package validation.
+- `packages/ui`: Shared React UI package consumed by both apps.
+- `packages/eslint-config`: Shared linting rules.
+- `packages/typescript-config`: Shared TypeScript configs.
+
+## Tech Stack
+
+- **Runtime:** Node.js `>=18`, pnpm `9`, Turborepo `2`
+- **Frontend:** Next.js `16` (App Router), React `19`, TypeScript
+- **Styling:** Tailwind CSS, Radix UI, utility components in `components/ui`
+- **Backend:** Next.js Route Handlers, MongoDB + Mongoose
+- **Validation / Utilities:** Zod, date-fns, nodemailer, twitter-api-v2
+
+## Monorepo Structure
+
+```text
+skynexiaDM/
+├── apps/
+│   ├── dm/                         # Main digital marketing dashboard
+│   │   ├── app/                    # Next.js routes (pages + /api handlers)
+│   │   ├── components/             # Domain and shared UI components
+│   │   ├── lib/                    # Auth, API helpers, integrations, utilities
+│   │   ├── models/                 # Mongoose schemas/models
+│   │   ├── hooks/                  # Custom hooks
+│   │   ├── scripts/                # Utility scripts (e.g. seed user)
+│   │   ├── types/                  # Shared TypeScript app types
+│   │   ├── proxy.ts                # Edge auth middleware/proxy
+│   │   └── .env.example            # Environment variable template
+│   └── admin/                      # UI playground app
+│       └── app/                    # Minimal app routes
+├── packages/
+│   ├── ui/                         # Shared component package
+│   ├── eslint-config/              # Shared ESLint config
+│   └── typescript-config/          # Shared tsconfig presets
+├── turbo.json
+├── pnpm-workspace.yaml
+└── package.json
 ```
 
-## What's inside?
+## `apps/dm` Detailed Module Map
 
-This Turborepo includes the following packages/apps:
+### App Router Areas (`apps/dm/app`)
 
-### Apps and Packages
+Main route groups currently include:
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- `dashboard` (largest section; dashboards, reviews, clients, team, docs)
+- `clients`, `campaigns`, `channels`, `content`, `leads`, `reviews`
+- `settings`, `tasks`, `team`, `time-tracking`, `reports`, `posts`
+- `integrations`, `analytics`, `connect-wall`, `invoices`, `seo`
+- `help`, `portal`, `admin`, `login`, `welcome`
+- `api` (server route handlers)
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### API Surface (`apps/dm/app/api`)
 
-### Utilities
+The app currently contains **135** route handlers, including domain groups such as:
 
-This Turborepo has some additional tools already setup for you:
+- `auth`, `users`, `team`, `roles`, `assignments`, `performance`
+- `clients`, `campaigns`, `leads`, `tasks`, `time-entries`
+- `reviews`, `review-drafts`, `review-allocations`, `review-analytics`, `review-requests`, `review-usage`
+- `scheduled-posts`, `social/status`, `content-bank`, `google-reviews`
+- `integrations`, `webhooks`, `portal`, `notifications`
+- `dashboard/stats`, `analytics`, `search`, `export/*`, `cron/*`
+- `files`, `settings/*`, `email/send`, `invoices`, `seo/rank-gap`
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### Components (`apps/dm/components`)
 
-### Build
+Component domains currently available:
 
-To build all apps and packages, run the following command:
+- `ui` (12 base UI components): `button`, `card`, `dialog`, `input`, `select`, `sheet`, `table`, `tabs`, etc.
+- `reviews` (20 files): review workflows, tables, draft and allocation UIs
+- `team` (9 files): member/role/workload-related UI
+- `dashboard` (9 files): layout/navigation/dashboard widgets
+- `settings` (5 files), `scheduled-posts` (5 files), `global-search` (3 files)
+- Additional domains: `access`, `admin`, `campaigns`, `clients`, `connect-wall`, `contact-book`, `content`, `google-reviews`, `leads`, `review-analytics`, `review-requests`, `review-templates`, `saved-filters`, `seo`, `social`, `tasks`
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Notable top-level components include:
 
-```sh
-cd my-turborepo
-turbo build
+- `dashboard-layout.tsx`, `dashboard-nav-links.tsx`, `mobile-dashboard-nav.tsx`, `sidebar.tsx`
+- `global-search.tsx`, `notification-bell.tsx`, `theme-toggle.tsx`
+- Domain forms such as `client-form.tsx`, `campaign-form.tsx`, `review-form.tsx`, `task-form.tsx`
+
+### Data Models (`apps/dm/models`)
+
+Available model files include:
+
+- Marketing/CRM: `Client`, `Campaign`, `Lead`, `Task`, `Keyword`, `Competitor`
+- Reviews: `Review`, `ReviewDraft`, `ReviewAllocation`, `ReviewUsage`, `ReviewRequest`, `PostedReview`
+- Team/Auth: `User`, `TeamMember`, `TeamRole`, `TeamAssignment`, `TeamActivityLog`
+- Publishing/Content: `ContentItem`, `ScheduledPost`, `PostMetrics`, `Template`, `ExternalReview`
+- Finance/Operations: `Invoice`, `ItemMaster`, `TimeEntry`, `BudgetAlert`, `ReportSchedule`
+- Integrations/System: `Integration`, `IntegrationEvent`, `Webhook`, `Notification`, `FileAsset`, `WallMessage`
+
+## Features Available
+
+### Core Product Features
+
+- Authentication and session-based access control (edge + API-level checks)
+- Client, campaign, lead, task, and team management workflows
+- Review lifecycle management:
+  - Draft creation/import
+  - Allocation and assignment
+  - Used/posted/shared tracking
+  - Analytics and history
+- Scheduled content posting and social publishing flows
+- Integrations, webhooks, portal approval/comment flows
+- Dashboards, reporting, filtering, exports (CSV/PDF/data packages)
+- Notifications, contact-book utilities, global search, and role-aware navigation
+
+### Operational Features
+
+- Cron-driven jobs (budget pacing checks, report sending, scheduled post publishing, post metric sync)
+- Email delivery abstraction (`none` / `resend` / `smtp`)
+- AI-assisted content endpoint (`/api/ai/generate-content`) with provider fallback logic
+- Per-domain APIs for data admin and analytics
+
+## Scripts and Commands
+
+### Root (`package.json`)
+
+- `pnpm dev` -> runs `dm` app in dev mode via Turbo
+- `pnpm dev:admin` -> runs `admin` app in dev mode
+- `pnpm build` -> production build across workspaces
+- `pnpm lint` -> lint all workspaces
+- `pnpm check-types` -> type checks all workspaces
+- `pnpm format` -> Prettier for `ts/tsx/md`
+
+### `apps/dm`
+
+- `pnpm --filter dm dev` -> Next dev on `3152`
+- `pnpm --filter dm build` -> production build
+- `pnpm --filter dm start` -> serve production build on `3152`
+- `pnpm --filter dm seed:user` -> seed/update an initial user
+
+### `apps/admin`
+
+- `pnpm --filter admin dev` -> Next dev on `3153`
+- `pnpm --filter admin build`
+- `pnpm --filter admin start`
+
+## Environment Variables (`apps/dm/.env.local`)
+
+Start from `apps/dm/.env.example`.
+
+### Required for local baseline
+
+- `MONGODB_URI`
+- `AUTH_SECRET`
+- `PORT` (default `3152`)
+- `NEXT_PUBLIC_API_URL`
+
+### Optional capability flags
+
+- AI: `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`
+- Email: `EMAIL_PROVIDER`, plus `RESEND_*` or `SMTP_*`
+- Google reviews import: `GOOGLE_PLACES_API_KEY`
+- Social publishing: `FACEBOOK_*`, `INSTAGRAM_*`, `LINKEDIN_*`, `TWITTER_*`
+
+## Getting Started
+
+```bash
+pnpm install
+cp apps/dm/.env.example apps/dm/.env.local
+pnpm dev
 ```
 
-Without global `turbo`, use your package manager:
+Open:
 
-```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+- DM app: [http://localhost:3152](http://localhost:3152)
+- Admin app (if running `pnpm dev:admin`): [http://localhost:3153](http://localhost:3153)
+
+## Build, Lint, Typecheck
+
+```bash
+pnpm lint
+pnpm check-types
+pnpm build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Notes for Contributors
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- Keep shared primitives in `packages/ui` where possible.
+- Add domain UI in `apps/dm/components/<domain>`.
+- Add/extend API handlers in `apps/dm/app/api`.
+- Keep schema updates aligned between `apps/dm/models` and `apps/dm/types`.
+- If adding new integration or cron behavior, document env vars in `apps/dm/.env.example` and feature docs in `apps/dm/README.md`.
