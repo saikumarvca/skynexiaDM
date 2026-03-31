@@ -27,12 +27,14 @@ interface TeamAssignmentFormProps {
     notes?: string;
   };
   members: { _id: string; name: string }[];
+  agencies?: { _id: string; name: string }[];
 }
 
 export function TeamAssignmentForm({
   assignmentId,
   initialData,
   members,
+  agencies = [],
 }: TeamAssignmentFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title ?? "");
@@ -51,6 +53,7 @@ export function TeamAssignmentForm({
   const [assignedToUserId, setAssignedToUserId] = useState(
     initialData?.assignedToUserId ?? members[0]?._id ?? "",
   );
+  const [assignedPartnerAgencyId, setAssignedPartnerAgencyId] = useState("");
   const [assignedByUserId, setAssignedByUserId] = useState(
     initialData?.assignedByUserId ?? members[0]?._id ?? "",
   );
@@ -79,6 +82,7 @@ export function TeamAssignmentForm({
         sourceModule: sourceModule || undefined,
         referenceId: referenceId || undefined,
         assignedToUserId,
+        assignedPartnerAgencyId: assignedPartnerAgencyId || undefined,
         assignedToUserName: assignee?.name ?? "",
         assignedByUserId,
         assignedByUserName: assigner?.name ?? "",
@@ -160,6 +164,23 @@ export function TeamAssignmentForm({
             {SOURCES.map((s) => (
               <option key={s} value={s}>
                 {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-muted-foreground">
+            Partner Agency
+          </label>
+          <select
+            value={assignedPartnerAgencyId}
+            onChange={(e) => setAssignedPartnerAgencyId(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+          >
+            <option value="">None</option>
+            {agencies.map((a) => (
+              <option key={a._id} value={a._id}>
+                {a.name}
               </option>
             ))}
           </select>

@@ -10,6 +10,9 @@ export type CurrentUserTeamPermissions = {
   roleId?: string;
   roleName?: string;
   permissions: string[];
+  agencyId?: string;
+  agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  assignedClientIds?: string[];
 };
 
 function normalizeEmail(email: string) {
@@ -23,6 +26,8 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
     return {
       roleName: "Admin",
       permissions: [...PERMISSION_LIST],
+      agencyId: user.agencyId,
+      agencyKind: user.agencyKind,
     };
   }
 
@@ -51,6 +56,11 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
     roleId: populatedRole?._id ? String(populatedRole._id) : undefined,
     roleName: populatedRole?.roleName ?? member.roleName,
     permissions: perms,
+    agencyId: user.agencyId,
+    agencyKind: user.agencyKind,
+    assignedClientIds: Array.isArray(member.assignedClientIds)
+      ? member.assignedClientIds.map((id) => String(id))
+      : [],
   };
 }
 

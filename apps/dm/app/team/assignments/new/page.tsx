@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamAssignmentForm } from "@/components/team/TeamAssignmentForm";
 import dbConnect from "@/lib/mongodb";
 import TeamMember from "@/models/TeamMember";
+import Agency from "@/models/Agency";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,16 @@ export default async function NewAssignmentPage() {
     .select("name")
     .limit(100)
     .lean();
+  const agencyDocs = await Agency.find({
+    isDeleted: { $ne: true },
+    type: "PARTNER",
+    status: "ACTIVE",
+  })
+    .select("name")
+    .limit(100)
+    .lean();
   const members = docs.map((m) => JSON.parse(JSON.stringify(m)));
+  const agencies = agencyDocs.map((a) => JSON.parse(JSON.stringify(a)));
 
   return (
     <DashboardLayout>
@@ -26,7 +36,7 @@ export default async function NewAssignmentPage() {
             <CardTitle>Assignment Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <TeamAssignmentForm members={members} />
+            <TeamAssignmentForm members={members} agencies={agencies} />
           </CardContent>
         </Card>
       </div>

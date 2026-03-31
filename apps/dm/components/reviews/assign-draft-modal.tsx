@@ -51,6 +51,7 @@ export function AssignDraftModal({
   const [customerName, setCustomerName] = useState("");
   const [customerContact, setCustomerContact] = useState("");
   const [platform, setPlatform] = useState("");
+  const [assignedPartnerAgencyId, setAssignedPartnerAgencyId] = useState("");
   const [contactSuggestions, setContactSuggestions] = useState<
     { customerContact: string; customerName: string }[]
   >([]);
@@ -102,6 +103,7 @@ export function AssignDraftModal({
         draftId: draft._id,
         assignedToUserId,
         assignedToUserName: user?.name ?? "",
+        assignedPartnerAgencyId: assignedPartnerAgencyId || undefined,
         assignedByUserId,
         assignedByUserName,
         customerName: customerName || undefined,
@@ -113,6 +115,7 @@ export function AssignDraftModal({
       setCustomerName("");
       setCustomerContact("");
       setPlatform("");
+      setAssignedPartnerAgencyId("");
     } finally {
       setIsLoading(false);
     }
@@ -150,6 +153,16 @@ export function AssignDraftModal({
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Partner Agency ID (optional)
+            </label>
+            <Input
+              value={assignedPartnerAgencyId}
+              onChange={(e) => setAssignedPartnerAgencyId(e.target.value)}
+              placeholder="MongoDB agency id"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">

@@ -6,6 +6,7 @@ import Client from "@/models/Client";
 import { logActivity } from "@/lib/review-activity";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 import { getOrCreateUnassignedClient } from "@/lib/reviews/unassigned-client";
+import { canAccessClient } from "@/lib/team/scope";
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,8 +46,10 @@ export async function GET(request: NextRequest) {
     const drafts = await ReviewDraft.find(query)
       .populate("clientId", "name businessName")
       .sort({ createdAt: -1 });
-
-    return NextResponse.json(drafts);
+    const scopedDrafts = drafts.filter((draft) =>
+      canAccessClient(authz, draft.clientId?.toString?.()),
+    );
+    return NextResponse.json(scopedDrafts);
   } catch (error) {
     console.error("Error fetching review drafts:", error);
     return NextResponse.json(
@@ -67,7 +70,13 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const body = await request.json();
-    const { createdBy = "system", clientId, clientName, ...rest } = body;
+    const {
+      createdBy = "system",
+      clientId,
+      clientName,
+      assignedPartnerAgencyId,
+      ...rest
+    } = body;
 
     let resolvedClientId = clientId;
     let resolvedClientName = clientName;
@@ -90,6 +99,8 @@ export async function POST(request: NextRequest) {
       clientId: resolvedClientId,
       clientName: resolvedClientName ?? "Unassigned",
       createdBy,
+      agencyId: authz.agencyId ?? null,
+      ...(assignedPartnerAgencyId ? { assignedPartnerAgencyId } : {}),
     });
     await draft.save();
 

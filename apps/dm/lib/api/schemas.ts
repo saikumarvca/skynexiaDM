@@ -278,6 +278,10 @@ export const teamAssignmentCreateSchema = z
       .optional(),
     referenceId: z.string().trim().min(1).optional(),
     assignedToUserId: z.string().trim().min(1, "Assignee is required"),
+    assignedPartnerAgencyId: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
     assignedToUserName: z.string().trim().min(1, "Assignee name is required"),
     assignedByUserId: z.string().trim().min(1, "Assigner is required"),
     assignedByUserName: z.string().trim().min(1, "Assigner name is required"),
@@ -296,6 +300,10 @@ export const taskCreateSchema = z
     title: z.string().trim().min(1, "Title is required"),
     description: z.string().trim().min(1).optional(),
     assignedToUserId: z.string().trim().min(1).optional(),
+    assignedPartnerAgencyId: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
     assignedToName: z.string().trim().min(1).optional(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
     status: z

@@ -11,6 +11,9 @@ export interface ITeamMember extends mongoose.Document {
   department?: string;
   avatarUrl?: string;
   userId?: string;
+  agencyId?: mongoose.Types.ObjectId | null;
+  memberScopeType?: "MAIN" | "PARTNER";
+  isPartnerEmployee?: boolean;
   assignedClientIds: mongoose.Types.ObjectId[];
   assignedClientNamesSnapshot?: string[];
   status: TeamMemberStatus;
@@ -32,6 +35,17 @@ const TeamMemberSchema: mongoose.Schema = new mongoose.Schema(
     department: { type: String },
     avatarUrl: { type: String },
     userId: { type: String },
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    memberScopeType: {
+      type: String,
+      enum: ["MAIN", "PARTNER"],
+      default: "MAIN",
+    },
+    isPartnerEmployee: { type: Boolean, default: false },
     assignedClientIds: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Client" }],
       default: [],
@@ -51,10 +65,12 @@ const TeamMemberSchema: mongoose.Schema = new mongoose.Schema(
 );
 
 TeamMemberSchema.index({ email: 1 }, { unique: true, sparse: true });
+TeamMemberSchema.index({ agencyId: 1, email: 1 }, { sparse: true });
 TeamMemberSchema.index({ roleId: 1 });
 TeamMemberSchema.index({ status: 1 });
 TeamMemberSchema.index({ department: 1 });
 TeamMemberSchema.index({ isDeleted: 1 });
+TeamMemberSchema.index({ agencyId: 1, isDeleted: 1 });
 
 const TeamMember =
   (mongoose.models.TeamMember as mongoose.Model<ITeamMember> | undefined) ||

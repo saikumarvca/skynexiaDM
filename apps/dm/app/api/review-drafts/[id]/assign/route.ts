@@ -21,6 +21,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const {
       assignedToUserId,
       assignedToUserName,
+      assignedPartnerAgencyId,
       assignedByUserId,
       assignedByUserName,
       customerName,
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       draftId,
       assignedToUserId,
       assignedToUserName,
+      assignedPartnerAgencyId: assignedPartnerAgencyId || undefined,
       assignedByUserId,
       assignedByUserName,
       customerName: customerName || undefined,

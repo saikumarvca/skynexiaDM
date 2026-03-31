@@ -12,6 +12,8 @@ export type SessionUser = {
   email: string;
   name: string;
   role: UserRole;
+  agencyId?: string;
+  agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
 };
 
 function requireAuthSecret(): string {
@@ -102,7 +104,9 @@ export function getSessionCookieName() {
 
 async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
   await dbConnect();
-  const user = await User.findById(userId).select("_id email name role isActive");
+  const user = await User.findById(userId).select(
+    "_id email name role isActive agencyId agencyKind",
+  );
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
 
   return {
@@ -110,6 +114,8 @@ async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
     email: user.email,
     name: user.name,
     role: user.role,
+    agencyId: user.agencyId?.toString?.(),
+    agencyKind: user.agencyKind,
   };
 }
 

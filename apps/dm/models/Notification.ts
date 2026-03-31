@@ -9,6 +9,7 @@ export type NotificationType =
 
 export interface INotification extends mongoose.Document {
   userId: string;
+  agencyId?: mongoose.Types.ObjectId | null;
   type: NotificationType;
   title: string;
   message: string;
@@ -20,6 +21,11 @@ export interface INotification extends mongoose.Document {
 const NotificationSchema: mongoose.Schema = new mongoose.Schema(
   {
     userId: { type: String, required: true },
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     type: {
       type: String,
       enum: [
@@ -41,6 +47,7 @@ const NotificationSchema: mongoose.Schema = new mongoose.Schema(
 
 NotificationSchema.index({ userId: 1, createdAt: -1 });
 NotificationSchema.index({ userId: 1, isRead: 1 });
+NotificationSchema.index({ agencyId: 1, userId: 1, createdAt: -1 });
 
 const Notification =
   (mongoose.models.Notification as mongoose.Model<INotification> | undefined) ||

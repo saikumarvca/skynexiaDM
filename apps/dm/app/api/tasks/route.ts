@@ -8,6 +8,7 @@ import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { taskCreateSchema } from "@/lib/api/schemas";
 import { createNotification } from "@/lib/notify";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
+import { canAccessClient } from "@/lib/team/scope";
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,8 +58,10 @@ export async function GET(request: NextRequest) {
       .populate("clientId", "name businessName")
       .populate("assignedTo", "name email")
       .sort({ status: 1, priority: -1, deadline: 1, createdAt: -1 });
-
-    return NextResponse.json(tasks);
+    const scopedTasks = tasks.filter((task) =>
+      canAccessClient(authz, task.clientId?.toString?.()),
+    );
+    return NextResponse.json(scopedTasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json(
@@ -82,6 +85,8 @@ export async function POST(request: NextRequest) {
     const body = parsed.data;
 
     const task = new Task({
+      agencyId: authz.agencyId ?? null,
+      assignedPartnerAgencyId: body.assignedPartnerAgencyId ?? null,
       clientId: body.clientId,
       title: body.title,
       description: body.description,

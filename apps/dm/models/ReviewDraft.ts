@@ -8,6 +8,8 @@ export type DraftStatus =
   | "Archived";
 
 export interface IReviewDraft extends mongoose.Document {
+  agencyId?: mongoose.Types.ObjectId | null;
+  assignedPartnerAgencyId?: mongoose.Types.ObjectId | null;
   subject: string;
   reviewText: string;
   clientId: mongoose.Types.ObjectId;
@@ -26,6 +28,16 @@ export interface IReviewDraft extends mongoose.Document {
 
 const ReviewDraftSchema: mongoose.Schema = new mongoose.Schema(
   {
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    assignedPartnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     subject: { type: String, required: true },
     reviewText: { type: String, required: true },
     clientId: {
@@ -51,6 +63,8 @@ const ReviewDraftSchema: mongoose.Schema = new mongoose.Schema(
 );
 
 ReviewDraftSchema.index({ clientId: 1, status: 1 });
+ReviewDraftSchema.index({ agencyId: 1, status: 1, createdAt: -1 });
+ReviewDraftSchema.index({ assignedPartnerAgencyId: 1, status: 1, createdAt: -1 });
 ReviewDraftSchema.index({ status: 1, createdAt: -1 });
 ReviewDraftSchema.index({ category: 1 });
 ReviewDraftSchema.index({ language: 1 });

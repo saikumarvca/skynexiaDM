@@ -17,6 +17,8 @@ export interface IClient extends mongoose.Document {
   contractEnd?: Date;
   monthlyBudget?: number;
   assignedManagerId?: string | null;
+  ownerAgencyId?: mongoose.Types.ObjectId | null;
+  assignedPartnerAgencyId?: mongoose.Types.ObjectId | null;
   reviewDestinationUrl?: string;
   reviewQrImageUrl?: string;
   reviewDestinations?: {
@@ -50,6 +52,16 @@ const ClientSchema: mongoose.Schema = new mongoose.Schema(
     contractEnd: { type: Date },
     monthlyBudget: { type: Number },
     assignedManagerId: { type: String, default: null },
+    ownerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    assignedPartnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     reviewDestinationUrl: { type: String },
     reviewQrImageUrl: { type: String },
     reviewDestinations: [
@@ -68,6 +80,8 @@ const ClientSchema: mongoose.Schema = new mongoose.Schema(
 // Add indexes for better query performance
 ClientSchema.index({ status: 1, createdAt: -1 });
 ClientSchema.index({ email: 1 }, { unique: true });
+ClientSchema.index({ ownerAgencyId: 1, status: 1, createdAt: -1 });
+ClientSchema.index({ assignedPartnerAgencyId: 1, status: 1, createdAt: -1 });
 ClientSchema.index({ name: 1 });
 ClientSchema.index({ businessName: 1 });
 ClientSchema.index({ status: 1, industry: 1 });

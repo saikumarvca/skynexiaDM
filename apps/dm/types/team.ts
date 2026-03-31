@@ -99,6 +99,7 @@ export interface TeamAssignment {
   sourceModule?: SourceModule;
   referenceId?: string;
   assignedToUserId: string;
+  assignedPartnerAgencyId?: string;
   assignedToUserName: string;
   assignedByUserId: string;
   assignedByUserName: string;
@@ -149,6 +150,7 @@ export interface TeamAssignmentFormData {
   sourceModule?: SourceModule;
   referenceId?: string;
   assignedToUserId: string;
+  assignedPartnerAgencyId?: string;
   assignedByUserId: string;
   status?: AssignmentStatus;
   priority: AssignmentPriority;

@@ -24,6 +24,8 @@ export type AssignmentStatus =
 export type AssignmentPriority = "Low" | "Medium" | "High" | "Urgent";
 
 export interface ITeamAssignment extends mongoose.Document {
+  agencyId?: mongoose.Types.ObjectId | null;
+  assignedPartnerAgencyId?: mongoose.Types.ObjectId | null;
   title: string;
   description?: string;
   assignmentType: AssignmentType;
@@ -46,6 +48,16 @@ export interface ITeamAssignment extends mongoose.Document {
 
 const TeamAssignmentSchema: mongoose.Schema = new mongoose.Schema(
   {
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    assignedPartnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     title: { type: String, required: true },
     description: { type: String },
     assignmentType: {
@@ -82,6 +94,8 @@ const TeamAssignmentSchema: mongoose.Schema = new mongoose.Schema(
 );
 
 TeamAssignmentSchema.index({ assignedToUserId: 1 });
+TeamAssignmentSchema.index({ assignedPartnerAgencyId: 1 });
+TeamAssignmentSchema.index({ agencyId: 1, status: 1, createdAt: -1 });
 TeamAssignmentSchema.index({ assignmentType: 1 });
 TeamAssignmentSchema.index({ status: 1 });
 TeamAssignmentSchema.index({ referenceId: 1 });

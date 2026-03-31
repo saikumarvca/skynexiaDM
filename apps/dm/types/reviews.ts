@@ -105,6 +105,7 @@ export interface AssignDraftFormData {
   draftId: string;
   assignedToUserId: string;
   assignedToUserName: string;
+  assignedPartnerAgencyId?: string;
   assignedByUserId: string;
   assignedByUserName: string;
   customerName?: string;

@@ -8,11 +8,17 @@ import {
   mongoFieldsFromClientUpsert,
 } from "@/lib/api/schemas";
 import { UNASSIGNED_CLIENT_EMAIL } from "@/lib/reviews/unassigned-client";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 
 export async function GET(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, [
+      "view_clients",
+      "manage_clients",
+    ]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -45,6 +51,13 @@ export async function GET(request: NextRequest) {
 
     const query: Record<string, unknown> = { ...filters, ...baseQuery };
     if (!includeSystem) query.email = { $ne: UNASSIGNED_CLIENT_EMAIL };
+    if (authz.agencyKind === "PARTNER_EMPLOYEE" && authz.agencyId) {
+      query.assignedPartnerAgencyId = authz.agencyId;
+    }
+    const canSeeAll = authz.perms.includes("manage_clients");
+    if (!canSeeAll && (authz.assignedClientIds?.length ?? 0) > 0) {
+      query._id = { $in: authz.assignedClientIds };
+    }
 
     const clients = await Client.find(query)
       .sort({ createdAt: -1 })
@@ -64,6 +77,8 @@ export async function POST(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, ["manage_clients"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -106,7 +121,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const client = new Client(fields);
+    const client = new Client({
+      ...fields,
+      ownerAgencyId: authz.agencyId ?? null,
+    });
     await client.save();
 
     return NextResponse.json(client, { status: 201 });

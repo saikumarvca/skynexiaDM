@@ -9,6 +9,8 @@ export type AllocationStatus =
   | "Cancelled";
 
 export interface IReviewAllocation extends mongoose.Document {
+  agencyId?: mongoose.Types.ObjectId | null;
+  assignedPartnerAgencyId?: mongoose.Types.ObjectId | null;
   draftId: mongoose.Types.ObjectId;
   assignedToUserId: string;
   assignedToUserName: string;
@@ -29,6 +31,16 @@ export interface IReviewAllocation extends mongoose.Document {
 
 const ReviewAllocationSchema: mongoose.Schema = new mongoose.Schema(
   {
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    assignedPartnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     draftId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ReviewDraft",
@@ -64,6 +76,8 @@ const ReviewAllocationSchema: mongoose.Schema = new mongoose.Schema(
 
 ReviewAllocationSchema.index({ draftId: 1 });
 ReviewAllocationSchema.index({ assignedToUserId: 1 });
+ReviewAllocationSchema.index({ assignedPartnerAgencyId: 1 });
+ReviewAllocationSchema.index({ agencyId: 1, allocationStatus: 1, createdAt: -1 });
 ReviewAllocationSchema.index({ allocationStatus: 1 });
 ReviewAllocationSchema.index({ createdAt: -1 });
 

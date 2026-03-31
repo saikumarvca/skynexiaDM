@@ -4,6 +4,7 @@ export interface ITeamRole extends mongoose.Document {
   roleName: string;
   description?: string;
   permissions: string[];
+  agencyId?: mongoose.Types.ObjectId | null;
   isDeleted: boolean;
   deletedAt?: Date | null;
   createdAt: Date;
@@ -15,6 +16,11 @@ const TeamRoleSchema: mongoose.Schema = new mongoose.Schema(
     roleName: { type: String, required: true },
     description: { type: String },
     permissions: { type: [String], default: [] },
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
@@ -22,6 +28,7 @@ const TeamRoleSchema: mongoose.Schema = new mongoose.Schema(
 );
 
 TeamRoleSchema.index({ roleName: 1 }, { unique: true });
+TeamRoleSchema.index({ agencyId: 1, roleName: 1 }, { sparse: true });
 TeamRoleSchema.index({ isDeleted: 1 });
 
 const TeamRole =

@@ -4,11 +4,18 @@ import dbConnect from "@/lib/mongodb";
 import TeamAssignment from "@/models/TeamAssignment";
 import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { teamAssignmentCreateSchema } from "@/lib/api/schemas";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 
 export async function GET(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, [
+      "manage_tasks",
+      "assign_tasks",
+      "work_assigned_tasks",
+    ]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -27,6 +34,12 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("sortOrder") === "asc" ? 1 : -1;
 
     const query: Record<string, unknown> = { isDeleted: { $ne: true } };
+    if (authz.agencyKind === "PARTNER_EMPLOYEE" && authz.agencyId) {
+      query.$or = [
+        { assignedPartnerAgencyId: authz.agencyId },
+        { assignedToUserId: authz.teamMemberId ?? "__none__" },
+      ];
+    }
     if (assignedTo) query.assignedToUserId = assignedTo;
     if (type && type !== "ALL") query.assignmentType = type;
     if (status && status !== "ALL") query.status = status;
@@ -79,6 +92,8 @@ export async function POST(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, ["assign_tasks", "manage_tasks"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -91,6 +106,7 @@ export async function POST(request: NextRequest) {
       sourceModule,
       referenceId,
       assignedToUserId,
+      assignedPartnerAgencyId,
       assignedToUserName,
       assignedByUserId,
       assignedByUserName,
@@ -106,6 +122,8 @@ export async function POST(request: NextRequest) {
       assignmentType: assignmentType || "other",
       sourceModule: sourceModule || undefined,
       referenceId,
+      agencyId: authz.agencyId ?? null,
+      assignedPartnerAgencyId: assignedPartnerAgencyId || undefined,
       assignedToUserId,
       assignedToUserName,
       assignedByUserId,

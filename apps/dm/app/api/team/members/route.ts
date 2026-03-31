@@ -6,9 +6,18 @@ import TeamRole from "@/models/TeamRole";
 import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { teamMemberCreateSchema } from "@/lib/api/schemas";
 import { syncLoginUserFromTeamMember } from "@/lib/team-member-user-sync";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 
 export async function GET(request: NextRequest) {
   try {
+    const denied = await requireSessionApi(request);
+    if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, [
+      "manage_team",
+      "view_dashboard",
+    ]);
+    if (authz.denied) return authz.denied;
+
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
@@ -25,6 +34,9 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("sortOrder") === "desc" ? -1 : 1;
 
     const query: Record<string, unknown> = { isDeleted: { $ne: true } };
+    if (authz.agencyKind === "PARTNER_EMPLOYEE" && authz.agencyId) {
+      query.agencyId = authz.agencyId;
+    }
     if (roleId) query.roleId = roleId;
     if (status && status !== "ALL") query.status = status;
     if (department) query.department = department;
@@ -74,6 +86,8 @@ export async function POST(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, ["manage_team"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
 
@@ -98,6 +112,9 @@ export async function POST(request: NextRequest) {
       notes: notes || undefined,
       assignedClientIds: [],
       status: "Active",
+      agencyId: authz.agencyId ?? null,
+      memberScopeType: authz.agencyKind === "PARTNER_EMPLOYEE" ? "PARTNER" : "MAIN",
+      isPartnerEmployee: authz.agencyKind === "PARTNER_EMPLOYEE",
     });
     await member.save();
 

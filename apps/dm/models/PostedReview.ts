@@ -1,6 +1,7 @@
 import * as mongoose from "mongoose";
 
 export interface IPostedReview extends mongoose.Document {
+  agencyId?: mongoose.Types.ObjectId | null;
   allocationId: mongoose.Types.ObjectId;
   draftId: mongoose.Types.ObjectId;
   postedByName: string;
@@ -17,6 +18,11 @@ export interface IPostedReview extends mongoose.Document {
 
 const PostedReviewSchema: mongoose.Schema = new mongoose.Schema(
   {
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     allocationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ReviewAllocation",
@@ -41,6 +47,7 @@ const PostedReviewSchema: mongoose.Schema = new mongoose.Schema(
 
 PostedReviewSchema.index({ allocationId: 1 });
 PostedReviewSchema.index({ draftId: 1 });
+PostedReviewSchema.index({ agencyId: 1, postedDate: -1 });
 PostedReviewSchema.index({ postedDate: -1 });
 
 const PostedReview =

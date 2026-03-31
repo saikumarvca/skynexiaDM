@@ -186,7 +186,8 @@ apps/dm/
 │   ├── reviews.ts                # Review workflow types
 │   └── team.ts                   # Team and permission types
 ├── scripts/
-│   └── seed-user.mjs             # Create/update initial admin user
+│   ├── seed-user.mjs             # Create/update initial admin user
+│   └── backfill-agency-hierarchy.mjs # One-time agency hierarchy backfill
 ├── proxy.ts                      # Edge middleware: auth + route protection
 ├── vercel.json                   # Cron schedule configuration
 └── .env.example                  # Environment variable template
@@ -1407,3 +1408,42 @@ flowchart TB
 | As a general digital/content ops hub | Strong coverage across clients, campaigns, content, SEO, leads, tasks, team, time, invoices, analytics, reporting, and integrations. |
 | As a reputation/reviews platform | Especially strong depth in review workflows and portal-backed collaboration. |
 | Common gaps vs full-suite agency platforms | Email marketing module, proposal/contract lifecycle, full ad-platform operations UI, enterprise DAM maturity. |
+
+---
+
+## 16. Agency hierarchy and scope control (internal model)
+
+This platform remains a controlled internal system for one main agency. It is not a public multi-tenant SaaS product.
+
+### Business hierarchy
+
+- Main agency owner/admin
+- Main agency employees
+- Partner agencies
+- Partner agency employees
+
+### Business rules
+
+- Clients always belong to the main agency.
+- Partner agencies are execution partners, not owners of clients.
+- Work can be assigned to main employees, partner agencies, or partner agency employees.
+- Partner agencies can manage only their own employees and only assigned work/clients.
+- Partner agency employees can access only directly assigned work.
+- Main agency owner/admin has full visibility.
+
+### Implementation approach
+
+- Preserve existing architecture and modules; apply additive, backward-compatible changes.
+- Reuse current `TeamMember` / `TeamRole` / permission model.
+- Layer scope checks on top of existing permission checks.
+- Keep API response shapes stable and use existing auth/validation helpers.
+- Update models, types, schemas, APIs, and UI in coordinated incremental steps.
+
+### Rollout summary
+
+1. Add agency model and optional agency/scope fields to relevant entities.
+2. Extend permission context to include agency metadata.
+3. Add centralized scope helpers for route-level filtering.
+4. Apply scope checks to high-risk APIs first (`clients`, reviews, tasks, team).
+5. Add dual assignment support (partner agency + employee) in API and UI.
+6. Run idempotent backfill to set main agency on legacy records.

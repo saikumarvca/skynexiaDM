@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import ReviewAllocation from "@/models/ReviewAllocation";
 import { logActivity } from "@/lib/review-activity";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
+import { applyAgencyScope, canAccessClient } from "@/lib/team/scope";
 
 export async function GET(request: NextRequest) {
   try {
@@ -111,6 +112,15 @@ export async function GET(request: NextRequest) {
       .populate("draftId", "subject reviewText clientId clientName")
       .sort({ createdAt: -1 });
 
+    allocations = applyAgencyScope(
+      allocations.map((a) => a.toObject()) as Array<{
+        agencyId?: string;
+        assignedPartnerAgencyId?: string;
+        assignedToUserId?: string;
+      }>,
+      authz,
+    ) as typeof allocations;
+
     if (clientId) {
       allocations = allocations.filter((a) => {
         const draft = a.draftId as {
@@ -120,6 +130,10 @@ export async function GET(request: NextRequest) {
         return draft?.clientId?.toString?.() === clientId;
       });
     }
+    allocations = allocations.filter((a) => {
+      const draft = a.draftId as { clientId?: { toString: () => string } };
+      return canAccessClient(authz, draft?.clientId?.toString?.());
+    });
 
     if (search) {
       const s = search.toLowerCase();
@@ -165,7 +179,10 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const body = await request.json();
-    const allocation = new ReviewAllocation(body);
+    const allocation = new ReviewAllocation({
+      ...body,
+      agencyId: authz.agencyId ?? null,
+    });
     await allocation.save();
 
     const populated = await ReviewAllocation.findById(allocation._id).populate(

@@ -10,6 +10,8 @@ export type TaskStatus =
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export interface ITask extends mongoose.Document {
+  agencyId?: mongoose.Types.ObjectId | null;
+  assignedPartnerAgencyId?: mongoose.Types.ObjectId | null;
   clientId: mongoose.Types.ObjectId;
   title: string;
   description?: string;
@@ -26,6 +28,16 @@ export interface ITask extends mongoose.Document {
 
 const TaskSchema: mongoose.Schema = new mongoose.Schema(
   {
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    assignedPartnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Client",
@@ -64,6 +76,8 @@ const TaskSchema: mongoose.Schema = new mongoose.Schema(
 
 TaskSchema.index({ clientId: 1, status: 1, priority: 1, deadline: 1 });
 TaskSchema.index({ assignedTo: 1, status: 1 });
+TaskSchema.index({ agencyId: 1, status: 1, createdAt: -1 });
+TaskSchema.index({ assignedPartnerAgencyId: 1, status: 1, createdAt: -1 });
 
 const Task =
   (mongoose.models.Task as mongoose.Model<ITask> | undefined) ||

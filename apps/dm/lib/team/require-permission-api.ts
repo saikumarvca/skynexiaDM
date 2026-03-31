@@ -12,12 +12,20 @@ function normalizeEmail(email: string) {
 async function loadTeamContextForRequest(req: NextRequest): Promise<{
   perms: string[];
   teamMemberId?: string;
+  agencyId?: string;
+  agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  assignedClientIds?: string[];
 }> {
   const user = await requireUserFromRequest(req);
 
   // Full bypass for platform admins.
   if (user.role === "ADMIN") {
-    return { perms: [...PERMISSION_LIST] };
+    return {
+      perms: [...PERMISSION_LIST],
+      agencyId: user.agencyId,
+      agencyKind: user.agencyKind,
+      assignedClientIds: [],
+    };
   }
 
   await dbConnect();
@@ -27,7 +35,7 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
     isDeleted: { $ne: true },
     $or: [{ userId: user.userId }, { email: emailNorm }],
   })
-    .select("_id roleId")
+    .select("_id roleId assignedClientIds")
     .lean();
 
   const roleId =
@@ -44,6 +52,11 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
   return {
     perms: Array.isArray(role?.permissions) ? role.permissions : [],
     teamMemberId: member?._id?.toString?.() ?? (member?._id ? String(member._id) : undefined),
+    agencyId: user.agencyId,
+    agencyKind: user.agencyKind,
+    assignedClientIds: Array.isArray(member?.assignedClientIds)
+      ? member.assignedClientIds.map((id) => String(id))
+      : [],
   };
 }
 
@@ -61,18 +74,44 @@ export async function requireAnyPermissionApi(
 ): Promise<{
   perms: string[];
   teamMemberId?: string;
+  agencyId?: string;
+  agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  assignedClientIds?: string[];
   denied: NextResponse | null;
 }> {
   try {
     const ctx = await loadTeamContextForRequest(req);
     const perms = ctx.perms;
     if (!requiredAnyOf || requiredAnyOf.length === 0) {
-      return { perms, teamMemberId: ctx.teamMemberId, denied: null };
+      return {
+        perms,
+        teamMemberId: ctx.teamMemberId,
+        agencyId: ctx.agencyId,
+        agencyKind: ctx.agencyKind,
+        assignedClientIds: ctx.assignedClientIds,
+        denied: null,
+      };
     }
     const set = new Set(perms);
     const ok = requiredAnyOf.some((p) => set.has(p));
-    if (!ok) return { perms, teamMemberId: ctx.teamMemberId, denied: jsonForbidden() };
-    return { perms, teamMemberId: ctx.teamMemberId, denied: null };
+    if (!ok) {
+      return {
+        perms,
+        teamMemberId: ctx.teamMemberId,
+        agencyId: ctx.agencyId,
+        agencyKind: ctx.agencyKind,
+        assignedClientIds: ctx.assignedClientIds,
+        denied: jsonForbidden(),
+      };
+    }
+    return {
+      perms,
+      teamMemberId: ctx.teamMemberId,
+      agencyId: ctx.agencyId,
+      agencyKind: ctx.agencyKind,
+      assignedClientIds: ctx.assignedClientIds,
+      denied: null,
+    };
   } catch {
     return { perms: [], denied: jsonUnauthorized() };
   }
