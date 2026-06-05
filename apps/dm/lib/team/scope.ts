@@ -3,6 +3,8 @@ type AuthzContext = {
   teamMemberId?: string;
   agencyId?: string;
   agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  accountType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+  partnerAgencyId?: string;
   assignedClientIds?: string[];
 };
 
@@ -18,10 +20,15 @@ export function applyAgencyScope<
   },
 >(items: T[], authz: AuthzContext): T[] {
   if (isAdminScope(authz)) return items;
-  if (!authz.agencyId) return items;
 
-  const isPartner = authz.agencyKind === "PARTNER_EMPLOYEE";
-  if (!isPartner) {
+  const isPartnerAccount =
+    authz.accountType === "PARTNER_AGENCY" ||
+    authz.accountType === "PARTNER_EMPLOYEE" ||
+    authz.agencyKind === "PARTNER_EMPLOYEE";
+  const effectivePartnerAgencyId = authz.partnerAgencyId ?? authz.agencyId;
+
+  if (!isPartnerAccount) {
+    if (!authz.agencyId) return items;
     return items.filter(
       (item) =>
         !item.agencyId ||
@@ -30,11 +37,12 @@ export function applyAgencyScope<
     );
   }
 
+  if (!effectivePartnerAgencyId) return [];
   return items.filter((item) => {
-    if (item.assignedToUserId && authz.teamMemberId) {
+    if (authz.accountType === "PARTNER_EMPLOYEE" && item.assignedToUserId && authz.teamMemberId) {
       return item.assignedToUserId === authz.teamMemberId;
     }
-    return item.assignedPartnerAgencyId === authz.agencyId;
+    return item.assignedPartnerAgencyId === effectivePartnerAgencyId;
   });
 }
 

@@ -11,6 +11,9 @@ export type AllocationStatus =
 export interface IReviewAllocation extends mongoose.Document {
   agencyId?: mongoose.Types.ObjectId | null;
   assignedPartnerAgencyId?: mongoose.Types.ObjectId | null;
+  assigneeType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+  assigneeTeamMemberId?: string;
+  assigneePartnerAgencyId?: mongoose.Types.ObjectId | null;
   draftId: mongoose.Types.ObjectId;
   assignedToUserId: string;
   assignedToUserName: string;
@@ -39,6 +42,17 @@ const ReviewAllocationSchema: mongoose.Schema = new mongoose.Schema(
     assignedPartnerAgencyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Agency",
+      default: null,
+    },
+    assigneeType: {
+      type: String,
+      enum: ["MAIN_EMPLOYEE", "PARTNER_AGENCY", "PARTNER_EMPLOYEE"],
+      default: "MAIN_EMPLOYEE",
+    },
+    assigneeTeamMemberId: { type: String, default: null },
+    assigneePartnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PartnerAgency",
       default: null,
     },
     draftId: {
@@ -77,6 +91,8 @@ const ReviewAllocationSchema: mongoose.Schema = new mongoose.Schema(
 ReviewAllocationSchema.index({ draftId: 1 });
 ReviewAllocationSchema.index({ assignedToUserId: 1 });
 ReviewAllocationSchema.index({ assignedPartnerAgencyId: 1 });
+ReviewAllocationSchema.index({ assigneeType: 1, assigneeTeamMemberId: 1 });
+ReviewAllocationSchema.index({ assigneeType: 1, assigneePartnerAgencyId: 1 });
 ReviewAllocationSchema.index({ agencyId: 1, allocationStatus: 1, createdAt: -1 });
 ReviewAllocationSchema.index({ allocationStatus: 1 });
 ReviewAllocationSchema.index({ createdAt: -1 });

@@ -14,6 +14,9 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
   teamMemberId?: string;
   agencyId?: string;
   agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  accountType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+  partnerAgencyId?: string;
+  reportsToUserId?: string;
   assignedClientIds?: string[];
 }> {
   const user = await requireUserFromRequest(req);
@@ -24,6 +27,7 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
       perms: [...PERMISSION_LIST],
       agencyId: user.agencyId,
       agencyKind: user.agencyKind,
+      accountType: "MAIN_EMPLOYEE",
       assignedClientIds: [],
     };
   }
@@ -35,7 +39,7 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
     isDeleted: { $ne: true },
     $or: [{ userId: user.userId }, { email: emailNorm }],
   })
-    .select("_id roleId assignedClientIds")
+    .select("_id roleId assignedClientIds accountType partnerAgencyId reportsToUserId")
     .lean();
 
   const roleId =
@@ -54,6 +58,11 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
     teamMemberId: member?._id?.toString?.() ?? (member?._id ? String(member._id) : undefined),
     agencyId: user.agencyId,
     agencyKind: user.agencyKind,
+    accountType: member?.accountType ?? "MAIN_EMPLOYEE",
+    partnerAgencyId: member?.partnerAgencyId
+      ? String(member.partnerAgencyId)
+      : undefined,
+    reportsToUserId: member?.reportsToUserId,
     assignedClientIds: Array.isArray(member?.assignedClientIds)
       ? member.assignedClientIds.map((id) => String(id))
       : [],
@@ -76,6 +85,9 @@ export async function requireAnyPermissionApi(
   teamMemberId?: string;
   agencyId?: string;
   agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  accountType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+  partnerAgencyId?: string;
+  reportsToUserId?: string;
   assignedClientIds?: string[];
   denied: NextResponse | null;
 }> {
@@ -88,6 +100,9 @@ export async function requireAnyPermissionApi(
         teamMemberId: ctx.teamMemberId,
         agencyId: ctx.agencyId,
         agencyKind: ctx.agencyKind,
+        accountType: ctx.accountType,
+        partnerAgencyId: ctx.partnerAgencyId,
+        reportsToUserId: ctx.reportsToUserId,
         assignedClientIds: ctx.assignedClientIds,
         denied: null,
       };
@@ -100,6 +115,9 @@ export async function requireAnyPermissionApi(
         teamMemberId: ctx.teamMemberId,
         agencyId: ctx.agencyId,
         agencyKind: ctx.agencyKind,
+        accountType: ctx.accountType,
+        partnerAgencyId: ctx.partnerAgencyId,
+        reportsToUserId: ctx.reportsToUserId,
         assignedClientIds: ctx.assignedClientIds,
         denied: jsonForbidden(),
       };
@@ -109,6 +127,9 @@ export async function requireAnyPermissionApi(
       teamMemberId: ctx.teamMemberId,
       agencyId: ctx.agencyId,
       agencyKind: ctx.agencyKind,
+      accountType: ctx.accountType,
+      partnerAgencyId: ctx.partnerAgencyId,
+      reportsToUserId: ctx.reportsToUserId,
       assignedClientIds: ctx.assignedClientIds,
       denied: null,
     };

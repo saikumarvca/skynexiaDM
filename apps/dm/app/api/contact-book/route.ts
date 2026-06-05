@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/schemas";
 import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { normalizeContactTags } from "@/lib/contact-book-tags";
+import mongoose from "mongoose";
 
 export async function GET(request: NextRequest) {
   const denied = await requireSessionApi(request);
@@ -59,9 +60,12 @@ export async function GET(request: NextRequest) {
       .lean();
 
     const ownerIds = [...new Set(rows.map((r) => String(r.ownerUserId)))];
+    const ownerObjectIds = ownerIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id),
+    );
     const owners =
-      user.role === "ADMIN" && ownerIds.length > 0
-        ? await User.find({ _id: { $in: ownerIds } })
+      user.role === "ADMIN" && ownerObjectIds.length > 0
+        ? await User.find({ _id: { $in: ownerObjectIds } })
             .select("_id name email")
             .lean()
         : [];

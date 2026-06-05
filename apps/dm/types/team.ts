@@ -1,6 +1,10 @@
 // Centralized enums and constants - do not scatter string literals across the module
 
 export type TeamMemberStatus = "Active" | "Inactive";
+export type TeamMemberAccountType =
+  | "MAIN_EMPLOYEE"
+  | "PARTNER_AGENCY"
+  | "PARTNER_EMPLOYEE";
 
 export type AssignmentStatus =
   | "Pending"
@@ -69,6 +73,9 @@ export interface TeamMember {
   department?: string;
   avatarUrl?: string;
   userId?: string;
+  accountType?: TeamMemberAccountType;
+  partnerAgencyId?: string;
+  reportsToUserId?: string;
   assignedClientIds?: string[];
   assignedClientNamesSnapshot?: string[];
   status: TeamMemberStatus;
@@ -134,6 +141,34 @@ export interface TeamMemberFormData {
   phone?: string;
   roleId?: string;
   department?: string;
+  notes?: string;
+  accountType?: TeamMemberAccountType;
+  partnerAgencyId?: string;
+  reportsToUserId?: string;
+}
+
+export interface PartnerAgency {
+  _id: string;
+  name: string;
+  code?: string;
+  status: "ACTIVE" | "INACTIVE";
+  contactName?: string;
+  contactEmail?: string;
+  phone?: string;
+  notes?: string;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PartnerAgencyFormData {
+  name: string;
+  code?: string;
+  status?: "ACTIVE" | "INACTIVE";
+  contactName?: string;
+  contactEmail?: string;
+  phone?: string;
   notes?: string;
 }
 

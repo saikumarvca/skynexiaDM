@@ -34,7 +34,13 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("sortOrder") === "desc" ? -1 : 1;
 
     const query: Record<string, unknown> = { isDeleted: { $ne: true } };
-    if (authz.agencyKind === "PARTNER_EMPLOYEE" && authz.agencyId) {
+    if (
+      (authz.accountType === "PARTNER_AGENCY" ||
+        authz.accountType === "PARTNER_EMPLOYEE") &&
+      authz.partnerAgencyId
+    ) {
+      query.partnerAgencyId = authz.partnerAgencyId;
+    } else if (authz.agencyKind === "PARTNER_EMPLOYEE" && authz.agencyId) {
       query.agencyId = authz.agencyId;
     }
     if (roleId) query.roleId = roleId;
@@ -93,14 +99,31 @@ export async function POST(request: NextRequest) {
 
     const parsed = await parseWithSchema(request, teamMemberCreateSchema);
     if (!parsed.ok) return parsed.response;
-    const { name, email, phone, roleId, department, notes, password } =
-      parsed.data;
+    const {
+      name,
+      email,
+      phone,
+      roleId,
+      department,
+      notes,
+      password,
+      accountType,
+      partnerAgencyId,
+      reportsToUserId,
+    } = parsed.data;
 
     let roleName = "";
     if (roleId) {
       const role = await TeamRole.findById(roleId);
       if (role) roleName = role.roleName;
     }
+
+    const resolvedAccountType = accountType ?? "MAIN_EMPLOYEE";
+    const resolvedPartnerAgencyId =
+      resolvedAccountType === "PARTNER_AGENCY" ||
+      resolvedAccountType === "PARTNER_EMPLOYEE"
+        ? (partnerAgencyId ?? authz.partnerAgencyId ?? null)
+        : null;
 
     const member = new TeamMember({
       name,
@@ -113,8 +136,12 @@ export async function POST(request: NextRequest) {
       assignedClientIds: [],
       status: "Active",
       agencyId: authz.agencyId ?? null,
-      memberScopeType: authz.agencyKind === "PARTNER_EMPLOYEE" ? "PARTNER" : "MAIN",
-      isPartnerEmployee: authz.agencyKind === "PARTNER_EMPLOYEE",
+      memberScopeType:
+        resolvedAccountType === "MAIN_EMPLOYEE" ? "MAIN" : "PARTNER",
+      isPartnerEmployee: resolvedAccountType === "PARTNER_EMPLOYEE",
+      accountType: resolvedAccountType,
+      partnerAgencyId: resolvedPartnerAgencyId,
+      reportsToUserId: reportsToUserId || undefined,
     });
     await member.save();
 

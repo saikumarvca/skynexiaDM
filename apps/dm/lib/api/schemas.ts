@@ -254,6 +254,17 @@ const optionalLoginPassword = z.preprocess(
   z.string().min(8, "Password must be at least 8 characters").optional(),
 );
 
+export const teamMemberAccountTypeSchema = z.enum([
+  "MAIN_EMPLOYEE",
+  "PARTNER_AGENCY",
+  "PARTNER_EMPLOYEE",
+]);
+
+const optionalIdString = z.preprocess(
+  emptyToUndef,
+  z.string().trim().min(1).optional(),
+);
+
 export const teamMemberCreateSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
@@ -263,8 +274,87 @@ export const teamMemberCreateSchema = z
     department: z.string().trim().min(1).optional(),
     notes: z.string().trim().min(1).optional(),
     password: optionalLoginPassword,
+    accountType: teamMemberAccountTypeSchema.optional(),
+    partnerAgencyId: optionalIdString,
+    reportsToUserId: optionalIdString,
+  })
+  .superRefine((data, ctx) => {
+    const accountType = data.accountType ?? "MAIN_EMPLOYEE";
+    if (accountType === "MAIN_EMPLOYEE" && data.partnerAgencyId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["partnerAgencyId"],
+        message: "Main employees cannot be linked to a partner agency",
+      });
+    }
+    if (
+      (accountType === "PARTNER_AGENCY" ||
+        accountType === "PARTNER_EMPLOYEE") &&
+      !data.partnerAgencyId
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["partnerAgencyId"],
+        message: "Partner account types require partnerAgencyId",
+      });
+    }
   })
   .strict();
+
+export const teamMemberPatchSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required").optional(),
+    email: z.string().trim().email("Valid email is required").optional(),
+    phone: z.string().trim().min(1).optional(),
+    roleId: z.string().trim().min(1).optional(),
+    department: z.string().trim().min(1).optional(),
+    notes: z.string().trim().min(1).optional(),
+    password: optionalLoginPassword,
+    accountType: teamMemberAccountTypeSchema.optional(),
+    partnerAgencyId: optionalIdString,
+    reportsToUserId: optionalIdString,
+    assignedClientIds: z.array(z.string().trim().min(1)).optional(),
+    assignedClientNamesSnapshot: z.array(z.string().trim().min(1)).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const accountType = data.accountType ?? "MAIN_EMPLOYEE";
+    if (accountType === "MAIN_EMPLOYEE" && data.partnerAgencyId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["partnerAgencyId"],
+        message: "Main employees cannot be linked to a partner agency",
+      });
+    }
+    if (
+      (accountType === "PARTNER_AGENCY" ||
+        accountType === "PARTNER_EMPLOYEE") &&
+      !data.partnerAgencyId
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["partnerAgencyId"],
+        message: "Partner account types require partnerAgencyId",
+      });
+    }
+  })
+  .strict();
+
+export const partnerAgencyCreateSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required"),
+    code: optionalIdString,
+    status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+    contactName: z.preprocess(emptyToUndef, z.string().trim().min(1).optional()),
+    contactEmail: z.preprocess(
+      emptyToUndef,
+      z.string().trim().email("Valid email is required").optional(),
+    ),
+    phone: z.preprocess(emptyToUndef, z.string().trim().min(1).optional()),
+    notes: z.preprocess(emptyToUndef, z.string().trim().min(1).optional()),
+  })
+  .strict();
+
+export const partnerAgencyPatchSchema = partnerAgencyCreateSchema.partial().strict();
 
 export const teamAssignmentCreateSchema = z
   .object({
@@ -320,6 +410,109 @@ export const markSharedSchema = z
     platform: z.string().trim().min(1).optional(),
     sentDate: z.string().trim().min(1, "Sent date is required"),
     performedBy: z.string().trim().min(1).optional(),
+  })
+  .strict();
+
+export const reviewAllocationAssigneeSchema = z.discriminatedUnion("targetType", [
+  z
+    .object({
+      targetType: z.literal("INTERNAL_EMPLOYEE"),
+      teamMemberId: z.string().trim().min(1, "teamMemberId is required"),
+      teamMemberName: z.string().trim().min(1, "teamMemberName is required"),
+    })
+    .strict(),
+  z
+    .object({
+      targetType: z.literal("PARTNER_AGENCY"),
+      partnerAgencyId: z.string().trim().min(1, "partnerAgencyId is required"),
+      partnerAgencyName: z.preprocess(
+        emptyToUndef,
+        z.string().trim().min(1).optional(),
+      ),
+    })
+    .strict(),
+  z
+    .object({
+      targetType: z.literal("PARTNER_EMPLOYEE"),
+      partnerAgencyId: z.string().trim().min(1, "partnerAgencyId is required"),
+      teamMemberId: z.string().trim().min(1, "teamMemberId is required"),
+      teamMemberName: z.string().trim().min(1, "teamMemberName is required"),
+    })
+    .strict(),
+]);
+
+export const reviewAllocationCreateSchema = z
+  .object({
+    draftId: z.string().trim().min(1).optional(),
+    assignee: reviewAllocationAssigneeSchema.optional(),
+    // Legacy payload support
+    assignedToUserId: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    assignedToUserName: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    assignedPartnerAgencyId: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    assignedByUserId: z.string().trim().min(1, "assignedByUserId is required"),
+    assignedByUserName: z
+      .string()
+      .trim()
+      .min(1, "assignedByUserName is required"),
+    customerName: z.preprocess(emptyToUndef, z.string().trim().min(1).optional()),
+    customerContact: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    platform: z.preprocess(emptyToUndef, z.string().trim().min(1).optional()),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.assignee && !data.assignedToUserId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["assignee"],
+        message: "assignee is required when assignedToUserId is not provided",
+      });
+    }
+  })
+  .strict();
+
+export const reviewAllocationPatchSchema = z
+  .object({
+    assignee: reviewAllocationAssigneeSchema.optional(),
+    // Legacy payload support
+    assignedToUserId: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    assignedToUserName: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    assignedPartnerAgencyId: z.preprocess(
+      emptyToUndef,
+      z.string().trim().min(1).optional(),
+    ),
+    platform: z.string().trim().min(1).optional(),
+    customerName: z.string().trim().min(1).optional(),
+    customerContact: z.string().trim().min(1).optional(),
+    allocationStatus: z
+      .enum(["Assigned", "Shared with Customer", "Posted", "Used", "Cancelled"])
+      .optional(),
+    assignedDate: z.coerce.date().optional(),
+    sentDate: z.coerce.date().optional(),
+    remarks: z.string().trim().max(2000).optional(),
+    performedBy: z.string().trim().min(1).optional(),
+  })
+  .strict();
+
+export const reviewAllocationVerifySchema = z
+  .object({
+    assignee: reviewAllocationAssigneeSchema,
   })
   .strict();
 

@@ -18,8 +18,13 @@ interface TeamMemberFormProps {
     roleId?: string;
     department?: string;
     notes?: string;
+    accountType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+    partnerAgencyId?: string;
+    reportsToUserId?: string;
   };
   roles: { _id: string; roleName: string }[];
+  partnerAgencies?: { _id: string; name: string }[];
+  managers?: { _id: string; name: string }[];
 }
 
 export function TeamMemberForm({
@@ -27,6 +32,8 @@ export function TeamMemberForm({
   hasLogin = false,
   initialData,
   roles,
+  partnerAgencies = [],
+  managers = [],
 }: TeamMemberFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initialData?.name ?? "");
@@ -35,6 +42,15 @@ export function TeamMemberForm({
   const [roleId, setRoleId] = useState(initialData?.roleId ?? "");
   const [department, setDepartment] = useState(initialData?.department ?? "");
   const [notes, setNotes] = useState(initialData?.notes ?? "");
+  const [accountType, setAccountType] = useState<
+    "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE"
+  >(initialData?.accountType ?? "MAIN_EMPLOYEE");
+  const [partnerAgencyId, setPartnerAgencyId] = useState(
+    initialData?.partnerAgencyId ?? "",
+  );
+  const [reportsToUserId, setReportsToUserId] = useState(
+    initialData?.reportsToUserId ?? "",
+  );
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -74,6 +90,10 @@ export function TeamMemberForm({
         roleId: roleId || undefined,
         department: department || undefined,
         notes: notes || undefined,
+        accountType,
+        partnerAgencyId:
+          accountType === "MAIN_EMPLOYEE" ? undefined : partnerAgencyId || undefined,
+        reportsToUserId: reportsToUserId || undefined,
       };
       if (pw) body.password = pw;
       const res = await fetch(url, {
@@ -175,6 +195,76 @@ export function TeamMemberForm({
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
         />
+      </div>
+      <div>
+        <label
+          htmlFor="accountType"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Account Type
+        </label>
+        <select
+          id="accountType"
+          value={accountType}
+          onChange={(e) =>
+            setAccountType(
+              e.target.value as
+                | "MAIN_EMPLOYEE"
+                | "PARTNER_AGENCY"
+                | "PARTNER_EMPLOYEE",
+            )
+          }
+          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+        >
+          <option value="MAIN_EMPLOYEE">Main employee</option>
+          <option value="PARTNER_AGENCY">Partner agency account</option>
+          <option value="PARTNER_EMPLOYEE">Partner agency employee</option>
+        </select>
+      </div>
+      {accountType !== "MAIN_EMPLOYEE" && (
+        <div>
+          <label
+            htmlFor="partnerAgencyId"
+            className="mb-1 block text-sm font-medium text-muted-foreground"
+          >
+            Partner Agency *
+          </label>
+          <select
+            id="partnerAgencyId"
+            value={partnerAgencyId}
+            onChange={(e) => setPartnerAgencyId(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+            required
+          >
+            <option value="">Select partner agency</option>
+            {partnerAgencies.map((agency) => (
+              <option key={agency._id} value={agency._id}>
+                {agency.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div>
+        <label
+          htmlFor="reportsToUserId"
+          className="mb-1 block text-sm font-medium text-muted-foreground"
+        >
+          Reports To
+        </label>
+        <select
+          id="reportsToUserId"
+          value={reportsToUserId}
+          onChange={(e) => setReportsToUserId(e.target.value)}
+          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+        >
+          <option value="">None</option>
+          {managers.map((manager) => (
+            <option key={manager._id} value={manager._id}>
+              {manager.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <label

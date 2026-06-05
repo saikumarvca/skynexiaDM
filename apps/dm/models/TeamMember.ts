@@ -1,6 +1,10 @@
 import * as mongoose from "mongoose";
 
 export type TeamMemberStatus = "Active" | "Inactive";
+export type TeamMemberAccountType =
+  | "MAIN_EMPLOYEE"
+  | "PARTNER_AGENCY"
+  | "PARTNER_EMPLOYEE";
 
 export interface ITeamMember extends mongoose.Document {
   name: string;
@@ -14,6 +18,9 @@ export interface ITeamMember extends mongoose.Document {
   agencyId?: mongoose.Types.ObjectId | null;
   memberScopeType?: "MAIN" | "PARTNER";
   isPartnerEmployee?: boolean;
+  accountType?: TeamMemberAccountType;
+  partnerAgencyId?: mongoose.Types.ObjectId | null;
+  reportsToUserId?: string;
   assignedClientIds: mongoose.Types.ObjectId[];
   assignedClientNamesSnapshot?: string[];
   status: TeamMemberStatus;
@@ -46,6 +53,17 @@ const TeamMemberSchema: mongoose.Schema = new mongoose.Schema(
       default: "MAIN",
     },
     isPartnerEmployee: { type: Boolean, default: false },
+    accountType: {
+      type: String,
+      enum: ["MAIN_EMPLOYEE", "PARTNER_AGENCY", "PARTNER_EMPLOYEE"],
+      default: "MAIN_EMPLOYEE",
+    },
+    partnerAgencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PartnerAgency",
+      default: null,
+    },
+    reportsToUserId: { type: String },
     assignedClientIds: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Client" }],
       default: [],
@@ -71,6 +89,8 @@ TeamMemberSchema.index({ status: 1 });
 TeamMemberSchema.index({ department: 1 });
 TeamMemberSchema.index({ isDeleted: 1 });
 TeamMemberSchema.index({ agencyId: 1, isDeleted: 1 });
+TeamMemberSchema.index({ accountType: 1, partnerAgencyId: 1 });
+TeamMemberSchema.index({ reportsToUserId: 1 });
 
 const TeamMember =
   (mongoose.models.TeamMember as mongoose.Model<ITeamMember> | undefined) ||

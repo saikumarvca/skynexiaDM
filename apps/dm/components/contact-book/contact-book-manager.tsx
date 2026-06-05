@@ -7,6 +7,7 @@ import {
   Loader2,
   MessageCircle,
   Pencil,
+  Phone,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -35,7 +36,11 @@ import {
   normalizeContactTags,
   proposedTagSetLower,
 } from "@/lib/contact-book-tags";
-import { buildWhatsAppUrl, parseWhatsAppDigits } from "@/lib/whatsapp-url";
+import {
+  buildWhatsAppUrl,
+  openTelCall,
+  parseWhatsAppDigits,
+} from "@/lib/whatsapp-url";
 import { cn } from "@/lib/utils";
 
 export type ContactBookRow = {
@@ -339,6 +344,18 @@ export function ContactBookManager({
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
+                    {parseWhatsAppDigits(row.phone) ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        title="Call phone"
+                        onClick={() => openTelCall(row.phone!)}
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                      </Button>
+                    ) : null}
                     {parseWhatsAppDigits(row.phone) ? (
                       <Button
                         type="button"

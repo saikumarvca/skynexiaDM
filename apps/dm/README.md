@@ -1447,3 +1447,107 @@ This platform remains a controlled internal system for one main agency. It is no
 4. Apply scope checks to high-risk APIs first (`clients`, reviews, tasks, team).
 5. Add dual assignment support (partner agency + employee) in API and UI.
 6. Run idempotent backfill to set main agency on legacy records.
+
+### Current implementation status (Mar 2026)
+
+The partner-agency hierarchy has now been implemented in the main app with additive, backward-compatible changes.
+
+#### Models and schema
+
+- Added `PartnerAgency` model: `models/PartnerAgency.ts`
+  - Fields: `name`, `code`, `status`, `contactName`, `contactEmail`, `phone`, `notes`, soft-delete fields.
+  - Indexes: `name` unique, `code` unique+sparse, `status`, `isDeleted`.
+- Extended `TeamMember` model: `models/TeamMember.ts`
+  - Added `accountType: MAIN_EMPLOYEE | PARTNER_AGENCY | PARTNER_EMPLOYEE`
+  - Added `partnerAgencyId?: ObjectId` (ref `PartnerAgency`)
+  - Added `reportsToUserId?: string`
+  - Kept legacy fields (`agencyId`, `memberScopeType`, `isPartnerEmployee`) for compatibility.
+- Extended API validation: `lib/api/schemas.ts`
+  - Added `teamMemberAccountTypeSchema`, `teamMemberPatchSchema`
+  - Added `partnerAgencyCreateSchema`, `partnerAgencyPatchSchema`
+  - Added cross-field validation for partner account types.
+
+#### Types
+
+- Updated team types in `types/team.ts`:
+  - `TeamMemberAccountType` union
+  - new `TeamMember` / `TeamMemberFormData` hierarchy fields
+  - `PartnerAgency` and `PartnerAgencyFormData` interfaces.
+
+#### Permission-aware scope loading
+
+- Extended permission context loaders:
+  - `lib/team/current-user-permissions.ts`
+  - `lib/team/require-permission-api.ts`
+- Added hierarchy metadata in authz context:
+  - `accountType`, `partnerAgencyId`, `reportsToUserId`.
+- Updated scope logic in `lib/team/scope.ts`:
+  - Main users keep existing behavior.
+  - Partner agency scope is limited to their agency assignments.
+  - Partner employees are restricted to directly assigned work when user-level assignment exists.
+
+#### API routes
+
+- Added partner-agency APIs:
+  - `app/api/partner-agencies/route.ts` (GET, POST)
+  - `app/api/partner-agencies/[id]/route.ts` (GET, PATCH)
+  - `app/api/partner-agencies/[id]/employees/route.ts` (GET)
+- Updated team member APIs:
+  - `app/api/team/members/route.ts`
+  - `app/api/team/members/[id]/route.ts`
+  - now accept/store hierarchy fields and enforce partner scope checks.
+
+#### Admin UI
+
+- Added admin pages:
+  - `app/dashboard/admin/partner-agencies/page.tsx` (list)
+  - `app/dashboard/admin/partner-agencies/new/page.tsx` (create)
+  - `app/dashboard/admin/partner-agencies/[id]/page.tsx` (details)
+  - `app/dashboard/admin/partner-agencies/[id]/edit/page.tsx` (edit)
+  - `app/dashboard/admin/partner-agencies/[id]/employees/page.tsx` (employees list)
+- Added reusable form component:
+  - `components/team/PartnerAgencyForm.tsx`
+- Routed through admin slug page:
+  - `app/admin/[...slug]/page.tsx`
+- Added admin navigation item:
+  - `lib/dashboard-navigation.tsx` (Admin -> Partner Agencies)
+
+#### Team forms/pages compatibility updates
+
+- Extended team member form and pages for hierarchy fields:
+  - `components/team/TeamMemberForm.tsx`
+  - `app/team/members/new/page.tsx`
+  - `app/team/members/[id]/edit/page.tsx`
+- Existing team flows remain functional for legacy records without hierarchy fields.
+
+#### Notes
+
+- Client ownership remains with main agency (no transfer to partner agencies).
+- Visibility policy is enforced as:
+  - main admin has full access
+  - partner visibility is assignment-based and agency-scoped.
+- Typecheck is passing after these changes.
+
+### Reusable API Scope Filters
+
+- Added shared server/API scope helpers in `lib/team/scope-filters.ts`:
+  - `resolveUserHierarchyContext()`
+  - `buildClientScopeFilter()`
+  - `buildReviewScopeFilter()`
+  - `buildTaskScopeFilter()`
+  - `buildTeamScopeFilter()`
+  - `andFilters()` for safe query composition without overwriting `$or`.
+- These helpers centralize role mapping:
+  - `ADMIN` -> unrestricted
+  - `MAIN_EMPLOYEE` -> assignment-aware scope
+  - `PARTNER_AGENCY` -> partner-agency linked records only
+  - `PARTNER_EMPLOYEE` -> own assignments plus partner-agency linkage
+- Example usage now exists in:
+  - `app/api/clients/route.ts`
+  - `app/api/review-allocations/route.ts`
+  - `app/api/tasks/route.ts`
+- To extend to other modules:
+  1. Call `requireAnyPermissionApi()`
+  2. Build context with `resolveUserHierarchyContext(authz)`
+  3. Pick the matching scope builder for the module
+  4. Merge route predicates with `andFilters(baseQuery, scopeFilter)`

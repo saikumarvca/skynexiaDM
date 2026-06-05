@@ -583,6 +583,11 @@ export function buildDashboardNavItems(
       children: [
         { name: "Users", href: "/admin/users", icon: Shield },
         {
+          name: "Partner Agencies",
+          href: "/admin/partner-agencies",
+          icon: Users,
+        },
+        {
           name: "Audit Log",
           href: "/admin/audit-log",
           icon: ScrollText,

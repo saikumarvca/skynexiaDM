@@ -9,6 +9,11 @@ import {
 } from "@/lib/api/schemas";
 import { UNASSIGNED_CLIENT_EMAIL } from "@/lib/reviews/unassigned-client";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
+import {
+  andFilters,
+  buildClientScopeFilter,
+  resolveUserHierarchyContext,
+} from "@/lib/team/scope-filters";
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,15 +54,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const query: Record<string, unknown> = { ...filters, ...baseQuery };
-    if (!includeSystem) query.email = { $ne: UNASSIGNED_CLIENT_EMAIL };
-    if (authz.agencyKind === "PARTNER_EMPLOYEE" && authz.agencyId) {
-      query.assignedPartnerAgencyId = authz.agencyId;
-    }
-    const canSeeAll = authz.perms.includes("manage_clients");
-    if (!canSeeAll && (authz.assignedClientIds?.length ?? 0) > 0) {
-      query._id = { $in: authz.assignedClientIds };
-    }
+    const ctx = resolveUserHierarchyContext(authz);
+    const scopeFilter = buildClientScopeFilter(ctx);
+    const query = andFilters(
+      filters,
+      baseQuery,
+      includeSystem ? {} : { email: { $ne: UNASSIGNED_CLIENT_EMAIL } },
+      scopeFilter,
+    );
 
     const clients = await Client.find(query)
       .sort({ createdAt: -1 })

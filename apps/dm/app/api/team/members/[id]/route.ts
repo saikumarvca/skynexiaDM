@@ -8,6 +8,9 @@ import {
   syncLoginUserFromTeamMember,
 } from "@/lib/team-member-user-sync";
 import { assertAdmin, requireUserFromRequest } from "@/lib/auth";
+import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
+import { parseWithSchema } from "@/lib/api/validation";
+import { teamMemberPatchSchema } from "@/lib/api/schemas";
 
 export async function GET(
   request: NextRequest,
@@ -16,6 +19,8 @@ export async function GET(
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, ["manage_team", "view_dashboard"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
     const { id } = await params;
@@ -28,6 +33,14 @@ export async function GET(
 
     if (!member) {
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    }
+    if (
+      (authz.accountType === "PARTNER_AGENCY" ||
+        authz.accountType === "PARTNER_EMPLOYEE") &&
+      authz.partnerAgencyId &&
+      String(member.partnerAgencyId ?? "") !== authz.partnerAgencyId
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     return NextResponse.json(member);
   } catch (error) {
@@ -46,10 +59,14 @@ export async function PATCH(
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
+    const authz = await requireAnyPermissionApi(request, ["manage_team"]);
+    if (authz.denied) return authz.denied;
 
     await dbConnect();
     const { id } = await params;
-    const body = await request.json();
+    const parsed = await parseWithSchema(request, teamMemberPatchSchema);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
     const rawPassword = typeof body.password === "string" ? body.password : "";
     const password = rawPassword.trim().length > 0 ? rawPassword : undefined;
     if (password && password.length < 8) {
@@ -66,8 +83,16 @@ export async function PATCH(
     if (!member) {
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
     }
+    if (
+      (authz.accountType === "PARTNER_AGENCY" ||
+        authz.accountType === "PARTNER_EMPLOYEE") &&
+      authz.partnerAgencyId &&
+      String(member.partnerAgencyId ?? "") !== authz.partnerAgencyId
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    const allowed = [
+    const allowed: Array<keyof typeof body> = [
       "name",
       "email",
       "phone",
@@ -76,6 +101,9 @@ export async function PATCH(
       "notes",
       "assignedClientIds",
       "assignedClientNamesSnapshot",
+      "accountType",
+      "partnerAgencyId",
+      "reportsToUserId",
     ];
     for (const key of allowed) {
       if (body[key] !== undefined) member.set(key, body[key]);

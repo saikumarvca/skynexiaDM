@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSessionApi } from "@/lib/require-session-api";
 import dbConnect from "@/lib/mongodb";
 import ReviewAllocation from "@/models/ReviewAllocation";
+import ReviewDraft from "@/models/ReviewDraft";
 import { logActivity } from "@/lib/review-activity";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
-import { applyAgencyScope, canAccessClient } from "@/lib/team/scope";
+import { parseWithSchema, apiError } from "@/lib/api/validation";
+import { reviewAllocationCreateSchema } from "@/lib/api/schemas";
+import {
+  andFilters,
+  buildReviewScopeFilter,
+  resolveUserHierarchyContext,
+} from "@/lib/team/scope-filters";
+import {
+  resolvePersistedAssignee,
+  toAssigneeInput,
+} from "@/lib/reviews/allocation-assignee";
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,10 +42,41 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
     const groupByContact = searchParams.get("groupByContact");
+    const ctx = resolveUserHierarchyContext(authz);
+    const canSeeAll =
+      authz.perms.includes("manage_reviews") || authz.perms.includes("assign_reviews");
+    const workerOnly = !canSeeAll && authz.perms.includes("work_assigned_reviews");
+
+    const draftClientIds = [clientId, ...ctx.assignedClientIds].filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    );
+    let scopedDraftIds: string[] = [];
+    if (draftClientIds.length > 0) {
+      const draftDocs = await ReviewDraft.find({ clientId: { $in: draftClientIds } })
+        .select("_id")
+        .lean();
+      scopedDraftIds = draftDocs
+        .map((draft) => draft?._id?.toString?.() ?? (draft?._id ? String(draft._id) : ""))
+        .filter(Boolean);
+    }
+
+    const baseReviewScope = buildReviewScopeFilter(ctx, {
+      workerOnly,
+      clientIdField: "draftId",
+    });
+    const reviewScope = andFilters(
+      baseReviewScope,
+      draftClientIds.length > 0 ? { draftId: { $in: scopedDraftIds } } : {},
+    );
 
     // Special mode: return unique customer contacts for a client (used for autocomplete)
     if (groupByContact === "true" && clientId) {
+      const aggregateScope = buildReviewScopeFilter(ctx, {
+        workerOnly,
+        clientIdField: "draft.clientId",
+      });
       const contacts = await ReviewAllocation.aggregate([
+        { $match: reviewScope },
         {
           $lookup: {
             from: "reviewdrafts",
@@ -45,10 +87,10 @@ export async function GET(request: NextRequest) {
         },
         { $unwind: { path: "$draft", preserveNullAndEmptyArrays: false } },
         {
-          $match: {
-            "draft.clientId": clientId,
-            customerContact: { $exists: true, $nin: [null, ""] },
-          },
+          $match: andFilters(
+            { "draft.clientId": clientId, customerContact: { $exists: true, $nin: [null, ""] } },
+            aggregateScope,
+          ),
         },
         {
           $group: {
@@ -99,27 +141,11 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    const canSeeAll =
-      authz.perms.includes("manage_reviews") || authz.perms.includes("assign_reviews");
-    if (!canSeeAll && authz.perms.includes("work_assigned_reviews")) {
-      if (!authz.teamMemberId) {
-        return NextResponse.json([], { status: 200 });
-      }
-      query.assignedToUserId = authz.teamMemberId;
-    }
+    const scopedQuery = andFilters(query, reviewScope);
 
-    let allocations = await ReviewAllocation.find(query)
+    let allocations = await ReviewAllocation.find(scopedQuery)
       .populate("draftId", "subject reviewText clientId clientName")
       .sort({ createdAt: -1 });
-
-    allocations = applyAgencyScope(
-      allocations.map((a) => a.toObject()) as Array<{
-        agencyId?: string;
-        assignedPartnerAgencyId?: string;
-        assignedToUserId?: string;
-      }>,
-      authz,
-    ) as typeof allocations;
 
     if (clientId) {
       allocations = allocations.filter((a) => {
@@ -130,11 +156,6 @@ export async function GET(request: NextRequest) {
         return draft?.clientId?.toString?.() === clientId;
       });
     }
-    allocations = allocations.filter((a) => {
-      const draft = a.draftId as { clientId?: { toString: () => string } };
-      return canAccessClient(authz, draft?.clientId?.toString?.());
-    });
-
     if (search) {
       const s = search.toLowerCase();
       allocations = allocations.filter((a) => {
@@ -178,10 +199,39 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
-    const body = await request.json();
+    const parsed = await parseWithSchema(request, reviewAllocationCreateSchema);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
+    if (!body.draftId) {
+      return apiError(422, "draftId is required", "VALIDATION_ERROR");
+    }
+    const assignee = toAssigneeInput(body);
+    let persistedAssignee;
+    try {
+      persistedAssignee = await resolvePersistedAssignee(authz, assignee);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "FORBIDDEN";
+      if (code === "FORBIDDEN") return apiError(403, "Forbidden", "VALIDATION_ERROR");
+      if (code === "FORBIDDEN_SCOPE_ESCALATION") {
+        return apiError(403, "Assignee target is outside your scope", "VALIDATION_ERROR");
+      }
+      if (code === "ASSIGNEE_NOT_FOUND" || code === "PARTNER_AGENCY_NOT_FOUND") {
+        return apiError(404, "Assignee target not found", "NOT_FOUND");
+      }
+      if (code === "ASSIGNEE_TYPE_MISMATCH" || code === "ASSIGNEE_AGENCY_MISMATCH") {
+        return apiError(422, "Assignee target is invalid", "VALIDATION_ERROR");
+      }
+      throw error;
+    }
     const allocation = new ReviewAllocation({
-      ...body,
+      ...persistedAssignee,
       agencyId: authz.agencyId ?? null,
+      draftId: body.draftId,
+      assignedByUserId: body.assignedByUserId,
+      assignedByUserName: body.assignedByUserName,
+      customerName: body.customerName,
+      customerContact: body.customerContact,
+      platform: body.platform,
     });
     await allocation.save();
 

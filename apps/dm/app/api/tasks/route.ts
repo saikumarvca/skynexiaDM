@@ -8,7 +8,11 @@ import { parseWithSchema, apiError } from "@/lib/api/validation";
 import { taskCreateSchema } from "@/lib/api/schemas";
 import { createNotification } from "@/lib/notify";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
-import { canAccessClient } from "@/lib/team/scope";
+import {
+  andFilters,
+  buildTaskScopeFilter,
+  resolveUserHierarchyContext,
+} from "@/lib/team/scope-filters";
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,22 +50,18 @@ export async function GET(request: NextRequest) {
       authz.perms.includes("manage_tasks") ||
       authz.perms.includes("view_tasks") ||
       authz.perms.includes("assign_tasks");
-    if (!canSeeAll && authz.perms.includes("work_assigned_tasks")) {
-      if (!authz.teamMemberId) return NextResponse.json([], { status: 200 });
-      query.$or = [
-        { assignedTo: authz.teamMemberId },
-        { assignedToUserId: authz.teamMemberId },
-      ];
-    }
+    const workerOnly = !canSeeAll && authz.perms.includes("work_assigned_tasks");
+    const ctx = resolveUserHierarchyContext(authz);
+    const scopedQuery = andFilters(
+      query,
+      buildTaskScopeFilter(ctx, { workerOnly }),
+    );
 
-    const tasks = await Task.find(query)
+    const tasks = await Task.find(scopedQuery)
       .populate("clientId", "name businessName")
       .populate("assignedTo", "name email")
       .sort({ status: 1, priority: -1, deadline: 1, createdAt: -1 });
-    const scopedTasks = tasks.filter((task) =>
-      canAccessClient(authz, task.clientId?.toString?.()),
-    );
-    return NextResponse.json(scopedTasks);
+    return NextResponse.json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json(

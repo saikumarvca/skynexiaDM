@@ -12,6 +12,9 @@ export type CurrentUserTeamPermissions = {
   permissions: string[];
   agencyId?: string;
   agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  accountType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+  partnerAgencyId?: string;
+  reportsToUserId?: string;
   assignedClientIds?: string[];
 };
 
@@ -39,6 +42,7 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
     $or: [{ userId: user.userId }, { email: emailNorm }],
   })
     .populate("roleId", "roleName permissions")
+    .populate("partnerAgencyId", "_id")
     .lean();
 
   if (!member) return { permissions: [] };
@@ -58,6 +62,14 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
     permissions: perms,
     agencyId: user.agencyId,
     agencyKind: user.agencyKind,
+    accountType: member.accountType ?? "MAIN_EMPLOYEE",
+    partnerAgencyId:
+      typeof member.partnerAgencyId === "object" && member.partnerAgencyId
+        ? String((member.partnerAgencyId as { _id?: unknown })._id ?? member.partnerAgencyId)
+        : member.partnerAgencyId
+          ? String(member.partnerAgencyId)
+          : undefined,
+    reportsToUserId: member.reportsToUserId,
     assignedClientIds: Array.isArray(member.assignedClientIds)
       ? member.assignedClientIds.map((id) => String(id))
       : [],

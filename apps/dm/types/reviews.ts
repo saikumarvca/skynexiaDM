@@ -46,6 +46,9 @@ export interface ReviewAllocation {
       };
   assignedToUserId: string;
   assignedToUserName: string;
+  assigneeType?: "MAIN_EMPLOYEE" | "PARTNER_AGENCY" | "PARTNER_EMPLOYEE";
+  assigneeTeamMemberId?: string;
+  assigneePartnerAgencyId?: string;
   assignedByUserId: string;
   assignedByUserName: string;
   assignedDate: string;
@@ -101,10 +104,30 @@ export interface ReviewDraftFormData {
   notes?: string;
 }
 
+export type AllocationAssigneeTarget =
+  | {
+      targetType: "INTERNAL_EMPLOYEE";
+      teamMemberId: string;
+      teamMemberName: string;
+    }
+  | {
+      targetType: "PARTNER_AGENCY";
+      partnerAgencyId: string;
+      partnerAgencyName?: string;
+    }
+  | {
+      targetType: "PARTNER_EMPLOYEE";
+      partnerAgencyId: string;
+      teamMemberId: string;
+      teamMemberName: string;
+    };
+
 export interface AssignDraftFormData {
   draftId: string;
-  assignedToUserId: string;
-  assignedToUserName: string;
+  assignee?: AllocationAssigneeTarget;
+  // Legacy fallback
+  assignedToUserId?: string;
+  assignedToUserName?: string;
   assignedPartnerAgencyId?: string;
   assignedByUserId: string;
   assignedByUserName: string;
