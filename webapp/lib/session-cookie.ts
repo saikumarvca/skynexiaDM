@@ -1,24 +1,12 @@
 import type { NextResponse } from "next/server";
 import { getSessionCookieName } from "@/lib/auth";
 
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14; // 14 days
-
 function isProduction() {
   return process.env.NODE_ENV === "production";
 }
 
-export function setSessionCookie(res: NextResponse, token: string) {
-  const maxAge = SESSION_MAX_AGE_SECONDS;
-  res.cookies.set(getSessionCookieName(), token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: isProduction(),
-    path: "/",
-    maxAge,
-    expires: new Date(Date.now() + maxAge * 1000),
-  });
-}
-
+/** Clears the auth cookie (used on logout). The JWT itself lives in the cookie
+ *  value; removing it is sufficient to end the session for the browser. */
 export function clearSessionCookie(res: NextResponse) {
   res.cookies.set(getSessionCookieName(), "", {
     httpOnly: true,
@@ -29,4 +17,3 @@ export function clearSessionCookie(res: NextResponse) {
     expires: new Date(0),
   });
 }
-

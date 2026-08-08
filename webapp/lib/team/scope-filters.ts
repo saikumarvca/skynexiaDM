@@ -35,7 +35,7 @@ export function andFilters(...filters: Array<MongoFilter | null | undefined>): M
     (filter): filter is MongoFilter => !!filter && Object.keys(filter).length > 0,
   );
   if (validFilters.length === 0) return {};
-  if (validFilters.length === 1) return validFilters[0];
+  if (validFilters.length === 1) return validFilters[0] ?? {};
   return { $and: validFilters };
 }
 

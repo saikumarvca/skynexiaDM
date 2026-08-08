@@ -1,2 +1,2 @@
-/** Single source of truth for the dashboard session cookie (must match edge + Node signing in `auth.ts` / `session-edge.ts`). */
-export const DM_SESSION_COOKIE_NAME = "dm_session";
+/** Session cookie containing the JWT issued by the SkynexiaDM Go backend. */
+export const DM_SESSION_COOKIE_NAME = "skynexiadm_token";
