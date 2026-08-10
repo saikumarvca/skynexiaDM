@@ -1,0 +1,95 @@
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TeamMemberForm } from "@/components/team/TeamMemberForm";
+import dbConnect from "@/lib/mongodb";
+import TeamMember from "@/models/TeamMember";
+import TeamRole from "@/models/TeamRole";
+import User from "@/models/User";
+import PartnerAgency from "@/models/PartnerAgency";
+
+export const dynamic = "force-dynamic";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function EditMemberPage({ params }: PageProps) {
+  const { id } = await params;
+  await dbConnect();
+  const [memberDoc, roles, partnerAgencies, managers] = await Promise.all([
+    TeamMember.findById(id).lean(),
+    TeamRole.find({ isDeleted: { $ne: true } })
+      .sort({ roleName: 1 })
+      .limit(100)
+      .lean(),
+    PartnerAgency.find({ isDeleted: { $ne: true }, status: "ACTIVE" })
+      .sort({ name: 1 })
+      .select("name")
+      .lean(),
+    TeamMember.find({ isDeleted: { $ne: true }, status: "Active" })
+      .sort({ name: 1 })
+      .select("name")
+      .lean(),
+  ]);
+  const member = memberDoc ? JSON.parse(JSON.stringify(memberDoc)) : null;
+  const rolesList = roles.map((r) => JSON.parse(JSON.stringify(r)));
+  const agenciesList = partnerAgencies.map((r) => JSON.parse(JSON.stringify(r)));
+  const managersList = managers.map((r) => JSON.parse(JSON.stringify(r)));
+
+  if (!member) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <h1 className="text-3xl font-bold">Member Not Found</h1>
+          <p className="text-muted-foreground">
+            The requested member could not be found.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const loginUser = await User.findOne({
+    email: String(member.email).trim().toLowerCase(),
+  })
+    .select("passwordHash")
+    .lean();
+  const hasLogin = Boolean(loginUser && loginUser.passwordHash);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Edit Member</h1>
+          <p className="text-muted-foreground">Update team member details.</p>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Member Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeamMemberForm
+              memberId={id}
+              hasLogin={hasLogin}
+              initialData={{
+                name: member.name,
+                email: member.email,
+                phone: member.phone,
+                roleId: member.roleId?._id ?? member.roleId ?? "",
+                department: member.department,
+                notes: member.notes,
+                accountType: member.accountType,
+                partnerAgencyId:
+                  member.partnerAgencyId?._id ?? member.partnerAgencyId ?? "",
+                reportsToUserId: member.reportsToUserId,
+              }}
+              roles={rolesList}
+              partnerAgencies={agenciesList}
+              managers={managersList}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}

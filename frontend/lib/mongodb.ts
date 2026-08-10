@@ -1,0 +1,80 @@
+import mongoose from "mongoose";
+
+type MongooseCache = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: MongooseCache | undefined;
+}
+
+/**
+ * Global is used here to maintain a cached connection across hot reloads
+ * in development. This prevents connections growing exponentially
+ * during API Route usage.
+ */
+const globalForMongoose = globalThis as typeof globalThis & {
+  mongoose?: MongooseCache;
+};
+let cached = globalForMongoose.mongoose;
+
+if (!cached) {
+  cached = globalForMongoose.mongoose = { conn: null, promise: null };
+}
+
+async function dbConnect(): Promise<typeof mongoose> {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error(
+      "Please define the MONGODB_URI environment variable inside .env.local",
+    );
+  }
+
+  if (cached?.conn) {
+    // Check if connection is still alive
+    if (mongoose.connection.readyState === 1) {
+      return cached.conn;
+    }
+  }
+
+  if (!cached?.promise) {
+    const opts = {
+      bufferCommands: false,
+      maxPoolSize: 10, // Maintain up to 10 socket connections
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      family: 4, // Use IPv4, skip trying IPv6
+    };
+
+    if (cached) {
+      cached.promise = mongoose
+        .connect(MONGODB_URI, opts)
+        .then((mongoose) => {
+          console.log("Connected to MongoDB");
+          return mongoose;
+        })
+        .catch((error) => {
+          console.error("MongoDB connection error:", error);
+          throw error;
+        });
+    }
+  }
+
+  try {
+    if (cached?.promise) {
+      cached.conn = await cached.promise;
+    }
+  } catch (e) {
+    if (cached) {
+      cached.promise = null;
+    }
+    throw e;
+  }
+
+  return cached!.conn!;
+}
+
+export default dbConnect;
