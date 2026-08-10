@@ -13,24 +13,11 @@ function formatRetryAfter(seconds: number): string {
   return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
 }
 
-/**
- * Only allow redirects to internal, absolute paths. Reject anything that could
- * point off-site (protocol-relative `//host`, `/\host`, or absolute URLs),
- * preventing an open-redirect via the `next` query param.
- */
-function sanitizeNextPath(raw: string | null): string {
-  const fallback = "/dashboard";
-  if (!raw) return fallback;
-  if (!raw.startsWith("/")) return fallback;
-  if (raw.startsWith("//") || raw.startsWith("/\\")) return fallback;
-  return raw;
-}
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = useMemo(
-    () => sanitizeNextPath(searchParams.get("next")),
+    () => searchParams.get("next") || "/dashboard",
     [searchParams],
   );
 
@@ -50,11 +37,7 @@ function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = (await res.json()) as {
-        success?: boolean;
-        message?: string;
-        error?: string;
-      };
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         const retryAfterHeader = res.headers.get("Retry-After");
         const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN;
@@ -69,7 +52,7 @@ function LoginForm() {
             )}.`,
           );
         }
-        throw new Error(data.message || data.error || "Login failed");
+        throw new Error(data.error || "Login failed");
       }
       router.replace(nextPath);
       router.refresh();

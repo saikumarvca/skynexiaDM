@@ -28,7 +28,7 @@ func (r *UserRepository) Create(
 	query := `
 		INSERT INTO users (name, email, password_hash)
 		VALUES ($1, $2, $3)
-		RETURNING id, name, email, role, agency_id, agency_kind, is_active, created_at, updated_at
+		RETURNING id, name, email, is_active, created_at, updated_at
 	`
 
 	var user model.User
@@ -43,9 +43,6 @@ func (r *UserRepository) Create(
 		&user.ID,
 		&user.Name,
 		&user.Email,
-		&user.Role,
-		&user.AgencyID,
-		&user.AgencyKind,
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -69,9 +66,6 @@ func (r *UserRepository) FindByEmail(
 			name,
 			email,
 			password_hash,
-			role,
-			agency_id,
-			agency_kind,
 			is_active,
 			created_at,
 			updated_at
@@ -86,9 +80,6 @@ func (r *UserRepository) FindByEmail(
 		&user.Name,
 		&user.Email,
 		&user.PasswordHash,
-		&user.Role,
-		&user.AgencyID,
-		&user.AgencyKind,
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -115,9 +106,6 @@ func (r *UserRepository) FindByID(
 			id,
 			name,
 			email,
-			role,
-			agency_id,
-			agency_kind,
 			is_active,
 			created_at,
 			updated_at
@@ -131,9 +119,6 @@ func (r *UserRepository) FindByID(
 		&user.ID,
 		&user.Name,
 		&user.Email,
-		&user.Role,
-		&user.AgencyID,
-		&user.AgencyKind,
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
