@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["dm.db2.in"],
+  allowedDevOrigins: ["dm.skyenixms.com"],
 };
 
 export default nextConfig;
