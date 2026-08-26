@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { ComponentType } from "react";
 import NewContentPage from "@/app/dashboard/content/new/page";
 import ScheduledPostsPage from "@/app/dashboard/scheduled-posts/page";
 import NewScheduledPostPage from "@/app/dashboard/scheduled-posts/new/page";
@@ -13,10 +14,10 @@ export default async function ContentSlugPage({
 }) {
   const { slug } = await params;
   const path = slug.join("/");
-  const AnyNewContentPage = NewContentPage as any;
-  const AnyScheduledPostsPage = ScheduledPostsPage as any;
-  const AnyNewScheduledPostPage = NewScheduledPostPage as any;
-  const AnyEditScheduledPostPage = EditScheduledPostPage as any;
+  const AnyNewContentPage = NewContentPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyScheduledPostsPage = ScheduledPostsPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyNewScheduledPostPage = NewScheduledPostPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyEditScheduledPostPage = EditScheduledPostPage as unknown as ComponentType<Record<string, unknown>>;
 
   if (path === "new") return <AnyNewContentPage searchParams={searchParams} />;
   if (path === "scheduled-posts") return <AnyScheduledPostsPage searchParams={searchParams} />;

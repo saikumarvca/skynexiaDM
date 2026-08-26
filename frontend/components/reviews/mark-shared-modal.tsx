@@ -49,7 +49,6 @@ export function MarkSharedModal({
   isOpen,
   onClose,
   onSubmit,
-  allocationId,
   subject,
   clientId,
   defaultPlatform,

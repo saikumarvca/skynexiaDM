@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Bookmark, X, Plus, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,17 +31,7 @@ export function SavedFiltersBar({
   const [filterName, setFilterName] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchFilters();
-  }, [entityType]);
-
-  useEffect(() => {
-    if (showNameInput) {
-      setTimeout(() => nameInputRef.current?.focus(), 50);
-    }
-  }, [showNameInput]);
-
-  async function fetchFilters() {
+  const fetchFilters = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/saved-filters?entityType=${entityType}`, {
@@ -56,7 +46,17 @@ export function SavedFiltersBar({
     } finally {
       setLoading(false);
     }
-  }
+  }, [entityType]);
+
+  useEffect(() => {
+    fetchFilters();
+  }, [fetchFilters]);
+
+  useEffect(() => {
+    if (showNameInput) {
+      setTimeout(() => nameInputRef.current?.focus(), 50);
+    }
+  }, [showNameInput]);
 
   async function saveCurrentFilters() {
     const name = filterName.trim();

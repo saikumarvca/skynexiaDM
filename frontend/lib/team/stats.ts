@@ -2,7 +2,7 @@ import TeamMember from "@/models/TeamMember";
 import TeamAssignment from "@/models/TeamAssignment";
 import ReviewAllocation from "@/models/ReviewAllocation";
 import Task from "@/models/Task";
-import { calculateOpenAssignments, getWorkloadStatus } from "./workload";
+import { getWorkloadStatus } from "./workload";
 
 export interface TeamOverviewStats {
   totalMembers: number;
@@ -37,7 +37,6 @@ export async function getTeamOverviewStats(): Promise<TeamOverviewStats> {
     (t) => t.updatedAt && new Date(t.updatedAt) >= oneWeekAgo,
   ).length;
 
-  const memberIds = new Set(members.map((m) => m._id.toString()));
   const assignmentsByMember: Record<string, typeof openAssignments> = {};
   for (const m of members) {
     const id = m._id.toString();

@@ -6,7 +6,6 @@ type MongooseCache = {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var mongoose: MongooseCache | undefined;
 }
 
@@ -25,7 +24,6 @@ if (!cached) {
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
     throw new Error(

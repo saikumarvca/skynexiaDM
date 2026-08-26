@@ -39,7 +39,6 @@ export function MarkPostedModal({
   isOpen,
   onClose,
   onSubmit,
-  allocationId,
   subject,
   customerName: initialCustomer,
   customerContact: initialCustomerContact,

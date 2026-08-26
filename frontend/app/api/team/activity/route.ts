@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
-    const module = searchParams.get("module");
+    const moduleParam = searchParams.get("module");
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const query = buildActivityQuery({
       userId: userId ?? undefined,
-      module: module ?? undefined,
+      module: moduleParam ?? undefined,
       dateFrom: dateFrom ?? undefined,
       dateTo: dateTo ?? undefined,
     });

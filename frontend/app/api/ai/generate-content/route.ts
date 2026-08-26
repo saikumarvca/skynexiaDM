@@ -90,9 +90,8 @@ async function callOpenAI(prompt: string, apiKey: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  let user;
   try {
-    user = await requireUserFromRequest(req);
+    await requireUserFromRequest(req);
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

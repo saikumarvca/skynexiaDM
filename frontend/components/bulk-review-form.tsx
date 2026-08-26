@@ -28,13 +28,8 @@ export function BulkReviewForm({ clientId, onSubmit }: BulkReviewFormProps) {
     ratingStyle: "5-star",
   });
 
-  const [isPreviewOnly, setIsPreviewOnly] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPreviewOnly) {
-      return;
-    }
     setIsLoading(true);
     try {
       await onSubmit(formData);

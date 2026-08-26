@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { ComponentType } from "react";
 import OverviewPage from "@/app/dashboard/help/documentation/overview/page";
 import ClientsPage from "@/app/dashboard/help/documentation/clients/page";
 import CampaignsPage from "@/app/dashboard/help/documentation/campaigns/page";
@@ -22,7 +23,7 @@ import SettingsPage from "@/app/dashboard/help/documentation/settings/page";
 import CronPage from "@/app/dashboard/help/documentation/cron/page";
 import WorkflowsPage from "@/app/dashboard/help/documentation/workflows/page";
 
-const TOPIC_COMPONENTS: Record<string, any> = {
+const TOPIC_COMPONENTS: Record<string, ComponentType> = {
   overview: OverviewPage,
   clients: ClientsPage,
   campaigns: CampaignsPage,

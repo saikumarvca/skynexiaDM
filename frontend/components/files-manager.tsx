@@ -10,7 +10,7 @@ import {
   Archive,
   ExternalLink,
   FileText,
-  Image,
+  Image as ImageIcon,
   Video,
   File,
   Search,
@@ -67,7 +67,7 @@ const CATEGORY_COLORS: Record<FileCategory, string> = {
 
 function fileIcon(fileType: string) {
   if (fileType.startsWith("image/"))
-    return <Image className="h-8 w-8 text-blue-400" />;
+    return <ImageIcon className="h-8 w-8 text-blue-400" />;
   if (fileType.startsWith("video/"))
     return <Video className="h-8 w-8 text-pink-400" />;
   if (fileType.includes("pdf") || fileType.includes("doc"))

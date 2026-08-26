@@ -4,14 +4,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { QueryToast } from "@/components/query-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Plus,
-  FileText,
-  DollarSign,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { Plus, FileText, DollarSign, Clock, AlertCircle } from "lucide-react";
 import { serverFetch } from "@/lib/server-fetch";
 import { InvoiceStatusFilter } from "./invoice-status-filter";
 

@@ -17,8 +17,6 @@ const TASK_STATUSES: TaskStatus[] = [
   "DONE",
   "ARCHIVED",
 ];
-const TASK_PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
-
 function clientName(task: Task): string {
   const c = task.clientId;
   if (c && typeof c === "object") {

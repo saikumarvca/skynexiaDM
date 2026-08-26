@@ -29,7 +29,6 @@ import {
   Hash,
   ListChecks,
   MessageSquare,
-  FileText as InvoiceIcon,
   Clock,
   Zap,
   DollarSign,

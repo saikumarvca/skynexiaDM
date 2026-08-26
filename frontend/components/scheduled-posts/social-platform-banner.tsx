@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
 interface PlatformStatus {
@@ -34,9 +35,9 @@ export function SocialPlatformBanner() {
       <span>
         <strong>Not configured:</strong> {unconfigured.join(", ")}. Posts will
         fail to publish on these platforms. Configure environment variables in{" "}
-        <a href="/settings" className="underline">
+        <Link href="/settings" className="underline">
           Settings
-        </a>
+        </Link>
         .
       </span>
     </div>

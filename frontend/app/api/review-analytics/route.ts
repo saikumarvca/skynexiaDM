@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       monthlyDraftsRaw,
       platformBreakdownRaw,
       topReviewersRaw,
-      totalReviewsAvailable,
     ] = await Promise.all([
       ReviewDraft.find({}),
       ReviewAllocation.find({}),
@@ -74,8 +73,6 @@ export async function GET(request: NextRequest) {
         { $sort: { count: -1 } },
         { $limit: 5 },
       ]),
-      // Total reviews available for response rate
-      ReviewUsage.countDocuments({}),
     ]);
 
     // ── Existing stats ────────────────────────────────────────────────────────

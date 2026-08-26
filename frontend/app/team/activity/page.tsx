@@ -1,5 +1,4 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamActivityFeed } from "@/components/team/TeamActivityFeed";
 import dbConnect from "@/lib/mongodb";
 import TeamActivityLog from "@/models/TeamActivityLog";

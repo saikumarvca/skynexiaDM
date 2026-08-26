@@ -25,35 +25,6 @@ function isAnalyticsSectionPath(p: string) {
   );
 }
 
-function sectionStillActiveForPath(name: string, p: string): boolean {
-  if (name === "Clients") return p.startsWith("/clients");
-  if (name === "Campaigns") return p.startsWith("/campaigns");
-  if (name === "Content")
-    return (
-      p.startsWith("/content") ||
-      p.startsWith("/content/scheduled-posts")
-    );
-  if (name === "SEO") return p.startsWith("/seo");
-  if (name === "Leads") return p.startsWith("/leads");
-  if (name === "Tasks") return p.startsWith("/tasks");
-  if (name === "Reviews")
-    return (
-      p === "/reviews" ||
-      p.startsWith("/reviews/")
-    );
-  if (name === "Posts")
-    return p === "/posts" || p.startsWith("/posts/");
-  if (name === "Channels")
-    return p === "/channels" || p.startsWith("/channels/");
-  if (name === "Team") return p.startsWith("/team");
-  if (name === "Admin") return p.startsWith("/admin");
-  if (name === "Reports") return p.startsWith("/reports");
-  if (name === "Invoices") return p.startsWith("/invoices");
-  if (name === "Help") return p.startsWith("/help");
-  if (name === "Analytics") return isAnalyticsSectionPath(p);
-  return false;
-}
-
 export function DashboardNavLinks({
   isAdmin = false,
   permissions = [],
@@ -68,8 +39,6 @@ export function DashboardNavLinks({
   className?: string;
 }) {
   const pathname = usePathname();
-  const pathnameRef = useRef(pathname);
-  pathnameRef.current = pathname;
   const navItems = buildDashboardNavItems(isAdmin, permissions);
 
   const isClientsActive = pathname.startsWith("/clients");

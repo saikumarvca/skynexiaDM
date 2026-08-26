@@ -1,12 +1,6 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  TrendingDown,
-} from "lucide-react";
+import { TrendingUp, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { serverFetch } from "@/lib/server-fetch";
 
 async function getBudgetAlerts() {

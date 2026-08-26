@@ -44,7 +44,6 @@ export function ReviewDraftDetailsPane({
   draft,
   assignedToName,
   onClose,
-  clients: _clients,
   onEdit,
   onDuplicate,
   onCopy,

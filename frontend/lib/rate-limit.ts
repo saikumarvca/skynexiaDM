@@ -10,7 +10,6 @@ type RateLimitBackend = "memory" | "mongo";
 
 function getBackend(): RateLimitBackend {
   // In-memory is fine for local/dev; Mongo-backed works in multi-instance deployments.
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
   const configured = (process.env.RATE_LIMIT_BACKEND ?? "").toLowerCase();
   if (configured === "mongo") return "mongo";
   if (configured === "memory") return "memory";

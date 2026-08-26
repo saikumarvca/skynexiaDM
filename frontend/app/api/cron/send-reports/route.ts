@@ -24,7 +24,8 @@ function computeNextSendAt(
   const next = new Date(now);
   if (frequency === "WEEKLY") {
     const target = (dayOfWeek ?? 1) % 7;
-    next.setDate(next.getDate() + 7);
+    const diff = ((target - next.getDay() + 7) % 7) || 7;
+    next.setDate(next.getDate() + diff);
   } else if (frequency === "MONTHLY") {
     next.setMonth(next.getMonth() + 1, dayOfMonth ?? 1);
   } else if (frequency === "QUARTERLY") {

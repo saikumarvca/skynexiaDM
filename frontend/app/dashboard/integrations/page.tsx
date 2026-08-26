@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { QueryToast } from "@/components/query-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Zap, Circle, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Zap, CheckCircle2, AlertCircle } from "lucide-react";
 import { serverFetch } from "@/lib/server-fetch";
 
 async function getIntegrations() {

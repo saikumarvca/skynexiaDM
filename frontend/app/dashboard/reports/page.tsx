@@ -4,9 +4,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { QueryToast } from "@/components/query-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Mail, Clock, Send } from "lucide-react";
-import { serverFetch, getBaseUrl } from "@/lib/server-fetch";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getSchedules() {
   try {
@@ -16,10 +15,6 @@ async function getSchedules() {
   } catch {
     return [];
   }
-}
-
-async function getSendLogs() {
-  return [];
 }
 
 interface ReportSchedule {

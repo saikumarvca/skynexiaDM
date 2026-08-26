@@ -23,14 +23,6 @@ interface ReviewDraftFormProps {
   draft?: ReviewDraft | null;
 }
 
-const PLATFORMS = [
-  "Google",
-  "Facebook",
-  "Justdial",
-  "Website",
-  "LinkedIn",
-  "Other",
-];
 const TONES = ["Professional", "Friendly", "Formal", "Casual"];
 
 export function ReviewDraftForm({

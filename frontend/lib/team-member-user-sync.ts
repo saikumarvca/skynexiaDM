@@ -36,7 +36,7 @@ export async function syncLoginUserFromTeamMember(
   const appRole = teamRoleNameToAppUserRole(member.roleName);
   const isActive = member.status === "Active";
 
-  let user = await findLinkedUserForTeamMember(member);
+  const user = await findLinkedUserForTeamMember(member);
 
   if (options.password) {
     const passwordHash = await bcrypt.hash(options.password, 12);

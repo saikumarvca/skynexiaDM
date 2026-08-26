@@ -5,7 +5,6 @@ import TeamMember from "@/models/TeamMember";
 import TeamAssignment from "@/models/TeamAssignment";
 import ReviewAllocation from "@/models/ReviewAllocation";
 import {
-  calculateOpenAssignments,
   calculateUrgentCount,
   calculateDueSoonCount,
   getWorkloadStatus,

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { ComponentType } from "react";
 import ReviewDraftsPage from "@/app/dashboard/review-drafts/page";
 import ReviewAllocationsPage from "@/app/dashboard/review-allocations/page";
 import MyAssignedReviewsPage from "@/app/dashboard/my-assigned-reviews/page";
@@ -17,14 +18,14 @@ export default async function ReviewsSlugPage({
 }) {
   const { slug } = await params;
   const path = slug.join("/");
-  const AnyReviewDraftsPage = ReviewDraftsPage as any;
-  const AnyReviewAllocationsPage = ReviewAllocationsPage as any;
-  const AnyMyAssignedReviewsPage = MyAssignedReviewsPage as any;
-  const AnyUsedReviewsPage = UsedReviewsPage as any;
-  const AnyReviewAnalyticsPage = ReviewAnalyticsPage as any;
-  const AnyReviewTemplatesPage = ReviewTemplatesPage as any;
-  const AnyReviewTemplateEditPage = ReviewTemplateEditPage as any;
-  const AnyReviewRequestsPage = ReviewRequestsPage as any;
+  const AnyReviewDraftsPage = ReviewDraftsPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyReviewAllocationsPage = ReviewAllocationsPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyMyAssignedReviewsPage = MyAssignedReviewsPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyUsedReviewsPage = UsedReviewsPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyReviewAnalyticsPage = ReviewAnalyticsPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyReviewTemplatesPage = ReviewTemplatesPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyReviewTemplateEditPage = ReviewTemplateEditPage as unknown as ComponentType<Record<string, unknown>>;
+  const AnyReviewRequestsPage = ReviewRequestsPage as unknown as ComponentType<Record<string, unknown>>;
 
   if (path === "drafts") return <AnyReviewDraftsPage searchParams={searchParams} />;
   if (path === "allocations") return <AnyReviewAllocationsPage searchParams={searchParams} />;
