@@ -13,6 +13,12 @@ type ReassignItem = {
   clientId: string;
 };
 
+type ReassignResult = {
+  draftId: string;
+  ok: boolean;
+  message?: string;
+};
+
 export async function PATCH(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
@@ -35,16 +41,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     const performedBy = body.performedBy ?? "system";
-    const results: Array<{
-      draftId: string;
-      ok: boolean;
-      message?: string;
-    }> = [];
+    const results: ReassignResult[] = [];
 
+    // Validate ids up front so we can batch-load drafts and clients in two
+    // queries instead of two round-trips per item.
+    const validItems: ReassignItem[] = [];
     for (const item of body.items) {
       const draftId = item?.draftId;
       const clientId = item?.clientId;
-
       if (
         !draftId ||
         !clientId ||
@@ -58,11 +62,31 @@ export async function PATCH(request: NextRequest) {
         });
         continue;
       }
+      validItems.push({ draftId, clientId });
+    }
 
-      const [draft, targetClient] = await Promise.all([
-        ReviewDraft.findById(draftId).select("clientId clientName status"),
-        Client.findById(clientId).select("_id name businessName email status"),
-      ]);
+    const draftIds = Array.from(new Set(validItems.map((i) => i.draftId)));
+    const clientIds = Array.from(new Set(validItems.map((i) => i.clientId)));
+
+    const [drafts, clients] = await Promise.all([
+      draftIds.length
+        ? ReviewDraft.find({ _id: { $in: draftIds } }).select(
+            "clientId clientName status",
+          )
+        : [],
+      clientIds.length
+        ? Client.find({ _id: { $in: clientIds } }).select(
+            "_id name businessName email status",
+          )
+        : [],
+    ]);
+    const draftById = new Map(drafts.map((d) => [d._id.toString(), d]));
+    const clientById = new Map(clients.map((c) => [c._id.toString(), c]));
+
+    for (const { draftId, clientId } of validItems) {
+      const draft = draftById.get(draftId);
+      const targetClient = clientById.get(clientId);
+
       if (!draft) {
         results.push({ draftId, ok: false, message: "Draft not found" });
         continue;
@@ -71,11 +95,13 @@ export async function PATCH(request: NextRequest) {
         results.push({ draftId, ok: false, message: "Target client not found" });
         continue;
       }
-      if (draft.status !== "Available") {
+      // Allocations and posted reviews reference the draft, not the client, so
+      // changing the draft's client is safe at any stage except once archived.
+      if (draft.status === "Archived") {
         results.push({
           draftId,
           ok: false,
-          message: "Only available drafts can be reassigned",
+          message: "Archived drafts cannot be reassigned",
         });
         continue;
       }

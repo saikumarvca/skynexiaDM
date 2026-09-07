@@ -39,9 +39,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (!draft) {
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
-    if (draft.status !== "Available") {
+    // Allocations and posted reviews reference the draft, not the client, so
+    // changing the draft's client is safe at any stage except once archived.
+    if (draft.status === "Archived") {
       return NextResponse.json(
-        { error: "Only available drafts can be reassigned to a client" },
+        { error: "Archived drafts cannot be reassigned to a client" },
         { status: 409 },
       );
     }

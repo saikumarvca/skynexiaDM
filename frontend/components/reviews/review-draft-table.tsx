@@ -104,6 +104,7 @@ export function ReviewDraftTable({
     () =>
       clients.filter(
         (c) =>
+          c.status === "ACTIVE" &&
           (c.businessName ?? "").trim().toLowerCase() !== "unassigned" &&
           (c.name ?? "").trim().toLowerCase() !== "unassigned",
       ),
@@ -214,9 +215,24 @@ export function ReviewDraftTable({
     setReassignSubmitting(true);
     try {
       const result = await onReassignClients(items);
-      toast.success(
-        `Client reassignment done: ${result.successCount} success, ${result.failedCount} failed`,
+      const summary = `Client reassignment done: ${result.successCount} success, ${result.failedCount} failed`;
+      const reasons = Array.from(
+        new Set(
+          result.results
+            .filter((r) => !r.ok && r.message)
+            .map((r) => r.message as string),
+        ),
       );
+      const description = reasons.length > 0 ? reasons.join("; ") : undefined;
+      if (result.successCount === 0) {
+        toast.error(summary, { description });
+        return;
+      }
+      if (result.failedCount > 0) {
+        toast.warning(summary, { description });
+      } else {
+        toast.success(summary);
+      }
       setReassignOpen(false);
       setSelectedIds([]);
       router.refresh();
@@ -551,7 +567,7 @@ export function ReviewDraftTable({
           <DialogHeader>
             <DialogTitle>Assign Client to Selected Drafts</DialogTitle>
             <DialogDescription>
-              Choose a target client for each selected draft. Only available drafts can be reassigned.
+              Choose a target client for each selected draft. Archived drafts cannot be reassigned.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[380px] space-y-3 overflow-y-auto pr-1">
