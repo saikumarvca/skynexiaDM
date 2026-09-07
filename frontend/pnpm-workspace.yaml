@@ -1,0 +1,7 @@
+# pnpm 10+ refuses to run dependency install scripts that are not listed here,
+# and pnpm 11 makes an unlisted one a hard install error.
+# sharp ships prebuilt binaries and needs no build.
+# unrs-resolver is lint-only (via eslint-config-next) and is not needed at runtime.
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
