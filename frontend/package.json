@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start --port 3152",
     "seed:user": "node scripts/seed-user.mjs",
+    "grant:access": "node scripts/grant-access.mjs",
     "lint": "eslint .",
     "check-types": "next typegen && tsc --noEmit"
   },
