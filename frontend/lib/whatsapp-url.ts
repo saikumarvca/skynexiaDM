@@ -44,3 +44,27 @@ export function buildReviewPostedFollowUpMessage(
   const name = customerDisplayName.trim() || "there";
   return `Hey ${name}, hope you're doing well. I'm following up to check whether you've had a chance to post the review yet. If you've already posted it, please feel free to ignore this message. Thank you!`;
 }
+
+/**
+ * WhatsApp message asking the customer to leave a review. Adapts to what is
+ * known: platform and link, platform only, link only, or neither.
+ */
+export function buildAskReviewMessage(input: {
+  customerName: string;
+  platform?: string;
+  reviewDestinationUrl?: string;
+}): string {
+  const name = input.customerName.trim() || "there";
+  const platform = (input.platform ?? "").trim();
+  const url = (input.reviewDestinationUrl ?? "").trim();
+  if (platform && url) {
+    return `Dear ${name}, could you please review us on ${platform}? ${url}`;
+  }
+  if (platform) {
+    return `Dear ${name}, could you please review us on ${platform}?`;
+  }
+  if (url) {
+    return `Dear ${name}, could you please review us here: ${url}`;
+  }
+  return `Dear ${name}, could you please share a review for us?`;
+}

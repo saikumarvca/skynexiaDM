@@ -10,6 +10,7 @@ import {
   openTelCall,
   parseWhatsAppDigits,
   buildReviewPostedFollowUpMessage,
+  buildAskReviewMessage,
 } from "@/lib/whatsapp-url";
 import {
   Sheet,
@@ -126,7 +127,9 @@ export function ReviewDetailSidePane({
 
   useEffect(() => {
     const draft =
-      allocation && typeof allocation.draftId === "object" ? allocation.draftId : null;
+      allocation && typeof allocation.draftId === "object"
+        ? allocation.draftId
+        : null;
     const clientId = draft && "clientId" in draft ? draft.clientId : undefined;
     if (!allocation || !clientId) {
       setReviewDestinations([]);
@@ -209,12 +212,19 @@ export function ReviewDetailSidePane({
   const reviewBody = getDraftReviewText(allocation);
   const waPhone = parseWhatsAppDigits(customerContact);
   const showWaButtons = waPhone !== null;
+  const askReviewHint = !customerName.trim()
+    ? 'Enter the customer name to enable "Ask review on WA".'
+    : !platform
+      ? "Select a platform to include the review link in the WhatsApp message."
+      : !reviewDestinationUrl.trim()
+        ? `No review link saved for ${platform}. The WhatsApp message will be sent without a link.`
+        : "";
   const destinationMissingForSelectedPlatform = Boolean(
     platform &&
-      reviewDestinations.length > 0 &&
-      !reviewDestinations.some(
-        (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
-      ),
+    reviewDestinations.length > 0 &&
+    !reviewDestinations.some(
+      (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
+    ),
   );
   const canMarkShared = allocation.allocationStatus === "Assigned";
   const canMarkPosted =
@@ -358,7 +368,8 @@ export function ReviewDetailSidePane({
                           </p>
                         ) : (
                           <p className="text-sm text-muted-foreground">
-                            No review destination URL configured for this client.
+                            No review destination URL configured for this
+                            client.
                           </p>
                         )}
                       </div>
@@ -426,16 +437,17 @@ export function ReviewDetailSidePane({
                       WhatsApp opens in a new tab. Very long messages may be
                       trimmed by WhatsApp.
                     </p>
+                    {askReviewHint ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        {askReviewHint}
+                      </p>
+                    ) : null}
                     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <Button
                         type="button"
                         variant="outline"
                         className="flex-1"
-                        disabled={
-                          !customerName.trim() ||
-                          !platform ||
-                          !reviewDestinationUrl.trim()
-                        }
+                        disabled={!customerName.trim()}
                         onClick={() => {
                           if (!waPhone) {
                             toast.error(
@@ -443,19 +455,17 @@ export function ReviewDetailSidePane({
                             );
                             return;
                           }
-                          if (
-                            !customerName.trim() ||
-                            !platform ||
-                            !reviewDestinationUrl.trim()
-                          ) {
-                            toast.error(
-                              "Fill customer name and platform, and ensure a review link is shown above.",
-                            );
+                          if (!customerName.trim()) {
+                            toast.error("Enter the customer name first.");
                             return;
                           }
                           openWhatsAppChat(
                             waPhone,
-                            `Dear ${customerName.trim()}, could you please review us on the ${platform} ,${reviewDestinationUrl}.`,
+                            buildAskReviewMessage({
+                              customerName,
+                              platform,
+                              reviewDestinationUrl,
+                            }),
                           );
                         }}
                       >

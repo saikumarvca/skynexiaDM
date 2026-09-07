@@ -15,7 +15,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { MarkSharedFormData } from "@/types/reviews";
-import { openWhatsAppChat, parseWhatsAppDigits } from "@/lib/whatsapp-url";
+import {
+  buildAskReviewMessage,
+  openWhatsAppChat,
+  parseWhatsAppDigits,
+} from "@/lib/whatsapp-url";
 import { resolveClientReviewDestinationsPayload } from "@/lib/infer-review-destination-platform";
 import { CustomerContactInputRow } from "@/components/reviews/customer-contact-input-row";
 
@@ -167,12 +171,19 @@ export function MarkSharedModal({
 
   const waPhone = parseWhatsAppDigits(customerContact);
   const showWaButtons = waPhone !== null;
+  const askReviewHint = !customerName.trim()
+    ? 'Enter the customer name to enable "Ask review on WA".'
+    : !platform
+      ? "Select a platform to include the review link in the WhatsApp message."
+      : !reviewDestinationUrl.trim()
+        ? `No review link saved for ${platform}. The WhatsApp message will be sent without a link.`
+        : "";
   const destinationMissingForSelectedPlatform = Boolean(
     platform &&
-      reviewDestinations.length > 0 &&
-      !reviewDestinations.some(
-        (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
-      ),
+    reviewDestinations.length > 0 &&
+    !reviewDestinations.some(
+      (d) => normalizePlatform(d.platform) === normalizePlatform(platform),
+    ),
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -220,7 +231,9 @@ export function MarkSharedModal({
               Review destination
             </p>
             {isLoadingDestination ? (
-              <p className="text-sm text-muted-foreground">Loading destination...</p>
+              <p className="text-sm text-muted-foreground">
+                Loading destination...
+              </p>
             ) : (
               <div className="space-y-3">
                 {platform ? (
@@ -326,16 +339,17 @@ export function MarkSharedModal({
                 WhatsApp opens in a new tab. Very long messages may be trimmed
                 by WhatsApp.
               </p>
+              {askReviewHint ? (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  {askReviewHint}
+                </p>
+              ) : null}
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1"
-                  disabled={
-                    !customerName.trim() ||
-                    !platform ||
-                    !reviewDestinationUrl.trim()
-                  }
+                  disabled={!customerName.trim()}
                   onClick={() => {
                     if (!waPhone) {
                       toast.error(
@@ -343,19 +357,17 @@ export function MarkSharedModal({
                       );
                       return;
                     }
-                    if (
-                      !customerName.trim() ||
-                      !platform ||
-                      !reviewDestinationUrl.trim()
-                    ) {
-                      toast.error(
-                        "Fill customer name and platform, and ensure a review link is shown above.",
-                      );
+                    if (!customerName.trim()) {
+                      toast.error("Enter the customer name first.");
                       return;
                     }
                     openWhatsAppChat(
                       waPhone,
-                      `Dear ${customerName.trim()}, could you please review us on the ${platform} ,${reviewDestinationUrl}.`,
+                      buildAskReviewMessage({
+                        customerName,
+                        platform,
+                        reviewDestinationUrl,
+                      }),
                     );
                   }}
                 >
