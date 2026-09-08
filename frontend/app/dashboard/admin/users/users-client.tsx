@@ -12,7 +12,11 @@ type UserRow = {
   email: string;
   role: string;
   isActive: boolean;
+  clientId?: string;
+  clientName?: string;
 };
+
+type ClientOption = { _id: string; label: string };
 
 const ROLES = [
   "ADMIN",
@@ -20,7 +24,18 @@ const ROLES = [
   "CONTENT_WRITER",
   "DESIGNER",
   "ANALYST",
+  "CLIENT",
 ] as const;
+
+const ROLE_HINTS: Record<(typeof ROLES)[number], string> = {
+  ADMIN: "Full access to everything.",
+  MANAGER: "Team login; access comes from the team role.",
+  CONTENT_WRITER: "Team login; access comes from the team role.",
+  DESIGNER: "Team login; access comes from the team role.",
+  ANALYST: "Team login; access comes from the team role.",
+  CLIENT:
+    "External client login: sees only the review progress and statistics for one client.",
+};
 
 export function AdminUsersClient({
   initialUsers,
@@ -32,6 +47,9 @@ export function AdminUsersClient({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof ROLES)[number]>("MANAGER");
   const [password, setPassword] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [clients, setClients] = useState<ClientOption[] | null>(null);
+  const [clientsLoading, setClientsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -44,19 +62,64 @@ export function AdminUsersClient({
       (u) =>
         u.name.toLowerCase().includes(s) ||
         u.email.toLowerCase().includes(s) ||
-        u.role.toLowerCase().includes(s),
+        u.role.toLowerCase().includes(s) ||
+        (u.clientName ?? "").toLowerCase().includes(s),
     );
   }, [users, search]);
 
+  async function loadClients() {
+    if (clients !== null || clientsLoading) return;
+    setClientsLoading(true);
+    try {
+      const res = await fetch("/api/clients?limit=500", { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to load clients");
+      const rows = (await res.json()) as {
+        _id: string;
+        name?: string;
+        businessName?: string;
+      }[];
+      const options = rows
+        .map((c) => {
+          const n = (c.name ?? "").trim();
+          const b = (c.businessName ?? "").trim();
+          const label =
+            b && b.toLowerCase() !== n.toLowerCase() ? `${n} — ${b}` : n || b;
+          return { _id: c._id, label };
+        })
+        .sort((a, b) => a.label.localeCompare(b.label));
+      setClients(options);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load clients");
+      setClients([]);
+    } finally {
+      setClientsLoading(false);
+    }
+  }
+
+  function onRoleChange(next: (typeof ROLES)[number]) {
+    setRole(next);
+    if (next === "CLIENT") void loadClients();
+  }
+
   const onCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+    if (role === "CLIENT" && !clientId) {
+      setError("Select the client this login belongs to.");
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, role, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          role,
+          password,
+          clientId: role === "CLIENT" ? clientId : undefined,
+        }),
       });
       const data = (await res.json()) as { error?: string } & Partial<UserRow>;
       if (!res.ok) throw new Error(data.error || "Failed to create user");
@@ -67,6 +130,8 @@ export function AdminUsersClient({
           email: data.email!,
           role: data.role!,
           isActive: data.isActive ?? true,
+          clientId: data.clientId,
+          clientName: data.clientName,
         },
         ...prev,
       ]);
@@ -74,6 +139,7 @@ export function AdminUsersClient({
       setEmail("");
       setRole("MANAGER");
       setPassword("");
+      setClientId("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create user");
     } finally {
@@ -136,7 +202,7 @@ export function AdminUsersClient({
             <select
               value={role}
               onChange={(e) =>
-                setRole(e.target.value as (typeof ROLES)[number])
+                onRoleChange(e.target.value as (typeof ROLES)[number])
               }
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
             >
@@ -146,6 +212,7 @@ export function AdminUsersClient({
                 </option>
               ))}
             </select>
+            <p className="text-xs text-muted-foreground">{ROLE_HINTS[role]}</p>
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium text-muted-foreground">
@@ -158,6 +225,33 @@ export function AdminUsersClient({
               required
             />
           </div>
+
+          {role === "CLIENT" && (
+            <div className="space-y-1 md:col-span-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Client this login belongs to
+              </label>
+              <select
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                required
+                disabled={clientsLoading}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm md:max-w-md"
+              >
+                <option value="">
+                  {clientsLoading ? "Loading clients…" : "Select a client"}
+                </option>
+                {(clients ?? []).map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                The login opens the client portal for this client only.
+              </p>
+            </div>
+          )}
 
           {error && (
             <p className="md:col-span-2 text-sm text-destructive">{error}</p>
@@ -177,7 +271,7 @@ export function AdminUsersClient({
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, email, role…"
+            placeholder="Search name, email, role, client…"
             className="max-w-sm"
           />
         </div>
@@ -203,7 +297,14 @@ export function AdminUsersClient({
                 <tr key={u._id} className="border-t">
                   <td className="px-3 py-2 font-medium">{u.name}</td>
                   <td className="px-3 py-2">{u.email}</td>
-                  <td className="px-3 py-2">{u.role}</td>
+                  <td className="px-3 py-2">
+                    <div>{u.role}</div>
+                    {u.role === "CLIENT" && (
+                      <div className="text-xs text-muted-foreground">
+                        {u.clientName ?? "Not linked to a client"}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-3 py-2">
                     <Badge variant={u.isActive ? "default" : "secondary"}>
                       {u.isActive ? "Active" : "Inactive"}

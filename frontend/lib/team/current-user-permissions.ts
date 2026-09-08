@@ -34,6 +34,17 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
     };
   }
 
+  // External client logins never receive team permissions; they only see the
+  // client portal (enforced by the proxy and the portal layout).
+  if (user.role === "CLIENT") {
+    return {
+      roleName: "Client",
+      permissions: [],
+      agencyId: user.agencyId,
+      agencyKind: user.agencyKind,
+    };
+  }
+
   await dbConnect();
 
   const emailNorm = normalizeEmail(user.email);
@@ -80,4 +91,3 @@ async function loadCurrentUserTeamPermissions(): Promise<CurrentUserTeamPermissi
 export const getCurrentUserTeamPermissions = cache(
   loadCurrentUserTeamPermissions,
 );
-

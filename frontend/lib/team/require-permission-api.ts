@@ -32,6 +32,17 @@ async function loadTeamContextForRequest(req: NextRequest): Promise<{
     };
   }
 
+  // External client logins have no team permissions at all.
+  if (user.role === "CLIENT") {
+    return {
+      perms: [],
+      agencyId: user.agencyId,
+      agencyKind: user.agencyKind,
+      accountType: "MAIN_EMPLOYEE",
+      assignedClientIds: [],
+    };
+  }
+
   await dbConnect();
 
   const emailNorm = normalizeEmail(user.email);

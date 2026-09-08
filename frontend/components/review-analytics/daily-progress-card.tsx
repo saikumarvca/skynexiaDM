@@ -136,6 +136,8 @@ interface DailyProgressCardProps {
   syncUrl?: boolean;
   /** Optional link to the full analytics page (used on the client page). */
   analyticsHref?: string;
+  /** Show the per-team-member filter and table (hidden for external clients). */
+  showMembers?: boolean;
   title?: string;
   description?: string;
 }
@@ -148,6 +150,7 @@ export function DailyProgressCard({
   lockedClient,
   syncUrl = false,
   analyticsHref,
+  showMembers = true,
   title = "Daily review progress",
   description = "Reviews shared with customers and reviews posted, per day.",
 }: DailyProgressCardProps) {
@@ -391,30 +394,32 @@ export function DailyProgressCard({
               </Select>
             </div>
           )}
-          <div className="min-w-[200px]">
-            <label
-              htmlFor="daily-progress-member"
-              className="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              Team member
-            </label>
-            <Select value={effectiveMemberId} onValueChange={setMemberId}>
-              <SelectTrigger
-                id="daily-progress-member"
-                className="h-9 w-full sm:w-[220px]"
+          {showMembers ? (
+            <div className="min-w-[200px]">
+              <label
+                htmlFor="daily-progress-member"
+                className="mb-1 block text-xs font-medium text-muted-foreground"
               >
-                <SelectValue placeholder="All team members" />
-              </SelectTrigger>
-              <SelectContent position="popper" className="max-h-72">
-                <SelectItem value={ALL}>All team members</SelectItem>
-                {members.map((m) => (
-                  <SelectItem key={m.memberId} value={m.memberId}>
-                    {m.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                Team member
+              </label>
+              <Select value={effectiveMemberId} onValueChange={setMemberId}>
+                <SelectTrigger
+                  id="daily-progress-member"
+                  className="h-9 w-full sm:w-[220px]"
+                >
+                  <SelectValue placeholder="All team members" />
+                </SelectTrigger>
+                <SelectContent position="popper" className="max-h-72">
+                  <SelectItem value={ALL}>All team members</SelectItem>
+                  {members.map((m) => (
+                    <SelectItem key={m.memberId} value={m.memberId}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
           <div>
             <label
               htmlFor="daily-progress-from"
@@ -513,6 +518,7 @@ export function DailyProgressCard({
         </div>
 
         {/* By team member */}
+        {showMembers ? (
         <section className="space-y-2" aria-labelledby="daily-progress-members">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3
@@ -657,6 +663,7 @@ export function DailyProgressCard({
             </Table>
           </div>
         </section>
+        ) : null}
 
         {/* By day */}
         <section className="space-y-2" aria-labelledby="daily-progress-days">

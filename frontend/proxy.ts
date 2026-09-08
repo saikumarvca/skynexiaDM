@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
   getSessionCookieName,
-  verifySessionTokenEdge,
+  readSessionTokenEdge,
 } from "@/lib/session-edge";
+
+/** Home of external client logins (role CLIENT). */
+const CLIENT_PORTAL_HOME = "/client-portal";
 
 function isPublicPath(pathname: string) {
   if (pathname === "/login" || pathname === "/favicon.ico") return true;
@@ -17,8 +20,27 @@ function isIntegrationIngestPath(pathname: string) {
   return /^\/api\/integrations\/[^/]+\/ingest$/.test(pathname);
 }
 
+/** Pages an external client login may open; everything else returns to the portal. */
+function isClientAllowedPage(pathname: string) {
+  return (
+    pathname === CLIENT_PORTAL_HOME ||
+    pathname.startsWith(CLIENT_PORTAL_HOME + "/")
+  );
+}
+
+/** APIs an external client login may call; each handler also scopes to the client. */
+function isClientAllowedApi(pathname: string) {
+  return (
+    pathname === "/api/auth/logout" ||
+    pathname === "/api/review-analytics/daily-progress" ||
+    pathname === "/api/settings/password"
+  );
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const secret = process.env.AUTH_SECRET;
+  const token = req.cookies.get(getSessionCookieName())?.value;
 
   if (pathname.startsWith("/api/")) {
     if (
@@ -32,22 +54,29 @@ export async function proxy(req: NextRequest) {
       return NextResponse.next();
     }
 
-    const secret = process.env.AUTH_SECRET;
-    const token = req.cookies.get(getSessionCookieName())?.value;
-    if (secret && token && (await verifySessionTokenEdge(token, secret))) {
-      return NextResponse.next();
+    const session =
+      secret && token ? await readSessionTokenEdge(token, secret) : null;
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.role === "CLIENT" && !isClientAllowedApi(pathname)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return NextResponse.next();
   }
 
   if (isPublicPath(pathname)) return NextResponse.next();
 
-  const token = req.cookies.get(getSessionCookieName())?.value;
-  const secret = process.env.AUTH_SECRET;
-  if (token && secret) {
-    const ok = await verifySessionTokenEdge(token, secret);
-    if (ok) return NextResponse.next();
+  const session =
+    secret && token ? await readSessionTokenEdge(token, secret) : null;
+  if (session) {
+    if (session.role === "CLIENT" && !isClientAllowedPage(pathname)) {
+      const url = req.nextUrl.clone();
+      url.pathname = CLIENT_PORTAL_HOME;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
   }
 
   const url = req.nextUrl.clone();

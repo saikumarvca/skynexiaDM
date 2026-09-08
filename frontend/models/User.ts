@@ -5,7 +5,9 @@ export type UserRole =
   | "MANAGER"
   | "CONTENT_WRITER"
   | "DESIGNER"
-  | "ANALYST";
+  | "ANALYST"
+  /** External client login: confined to the client portal for one client. */
+  | "CLIENT";
 
 export type AgencyKind = "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
 
@@ -15,6 +17,8 @@ export interface IUser extends mongoose.Document {
   role: UserRole;
   agencyId?: mongoose.Types.ObjectId | null;
   agencyKind?: AgencyKind;
+  /** For CLIENT logins: the client whose data this account may see. */
+  clientId?: mongoose.Types.ObjectId | null;
   passwordHash?: string;
   isActive: boolean;
   createdAt: Date;
@@ -27,7 +31,7 @@ const UserSchema: mongoose.Schema = new mongoose.Schema(
     name: { type: String, required: true },
     role: {
       type: String,
-      enum: ["ADMIN", "MANAGER", "CONTENT_WRITER", "DESIGNER", "ANALYST"],
+      enum: ["ADMIN", "MANAGER", "CONTENT_WRITER", "DESIGNER", "ANALYST", "CLIENT"],
       default: "MANAGER",
     },
     agencyId: {
@@ -40,6 +44,11 @@ const UserSchema: mongoose.Schema = new mongoose.Schema(
       enum: ["MAIN_EMPLOYEE", "PARTNER_EMPLOYEE"],
       default: "MAIN_EMPLOYEE",
     },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      default: null,
+    },
     passwordHash: { type: String },
     isActive: { type: Boolean, default: true },
   },
@@ -51,6 +60,7 @@ const UserSchema: mongoose.Schema = new mongoose.Schema(
 // email index is created by unique: true above; avoid duplicate
 UserSchema.index({ role: 1, isActive: 1 });
 UserSchema.index({ agencyId: 1, isActive: 1 });
+UserSchema.index({ clientId: 1 });
 
 const User =
   (mongoose.models.User as mongoose.Model<IUser> | undefined) ||

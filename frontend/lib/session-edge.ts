@@ -9,6 +9,16 @@ export function getSessionCookieName(): string {
   return DM_SESSION_COOKIE_NAME;
 }
 
+/** Claims carried in the signed session token (see createSessionToken). */
+export type EdgeSessionPayload = {
+  uid: string;
+  exp: number;
+  /** Only set for external client logins; lets the proxy confine them. */
+  role?: string;
+  /** Client id for CLIENT logins. */
+  cid?: string;
+};
+
 function base64UrlToBytes(s: string): Uint8Array {
   const padded =
     s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
@@ -45,27 +55,43 @@ function timingSafeEqualString(a: string, b: string): boolean {
   return x === 0;
 }
 
+/**
+ * Verify signature + expiry and return the token claims, or null when the
+ * token is missing, tampered with, or expired (no DB / isActive check).
+ */
+export async function readSessionTokenEdge(
+  token: string,
+  secret: string,
+): Promise<EdgeSessionPayload | null> {
+  const [body, sig] = token.split(".");
+  if (!body || !sig) return null;
+
+  try {
+    const expected = await signBody(body, secret);
+    if (!timingSafeEqualString(sig, expected)) return null;
+
+    const json = new TextDecoder().decode(base64UrlToBytes(body));
+    const parsed = JSON.parse(json) as Partial<EdgeSessionPayload>;
+    if (!parsed?.uid || typeof parsed.exp !== "number") return null;
+    const now = Math.floor(Date.now() / 1000);
+    if (parsed.exp <= now) return null;
+    return {
+      uid: parsed.uid,
+      exp: parsed.exp,
+      role: typeof parsed.role === "string" ? parsed.role : undefined,
+      cid: typeof parsed.cid === "string" ? parsed.cid : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Verify signed session token body + signature + expiry (no DB / isActive check). */
 export async function verifySessionTokenEdge(
   token: string,
   secret: string,
 ): Promise<boolean> {
-  const [body, sig] = token.split(".");
-  if (!body || !sig) return false;
-
-  try {
-    const expected = await signBody(body, secret);
-    if (!timingSafeEqualString(sig, expected)) return false;
-
-    const json = new TextDecoder().decode(base64UrlToBytes(body));
-    const parsed = JSON.parse(json) as { uid?: string; exp?: number };
-    if (!parsed?.uid || typeof parsed.exp !== "number") return false;
-    const now = Math.floor(Date.now() / 1000);
-    if (parsed.exp <= now) return false;
-    return true;
-  } catch {
-    return false;
-  }
+  return (await readSessionTokenEdge(token, secret)) !== null;
 }
 
 /** Returns true if the dm_session cookie is present, signed correctly, and not expired. */

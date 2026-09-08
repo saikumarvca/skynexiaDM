@@ -9,6 +9,7 @@
     "start": "next start --port 3152",
     "seed:user": "node scripts/seed-user.mjs",
     "grant:access": "node scripts/grant-access.mjs",
+    "create:client-user": "node scripts/create-client-user.mjs",
     "lint": "eslint .",
     "check-types": "next typegen && tsc --noEmit"
   },

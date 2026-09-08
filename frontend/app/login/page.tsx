@@ -37,7 +37,10 @@ function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        redirectTo?: string;
+      };
       if (!res.ok) {
         const retryAfterHeader = res.headers.get("Retry-After");
         const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN;
@@ -54,7 +57,7 @@ function LoginForm() {
         }
         throw new Error(data.error || "Login failed");
       }
-      router.replace(nextPath);
+      router.replace(data.redirectTo || nextPath);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

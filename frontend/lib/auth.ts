@@ -14,6 +14,8 @@ export type SessionUser = {
   role: UserRole;
   agencyId?: string;
   agencyKind?: "MAIN_EMPLOYEE" | "PARTNER_EMPLOYEE";
+  /** For CLIENT logins: the client this account is confined to. */
+  clientId?: string;
 };
 
 function requireAuthSecret(): string {
@@ -46,6 +48,10 @@ function sign(input: string) {
 type SessionPayload = {
   uid: string;
   exp: number; // epoch seconds
+  /** Only for CLIENT logins; the edge proxy reads it to confine the session. */
+  role?: "CLIENT";
+  /** Client id for CLIENT logins. */
+  cid?: string;
 };
 
 export function createSessionToken(payload: SessionPayload) {
@@ -105,7 +111,7 @@ export function getSessionCookieName() {
 async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
   await dbConnect();
   const user = await User.findById(userId).select(
-    "_id email name role isActive agencyId agencyKind",
+    "_id email name role isActive agencyId agencyKind clientId",
   );
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
 
@@ -116,6 +122,7 @@ async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
     role: user.role,
     agencyId: user.agencyId?.toString?.(),
     agencyKind: user.agencyKind,
+    clientId: user.clientId?.toString?.(),
   };
 }
 

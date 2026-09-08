@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSessionApi } from "@/lib/require-session-api";
+import { requireUserFromRequest } from "@/lib/auth";
 import { requireAnyPermissionApi } from "@/lib/team/require-permission-api";
 import { resolveUserHierarchyContext } from "@/lib/team/scope-filters";
 import { parseFlexibleDateParam, toDdMmYyyyDisplay } from "@/lib/date-format";
@@ -8,6 +9,7 @@ import {
   DailyProgressScopeError,
   getReviewDailyProgress,
   normalizeDailyProgressRange,
+  type DailyProgressScope,
 } from "@/lib/reviews/daily-progress";
 
 /**
@@ -18,31 +20,60 @@ import {
  *   &dateFrom=yyyy-mm-dd    optional (dd-mm-yyyy also accepted)
  *   &dateTo=yyyy-mm-dd      optional — defaults to today
  *   &format=csv             optional — download the daily table as CSV
+ *
+ * External client logins (role CLIENT) are always pinned to their own client,
+ * cannot filter by team member, and never receive team member names.
  */
 export async function GET(request: NextRequest) {
   try {
     const denied = await requireSessionApi(request);
     if (denied) return denied;
 
-    const authz = await requireAnyPermissionApi(request, [
-      "view_analytics",
-      "manage_reviews",
-      "assign_reviews",
-      "view_reviews",
-    ]);
-    if (authz.denied) return authz.denied;
-
-    const ctx = resolveUserHierarchyContext(authz);
+    const sessionUser = await requireUserFromRequest(request);
+    const isClientLogin = sessionUser.role === "CLIENT";
 
     const { searchParams } = new URL(request.url);
-    const rawClientId = searchParams.get("clientId")?.trim() ?? "";
-    const clientId = rawClientId && rawClientId !== "ALL" ? rawClientId : null;
-    const rawMemberId = searchParams.get("memberId")?.trim() ?? "";
-    const memberId = rawMemberId && rawMemberId !== "ALL" ? rawMemberId : null;
     const range = normalizeDailyProgressRange(
       parseFlexibleDateParam(searchParams.get("dateFrom") ?? undefined),
       parseFlexibleDateParam(searchParams.get("dateTo") ?? undefined),
     );
+
+    let clientId: string | null;
+    let memberId: string | null;
+    let scope: DailyProgressScope;
+
+    if (isClientLogin) {
+      if (!sessionUser.clientId) {
+        return NextResponse.json(
+          { error: "This client login is not linked to a client" },
+          { status: 403 },
+        );
+      }
+      clientId = sessionUser.clientId;
+      memberId = null;
+      // The client id is forced above, so no further scope narrowing applies.
+      scope = { isAdmin: true, accountType: "MAIN_EMPLOYEE", assignedClientIds: [] };
+    } else {
+      const authz = await requireAnyPermissionApi(request, [
+        "view_analytics",
+        "manage_reviews",
+        "assign_reviews",
+        "view_reviews",
+      ]);
+      if (authz.denied) return authz.denied;
+      const ctx = resolveUserHierarchyContext(authz);
+
+      const rawClientId = searchParams.get("clientId")?.trim() ?? "";
+      clientId = rawClientId && rawClientId !== "ALL" ? rawClientId : null;
+      const rawMemberId = searchParams.get("memberId")?.trim() ?? "";
+      memberId = rawMemberId && rawMemberId !== "ALL" ? rawMemberId : null;
+      scope = {
+        isAdmin: ctx.isAdmin,
+        accountType: ctx.accountType,
+        partnerAgencyId: ctx.partnerAgencyId,
+        assignedClientIds: ctx.assignedClientIds,
+      };
+    }
 
     let result;
     try {
@@ -51,12 +82,7 @@ export async function GET(request: NextRequest) {
         memberId,
         from: range.from,
         to: range.to,
-        scope: {
-          isAdmin: ctx.isAdmin,
-          accountType: ctx.accountType,
-          partnerAgencyId: ctx.partnerAgencyId,
-          assignedClientIds: ctx.assignedClientIds,
-        },
+        scope,
       });
     } catch (error) {
       if (error instanceof DailyProgressScopeError) {
@@ -66,6 +92,11 @@ export async function GET(request: NextRequest) {
         );
       }
       throw error;
+    }
+
+    if (isClientLogin) {
+      // Internal team names stay internal.
+      result = { ...result, memberId: null, members: [] };
     }
 
     if (searchParams.get("format") === "csv") {

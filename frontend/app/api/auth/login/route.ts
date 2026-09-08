@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
     const user = await User.findOne({ email }).select(
-      "_id email name role passwordHash isActive",
+      "_id email name role passwordHash isActive clientId",
     );
     if (!user || !user.isActive || !user.passwordHash) {
       return toErrorResponse(
@@ -63,8 +63,27 @@ export async function POST(req: NextRequest) {
         }),
       );
 
+    const isClientLogin = user.role === "CLIENT";
+    const clientId = user.clientId ? user.clientId.toString() : null;
+    if (isClientLogin && !clientId) {
+      return toErrorResponse(
+        new ApiError({
+          status: 403,
+          code: "FORBIDDEN",
+          message:
+            "This client login is not linked to a client yet. Please contact your agency.",
+        }),
+      );
+    }
+
     const exp = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
-    const token = createSessionToken({ uid: user._id.toString(), exp });
+    // Client logins carry a signed role claim so the edge proxy can confine
+    // them to the client portal without a database lookup.
+    const token = createSessionToken(
+      isClientLogin
+        ? { uid: user._id.toString(), exp, role: "CLIENT", cid: clientId! }
+        : { uid: user._id.toString(), exp },
+    );
 
     const res = NextResponse.json({
       user: {
@@ -73,6 +92,7 @@ export async function POST(req: NextRequest) {
         name: user.name,
         role: user.role,
       },
+      redirectTo: isClientLogin ? "/client-portal" : undefined,
     });
     setSessionCookie(res, token);
     return res;
