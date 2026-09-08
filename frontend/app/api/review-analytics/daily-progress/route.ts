@@ -13,6 +13,8 @@ import {
 /**
  * GET /api/review-analytics/daily-progress
  *   ?clientId=<id|ALL>      optional — omit or ALL for every client in scope
+ *   &memberId=<id|ALL>      optional — restrict to one team member (assignee);
+ *                            use UNASSIGNED for allocations without an assignee
  *   &dateFrom=yyyy-mm-dd    optional (dd-mm-yyyy also accepted)
  *   &dateTo=yyyy-mm-dd      optional — defaults to today
  *   &format=csv             optional — download the daily table as CSV
@@ -35,6 +37,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const rawClientId = searchParams.get("clientId")?.trim() ?? "";
     const clientId = rawClientId && rawClientId !== "ALL" ? rawClientId : null;
+    const rawMemberId = searchParams.get("memberId")?.trim() ?? "";
+    const memberId = rawMemberId && rawMemberId !== "ALL" ? rawMemberId : null;
     const range = normalizeDailyProgressRange(
       parseFlexibleDateParam(searchParams.get("dateFrom") ?? undefined),
       parseFlexibleDateParam(searchParams.get("dateTo") ?? undefined),
@@ -44,6 +48,7 @@ export async function GET(request: NextRequest) {
     try {
       result = await getReviewDailyProgress({
         clientId,
+        memberId,
         from: range.from,
         to: range.to,
         scope: {
@@ -71,7 +76,10 @@ export async function GET(request: NextRequest) {
       ]);
       rows.push(["Total", String(result.totals.shared), String(result.totals.posted)]);
       const csv = toCsv(["Date", "Shared with customer", "Posted"], rows);
-      const suffix = clientId ? `-${clientId}` : "";
+      const memberName = memberId ? result.members[0]?.name ?? memberId : "";
+      const suffix =
+        (clientId ? `-${clientId}` : "") +
+        (memberName ? `-${memberName.replace(/[^\w.-]+/g, "_")}` : "");
       return new NextResponse(csv, {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",

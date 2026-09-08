@@ -96,6 +96,8 @@ export default async function ReviewAnalyticsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
   const rawClientId = firstParam(params.clientId)?.trim();
   const clientId = rawClientId && rawClientId !== "ALL" ? rawClientId : undefined;
+  const rawMemberId = firstParam(params.memberId)?.trim();
+  const memberId = rawMemberId && rawMemberId !== "ALL" ? rawMemberId : undefined;
   const range = normalizeDailyProgressRange(
     parseFlexibleDateParam(firstParam(params.dateFrom)),
     parseFlexibleDateParam(firstParam(params.dateTo)),
@@ -123,6 +125,7 @@ export default async function ReviewAnalyticsPage({ searchParams }: PageProps) {
           initialData={dailyProgress}
           clients={clients}
           initialClientId={clientId ?? null}
+          initialMemberId={memberId ?? null}
           syncUrl
         />
 
