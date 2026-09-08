@@ -25,6 +25,8 @@ import { CollapsibleStats } from "@/components/collapsible-stats";
 import { serverFetch } from "@/lib/server-fetch";
 import { GeneratePortalLinkButton } from "@/components/generate-portal-link-button";
 import { ClientPerformanceCharts } from "@/components/clients/client-performance-charts";
+import { DailyProgressCard } from "@/components/review-analytics/daily-progress-card";
+import type { DailyProgressResult } from "@/lib/reviews/daily-progress";
 
 type UsageItem = {
   _id: string;
@@ -117,6 +119,21 @@ async function getClientAnalytics(
   }
 }
 
+async function getClientDailyProgress(
+  clientId: string,
+): Promise<DailyProgressResult | null> {
+  try {
+    const res = await serverFetch(
+      `/api/review-analytics/daily-progress?clientId=${encodeURIComponent(clientId)}`,
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as DailyProgressResult;
+  } catch (error) {
+    console.error("Error fetching client daily review progress:", error);
+    return null;
+  }
+}
+
 interface ClientDetailPageProps {
   params: Promise<{ clientId: string }>;
 }
@@ -127,9 +144,10 @@ export default async function ClientDetailPage({
   const { clientId } = await params;
   const client = await getClient(clientId);
   const stats = await getClientStats(clientId);
-  const [usage, analytics] = await Promise.all([
+  const [usage, analytics, dailyProgress] = await Promise.all([
     getClientUsage(clientId),
     getClientAnalytics(clientId),
+    getClientDailyProgress(clientId),
   ]);
 
   if (!client) {
@@ -251,6 +269,12 @@ export default async function ClientDetailPage({
             <Link href={`/clients/${client._id}/reviews`}>
               <Button variant="outline">View All Reviews</Button>
             </Link>
+
+            <DailyProgressCard
+              initialData={dailyProgress}
+              lockedClient={{ id: String(client._id), name: client.name }}
+              analyticsHref={`/reviews/analytics?clientId=${client._id}`}
+            />
           </TabsContent>
 
           <TabsContent value="usage" className="space-y-4">

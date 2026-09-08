@@ -14,6 +14,8 @@ export default async function AnalyticsSlugPage({
   if (path === "social") {
     return <SocialAnalyticsPage searchParams={searchParams} />;
   }
-  if (path === "reviews") return <ReviewAnalyticsPage />;
+  if (path === "reviews") {
+    return <ReviewAnalyticsPage searchParams={searchParams} />;
+  }
   notFound();
 }

@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search";
 import { MobileDashboardNav } from "@/components/mobile-dashboard-nav";
@@ -52,50 +59,56 @@ export function Header({
       </div>
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         <ThemeToggle />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="hidden h-10 px-3 md:inline-flex"
-          onClick={onLogout}
-        >
-          Logout
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 rounded-full md:hidden"
-          onClick={onLogout}
-          aria-label="Log out"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
         <NotificationBell />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 rounded-full"
-          asChild
-        >
-          <Link href="/settings" aria-label="Settings">
-            <Settings className="h-4 w-4" />
-          </Link>
-        </Button>
-        <Link
-          href="/dashboard"
-          className={cn(
-            "ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground no-underline select-none transition-colors",
-            "hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-            "sm:ml-2",
-          )}
-          title={
-            sessionUser
-              ? `${sessionUser.name} (${sessionUser.email}) — open dashboard home`
-              : "Open dashboard home"
-          }
-          aria-label="Open dashboard home"
-        >
-          {avatar}
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground select-none transition-colors",
+                "hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "data-[state=open]:bg-primary/90 sm:ml-2",
+              )}
+              title={
+                sessionUser
+                  ? `${sessionUser.name} (${sessionUser.email})`
+                  : "Account menu"
+              }
+              aria-label="Open account menu"
+            >
+              {avatar}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            {sessionUser && (
+              <>
+                <DropdownMenuLabel className="font-normal">
+                  <p className="truncate text-sm font-semibold leading-tight">
+                    {sessionUser.name}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {sessionUser.email}
+                  </p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="no-underline">
+                <Settings />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => void onLogout()}
+              className="text-destructive focus:text-destructive"
+            >
+              <LogOut />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
