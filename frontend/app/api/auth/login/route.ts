@@ -6,6 +6,8 @@ import { createSessionToken } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { ApiError, toErrorResponse } from "@/lib/api-errors";
 import { setSessionCookie, SESSION_MAX_AGE_SECONDS } from "@/lib/session-cookie";
+import { CLIENT_HOME_PATH } from "@/lib/client-portal/session";
+import { recordClientPortalAudit } from "@/lib/client-portal/audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,9 +27,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = (await req.json()) as { email?: string; password?: string };
+    const body = (await req.json()) as {
+      email?: string;
+      password?: string;
+      /** "client" when submitted from the client portal sign-in page. */
+      portal?: string;
+    };
     const email = (body.email ?? "").trim().toLowerCase();
     const password = body.password ?? "";
+    const fromClientPortal = body.portal === "client";
 
     if (!email || !password) {
       return toErrorResponse(
@@ -65,6 +73,20 @@ export async function POST(req: NextRequest) {
 
     const isClientLogin = user.role === "CLIENT";
     const clientId = user.clientId ? user.clientId.toString() : null;
+
+    // The client sign-in page only accepts client accounts; team members keep
+    // using /login so an internal session is never created from that page.
+    if (fromClientPortal && !isClientLogin) {
+      return toErrorResponse(
+        new ApiError({
+          status: 403,
+          code: "FORBIDDEN",
+          message:
+            "This sign-in is for client accounts. Team members should use the team sign-in.",
+        }),
+      );
+    }
+
     if (isClientLogin && !clientId) {
       return toErrorResponse(
         new ApiError({
@@ -85,6 +107,15 @@ export async function POST(req: NextRequest) {
         : { uid: user._id.toString(), exp },
     );
 
+    if (isClientLogin) {
+      await recordClientPortalAudit({
+        action: "CLIENT_LOGIN",
+        actor: { userId: user._id.toString(), name: user.name },
+        clientId: clientId!,
+        details: { ip, email: user.email },
+      });
+    }
+
     const res = NextResponse.json({
       user: {
         _id: user._id.toString(),
@@ -92,7 +123,7 @@ export async function POST(req: NextRequest) {
         name: user.name,
         role: user.role,
       },
-      redirectTo: isClientLogin ? "/client-portal" : undefined,
+      redirectTo: isClientLogin ? CLIENT_HOME_PATH : undefined,
     });
     setSessionCookie(res, token);
     return res;

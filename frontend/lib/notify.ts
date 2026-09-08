@@ -1,12 +1,5 @@
 import dbConnect from "@/lib/mongodb";
-import Notification from "@/models/Notification";
-
-type NotificationType =
-  | "TASK_ASSIGNED"
-  | "REVIEW_ASSIGNED"
-  | "CAMPAIGN_UPDATED"
-  | "LEAD_UPDATED"
-  | "SYSTEM";
+import Notification, { type NotificationType } from "@/models/Notification";
 
 export async function createNotification(opts: {
   userId: string;
@@ -14,6 +7,8 @@ export async function createNotification(opts: {
   title: string;
   message: string;
   href?: string;
+  /** For notifications addressed to a client login. */
+  clientId?: string;
 }): Promise<void> {
   try {
     await dbConnect();

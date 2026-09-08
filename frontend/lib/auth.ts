@@ -45,13 +45,21 @@ function sign(input: string) {
   );
 }
 
-type SessionPayload = {
+export const CLIENT_PREVIEW_TOKEN_TYPE = "client_preview" as const;
+
+export type SessionPayload = {
   uid: string;
   exp: number; // epoch seconds
   /** Only for CLIENT logins; the edge proxy reads it to confine the session. */
   role?: "CLIENT";
-  /** Client id for CLIENT logins. */
+  /** Client id for CLIENT logins (and for client-portal preview tokens). */
   cid?: string;
+  /**
+   * Token kind. Absent for normal sessions. "client_preview" marks a token
+   * that lets an internal user look at the client portal as one client; such
+   * tokens are never accepted as a user session.
+   */
+  typ?: typeof CLIENT_PREVIEW_TOKEN_TYPE;
 };
 
 export function createSessionToken(payload: SessionPayload) {
@@ -108,6 +116,13 @@ export function getSessionCookieName() {
   return DM_SESSION_COOKIE_NAME;
 }
 
+/** A preview token is not a login; only plain session tokens identify a user. */
+function readUserSessionPayload(token: string): SessionPayload {
+  const payload = verifySessionToken(token);
+  if (!payload || payload.typ) throw new Error("UNAUTHENTICATED");
+  return payload;
+}
+
 async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
   await dbConnect();
   const user = await User.findById(userId).select(
@@ -131,8 +146,7 @@ export async function requireUserFromRequest(
 ): Promise<SessionUser> {
   const token = getSessionTokenFromRequest(req);
   if (!token) throw new Error("UNAUTHENTICATED");
-  const payload = verifySessionToken(token);
-  if (!payload) throw new Error("UNAUTHENTICATED");
+  const payload = readUserSessionPayload(token);
   return loadActiveSessionUserById(payload.uid);
 }
 
@@ -141,16 +155,14 @@ export async function requireUserFromCookieHeader(
 ): Promise<SessionUser> {
   const token = getSessionTokenFromCookieHeader(cookieHeader);
   if (!token) throw new Error("UNAUTHENTICATED");
-  const payload = verifySessionToken(token);
-  if (!payload) throw new Error("UNAUTHENTICATED");
+  const payload = readUserSessionPayload(token);
   return loadActiveSessionUserById(payload.uid);
 }
 
 export async function requireUser(): Promise<SessionUser> {
   const token = await getSessionTokenFromCookies();
   if (!token) throw new Error("UNAUTHENTICATED");
-  const payload = verifySessionToken(token);
-  if (!payload) throw new Error("UNAUTHENTICATED");
+  const payload = readUserSessionPayload(token);
   return loadActiveSessionUserById(payload.uid);
 }
 
@@ -159,4 +171,32 @@ export const getCachedUser = cache(requireUser);
 
 export function assertAdmin(user: SessionUser) {
   if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
+}
+
+/** Lifetime of a client-portal preview cookie. */
+export const CLIENT_PREVIEW_MAX_AGE_SECONDS = 60 * 60; // 1 hour
+
+/**
+ * Signed, short-lived token that lets the internal user `uid` browse the
+ * client portal as client `cid`. It reuses the session HMAC but carries
+ * `typ: "client_preview"`, so `requireUser*` never treat it as a login.
+ */
+export function createClientPreviewToken(params: { uid: string; cid: string }) {
+  const exp = Math.floor(Date.now() / 1000) + CLIENT_PREVIEW_MAX_AGE_SECONDS;
+  return createSessionToken({
+    uid: params.uid,
+    cid: params.cid,
+    exp,
+    role: "CLIENT",
+    typ: CLIENT_PREVIEW_TOKEN_TYPE,
+  });
+}
+
+export function verifyClientPreviewToken(
+  token: string,
+): { uid: string; cid: string; exp: number } | null {
+  const payload = verifySessionToken(token);
+  if (!payload || payload.typ !== CLIENT_PREVIEW_TOKEN_TYPE) return null;
+  if (!payload.cid) return null;
+  return { uid: payload.uid, cid: payload.cid, exp: payload.exp };
 }

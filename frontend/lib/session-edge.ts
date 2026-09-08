@@ -17,7 +17,11 @@ export type EdgeSessionPayload = {
   role?: string;
   /** Client id for CLIENT logins. */
   cid?: string;
+  /** Token kind; "client_preview" tokens are not user sessions. */
+  typ?: string;
 };
+
+export const EDGE_CLIENT_PREVIEW_TOKEN_TYPE = "client_preview";
 
 function base64UrlToBytes(s: string): Uint8Array {
   const padded =
@@ -80,10 +84,36 @@ export async function readSessionTokenEdge(
       exp: parsed.exp,
       role: typeof parsed.role === "string" ? parsed.role : undefined,
       cid: typeof parsed.cid === "string" ? parsed.cid : undefined,
+      typ: typeof parsed.typ === "string" ? parsed.typ : undefined,
     };
   } catch {
     return null;
   }
+}
+
+/**
+ * Like readSessionTokenEdge but only returns plain user sessions (preview
+ * tokens are rejected).
+ */
+export async function readUserSessionEdge(
+  token: string,
+  secret: string,
+): Promise<EdgeSessionPayload | null> {
+  const payload = await readSessionTokenEdge(token, secret);
+  if (!payload || payload.typ) return null;
+  return payload;
+}
+
+/** Returns the claims of a valid client-portal preview token, or null. */
+export async function readClientPreviewEdge(
+  token: string,
+  secret: string,
+): Promise<{ uid: string; cid: string } | null> {
+  const payload = await readSessionTokenEdge(token, secret);
+  if (!payload || payload.typ !== EDGE_CLIENT_PREVIEW_TOKEN_TYPE || !payload.cid) {
+    return null;
+  }
+  return { uid: payload.uid, cid: payload.cid };
 }
 
 /** Verify signed session token body + signature + expiry (no DB / isActive check). */
@@ -104,5 +134,5 @@ export async function verifySessionCookie(
   const token = request.cookies.get(DM_SESSION_COOKIE_NAME)?.value;
   if (!token) return false;
 
-  return verifySessionTokenEdge(token, secret);
+  return (await readUserSessionEdge(token, secret)) !== null;
 }

@@ -17,7 +17,7 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // External client logins only get the client portal.
-  if (user.role === "CLIENT") redirect("/client-portal");
+  if (user.role === "CLIENT") redirect("/client/dashboard");
 
   const isAdmin = user.role === "ADMIN";
   const sessionUser = { name: user.name, email: user.email };

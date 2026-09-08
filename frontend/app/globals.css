@@ -371,3 +371,28 @@
     background-color: hsl(var(--muted-foreground) / 0.42);
   }
 }
+
+/* ─── Client portal chart series (validated for CVD + contrast, light and dark) ── */
+@layer base {
+  :root {
+    --viz-total: #2563eb;
+    --viz-posted: #16a34a;
+    --viz-shared: #7c3aed;
+    --viz-progress: #d97706;
+    --viz-drafts: #0284c7;
+  }
+  .dark,
+  [data-theme="dark"],
+  [data-theme="midnight"],
+  [data-theme="dracula"],
+  [data-theme="forest"],
+  [data-theme="sunset"],
+  [data-theme="ocean"],
+  [data-theme="rose"] {
+    --viz-total: #3b82f6;
+    --viz-posted: #16a34a;
+    --viz-shared: #8b5cf6;
+    --viz-progress: #d97706;
+    --viz-drafts: #0891b2;
+  }
+}
