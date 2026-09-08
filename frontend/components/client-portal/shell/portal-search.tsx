@@ -23,10 +23,7 @@ export function PortalSearch({ className }: { className?: string }) {
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setResult(null);
-      return;
-    }
+    if (q.length < 2) return;
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
       setLoading(true);
@@ -62,8 +59,11 @@ export function PortalSearch({ className }: { className?: string }) {
     router.push(hit.href);
   };
 
+  // Results only count while they match the current query.
+  const activeResult = result && result.query === query.trim() ? result : null;
   const hasResults =
-    !!result && (result.reviews.length + result.updates.length + result.activity.length > 0);
+    !!activeResult &&
+    activeResult.reviews.length + activeResult.updates.length + activeResult.activity.length > 0;
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -86,8 +86,9 @@ export function PortalSearch({ className }: { className?: string }) {
           onFocus={() => setOpen(true)}
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
-            if (e.key === "Enter" && result) {
-              const first = result.reviews[0] ?? result.updates[0] ?? result.activity[0];
+            if (e.key === "Enter" && activeResult) {
+              const first =
+                activeResult.reviews[0] ?? activeResult.updates[0] ?? activeResult.activity[0];
               if (first) go(first);
             }
           }}
@@ -114,7 +115,7 @@ export function PortalSearch({ className }: { className?: string }) {
             </p>
           ) : null}
           {GROUPS.map((g) => {
-            const hits = result?.[g.key] ?? [];
+            const hits = activeResult?.[g.key] ?? [];
             if (hits.length === 0) return null;
             const Icon = g.icon;
             return (

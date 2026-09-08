@@ -41,15 +41,13 @@ export function DonutChart({
   const [active, setActive] = useState<string | null>(null);
   const cx = SIZE / 2;
   const cy = SIZE / 2;
-  let angle = 0;
-  const arcs = slices
-    .filter((s) => s.count > 0)
-    .map((s) => {
-      const span = total > 0 ? (s.count / total) * 360 : 0;
-      const start = angle;
-      angle += span;
-      return { ...s, start, end: angle };
-    });
+  const arcs: (DonutSlice & { start: number; end: number })[] = [];
+  for (const s of slices) {
+    if (s.count <= 0) continue;
+    const span = total > 0 ? (s.count / total) * 360 : 0;
+    const start = arcs.length > 0 ? arcs[arcs.length - 1]!.end : 0;
+    arcs.push({ ...s, start, end: start + span });
+  }
   const activeSlice = slices.find((s) => s.key === active) ?? null;
 
   return (

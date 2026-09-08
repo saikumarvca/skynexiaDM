@@ -1551,3 +1551,71 @@ The partner-agency hierarchy has now been implemented in the main app with addit
   2. Build context with `resolveUserHierarchyContext(authz)`
   3. Pick the matching scope builder for the module
   4. Merge route predicates with `andFilters(baseQuery, scopeFilter)`
+
+---
+
+## 17. Client User Portal (`/client`)
+
+An authenticated, read-mostly portal where one client (for example **VR Filings**) sees only its own review progress, activity, updates and notifications. It is additive: internal users, partner agencies, the token-based `/portal/[token]` pages and every existing API keep working unchanged.
+
+### Accounts and sessions
+
+| Concept | Implementation |
+|---------|----------------|
+| Client account | `User.role = "CLIENT"` with `User.clientId` pointing at exactly one `Client._id`. No `TeamMember`/`TeamRole` is ever consulted for CLIENT users (they get zero internal permissions). |
+| Sign-in | `/client/login` posts to `POST /api/auth/login` with `portal: "client"`; internal accounts are refused there (403). A CLIENT login at `/login` is redirected to `/client/dashboard`. Client logins are written to the admin audit log (`TeamActivityLog`, module `client-portal`). |
+| Session | The normal `dm_session` cookie carries a signed `role: "CLIENT"` + `cid` claim; the edge proxy confines such sessions to `/client/*` and `/api/client/*` (403 elsewhere) and confines internal sessions away from `/api/client/*`. |
+| Server helpers | `lib/client-portal/session.ts` — `requireClientSession()` (pages), `requireClientSessionApi(req)` (routes), `getCurrentClientContext()` (cached). The context is `{ userId, email, name, clientId, clientName, businessName, brandName, client, isPreview }` and the `clientId` always comes from the user record, never from the URL or body. |
+| Admin preview | `POST /api/clients/[clientId]/portal/preview` (ADMIN or `manage_clients`) sets a separate 1-hour `dm_client_preview` cookie (`typ: "client_preview"`). Preview tokens are never accepted as a login (`requireUser*` reject them); the previewing user keeps their own session, sees a "Preview mode" banner, and every mutation returns `403 PREVIEW_READ_ONLY`. Start/end are audited. |
+
+### Client-facing routes and APIs
+
+| Page | API | Notes |
+|------|-----|-------|
+| `/client/dashboard` | `GET /api/client/dashboard?range=7d\|30d\|90d\|month\|prev_month\|custom&from&to` | KPI cards (current totals + new-in-period vs previous period), daily status trend, status donut, recent activity, momentum highlight. |
+| `/client/reviews`, `/client/reviews/[id]` | `GET /api/client/reviews?status&platform&search&range&page&pageSize`, `GET /api/client/reviews/[id]` | A "review" row is a customer allocation (`ReviewAllocation`) or an unallocated draft. Cross-client ids return 404. |
+| `/client/review-analytics` | `GET /api/client/review-analytics` | Average rating / positive % (from posted reviews only), by rating, by platform, status trend, month-over-month and shared→posted lead time. |
+| `/client/change-log` | `GET /api/client/change-log?category&role&range&search&page&pageSize` | Only `ClientEvent` rows with `visibility: "CLIENT_VISIBLE"`. |
+| `/client/updates` | `GET /api/client/updates`, `POST /api/client/updates/[id]/read` | Published `ClientUpdate` rows with per-login read state. |
+| `/client/notifications` (+ bell) | `GET /api/client/notifications`, `GET …/unread-count`, `POST …/[id]/read`, `POST …/read-all` | `Notification` rows carrying `clientId`; fanned out to every active CLIENT login of the client. |
+| `/client/profile` | `GET /api/client/profile`, `POST /api/client/profile/password` | Password change is audited and disabled in preview. |
+| header search | `GET /api/client/search?q=` | Reviews, updates and activity of the client only. |
+
+All list endpoints are server-side paginated (`page`, `pageSize`, max 100) and return explicit DTOs from `lib/client-portal/dto.ts` — never raw documents, notes, team identifiers or secrets.
+
+### Client-visible events (change log)
+
+`models/ClientEvent.ts` is the normalised, client-scoped feed:
+
+```ts
+{ clientId, entityType, entityId?, action, title, description,
+  actorUserId?, actorName?, actorRole: EMPLOYEE|DEVELOPER|AGENT|ADMIN|SYSTEM,
+  visibility: INTERNAL|CLIENT_VISIBLE, category: REVIEW|DATA|FEATURE|SYSTEM,
+  source: REVIEW_ACTIVITY|CLIENT_UPDATE|MANUAL|SYSTEM, sourceLogId?, relatedReviewId?, occurredAt }
+```
+
+- `lib/review-activity.ts` (the single `logActivity` helper used by all review routes) now also maps each `ReviewActivityLog` row into client events through `lib/client-portal/events.ts`, which resolves the owning client (draft → allocation → posted review), resolves the actor role from the `performedBy` name (`lib/client-portal/actors.ts`), and decides a default visibility: business progress (created, assigned, shared, posted, reassigned, customer details corrected, recycled, archived) is `CLIENT_VISIBLE`; notes-only edits, duplicates, cancellations and internal fields are `INTERNAL`. Descriptions never include team member names, notes or another client.
+- Staff control: `/clients/[clientId]/portal` (button **Client Portal** on the client page) lets admins / `manage_clients` users preview the portal, publish updates with a **Visible to client** checkbox, flip the visibility of any event, list client logins and run **Sync review history**. APIs live under `/api/clients/[clientId]/portal/*`; every change is audited in `TeamActivityLog`.
+- Backfill: `POST /api/admin/client-events/backfill` (ADMIN) or `pnpm backfill:client-events` (signs in and calls it) maps historical activity idempotently (`sourceLogId` + client unique index).
+- Milestones: every 10th posted review records a `MILESTONE` event and notification.
+
+Indexes added: `clientevents {clientId, visibility, occurredAt}`, `{clientId, relatedReviewId, occurredAt}`, unique `{sourceLogId, clientId}`; `clientupdates {clientId, isPublished, isDeleted, publishedAt}`; `notifications {clientId, createdAt}`.
+
+### Bootstrapping VR Filings
+
+```bash
+# Creates/updates client@vrfilings.in linked to the existing "VR Filings" Client._id.
+# Fails if the client is missing or ambiguous; never creates a client; only a bcrypt hash is stored.
+VR_CLIENT_PASSWORD='<initial password>' pnpm seed:vr-filings-client
+# optional: VR_CLIENT_ID=<id> to pin the client, VR_CLIENT_EMAIL / VR_CLIENT_NAME to override
+```
+
+Optional env for the sidebar "Contact Support" card: `CLIENT_PORTAL_SUPPORT_EMAIL`, `CLIENT_PORTAL_SUPPORT_PHONE`, `CLIENT_PORTAL_SUPPORT_NAME`.
+
+### Tests
+
+```bash
+pnpm test:client-portal
+```
+
+`tests/client-portal/run.mjs` seeds an isolated database (`<db>_client_portal_test`), starts the app on port 3199 against it (`next start` if a build exists, otherwise `next dev`), and runs the `node:test` suites: authentication, cross-client isolation (Client A vs Client B by ids in URLs and query strings), internal-route permissions, INTERNAL vs CLIENT_VISIBLE event mapping (including a live `mark-shared` flowing into the client feed and notifications), and admin preview authorisation/auditing.

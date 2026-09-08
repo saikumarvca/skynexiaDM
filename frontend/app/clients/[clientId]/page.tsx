@@ -24,6 +24,7 @@ import { CollapsibleClientInfo } from "@/components/collapsible-client-info";
 import { CollapsibleStats } from "@/components/collapsible-stats";
 import { serverFetch } from "@/lib/server-fetch";
 import { GeneratePortalLinkButton } from "@/components/generate-portal-link-button";
+import { MonitorSmartphone } from "lucide-react";
 import { ClientPerformanceCharts } from "@/components/clients/client-performance-charts";
 import { DailyProgressCard } from "@/components/review-analytics/daily-progress-card";
 import type { DailyProgressResult } from "@/lib/reviews/daily-progress";
@@ -186,6 +187,12 @@ export default async function ClientDetailPage({
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <StatusBadge status={client.status} />
             <GeneratePortalLinkButton clientId={String(client._id)} />
+            <Link href={`/clients/${client._id}/portal`}>
+              <Button variant="outline">
+                <MonitorSmartphone className="mr-2 h-4 w-4" />
+                Client Portal
+              </Button>
+            </Link>
             <Link href={`/api/export/client-data?clientId=${client._id}`}>
               <Button variant="outline">
                 <Download className="mr-2 h-4 w-4" />

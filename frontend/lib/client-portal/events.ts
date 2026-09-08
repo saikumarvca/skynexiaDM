@@ -187,13 +187,22 @@ function str(v: unknown): string {
   return "";
 }
 
+/**
+ * Extract an id from a string, an ObjectId, or a populated document
+ * (`{ _id, ... }`). ObjectId instances are checked first because mongoose
+ * gives them a self-referencing `_id` getter.
+ */
 function refId(v: unknown): string | null {
   if (!v) return null;
   if (typeof v === "string") return mongoose.isValidObjectId(v) ? v : null;
+  if (v instanceof mongoose.Types.ObjectId) return v.toString();
   if (typeof v === "object") {
-    const o = v as { _id?: unknown; toString?: () => string };
-    if (o._id != null) return refId(o._id);
-    if (v instanceof mongoose.Types.ObjectId) return v.toString();
+    const o = v as { _id?: unknown; toHexString?: () => string; toString?: () => string };
+    if (typeof o.toHexString === "function") {
+      const hex = o.toHexString();
+      return mongoose.isValidObjectId(hex) ? hex : null;
+    }
+    if (o._id != null && o._id !== v) return refId(o._id);
     const s = o.toString?.();
     return s && mongoose.isValidObjectId(s) ? s : null;
   }

@@ -125,7 +125,16 @@ function buildKpis(
   const allocationsPrev = count((r) => r.kind === "allocation" && prev(r.createdAtDate));
 
   return [
-    kpi("total", "Total Reviews", rows.length, draftsCreatedCur + allocationsCur, draftsCreatedPrev + allocationsPrev),
+    // "New" total reviews = rows that started in the period (an allocation, or a
+    // draft that is still unallocated), so a draft allocated in the same period
+    // is counted once.
+    kpi(
+      "total",
+      "Total Reviews",
+      rows.length,
+      count((r) => cur(r.createdAtDate)),
+      count((r) => prev(r.createdAtDate)),
+    ),
     kpi(
       "posted",
       "Posted Reviews",

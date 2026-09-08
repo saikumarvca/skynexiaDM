@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/mongodb";
 
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const MAX_ATTEMPTS = 10;
+/** Login attempts per IP per window; overridable for automated test runs. */
+const MAX_ATTEMPTS = (() => {
+  const raw = Number.parseInt(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? "", 10);
+  return Number.isFinite(raw) && raw > 0 ? raw : 10;
+})();
 
 type RateLimitResult = { allowed: boolean; retryAfter?: number };
 

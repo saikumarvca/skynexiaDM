@@ -10,6 +10,9 @@
     "seed:user": "node scripts/seed-user.mjs",
     "grant:access": "node scripts/grant-access.mjs",
     "create:client-user": "node scripts/create-client-user.mjs",
+    "seed:vr-filings-client": "node scripts/seed-vr-filings-client.mjs",
+    "backfill:client-events": "node scripts/backfill-client-events.mjs",
+    "test:client-portal": "node tests/client-portal/run.mjs",
     "lint": "eslint .",
     "check-types": "next typegen && tsc --noEmit"
   },

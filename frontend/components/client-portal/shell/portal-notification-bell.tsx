@@ -56,9 +56,10 @@ export function PortalNotificationBell({
     };
   }, [fetchUnread]);
 
-  useEffect(() => {
-    if (open) void fetchItems();
-  }, [open, fetchItems]);
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) void fetchItems();
+  };
 
   const markRead = async (n: ClientNotificationItem) => {
     if (!n.isRead && !readOnly) {
@@ -90,7 +91,7 @@ export function PortalNotificationBell({
   const badge = unread > 99 ? "99+" : unread > 0 ? String(unread) : null;
 
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>
         <Button
           variant="ghost"

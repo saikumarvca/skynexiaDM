@@ -99,8 +99,12 @@ export function ReviewFilters({
   const searchParams = useSearchParams();
   const [q, setQ] = useState(search);
   const [showFilters, setShowFilters] = useState(!!platform || range !== "all");
-
-  useEffect(() => setQ(search), [search]);
+  // Keep the input in sync when the URL changes from elsewhere (e.g. Clear).
+  const [syncedSearch, setSyncedSearch] = useState(search);
+  if (search !== syncedSearch) {
+    setSyncedSearch(search);
+    setQ(search);
+  }
 
   const setParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());

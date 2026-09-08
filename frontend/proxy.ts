@@ -53,10 +53,20 @@ export async function proxy(req: NextRequest) {
 
   const readSession = async () =>
     secret && token ? await readUserSessionEdge(token, secret) : null;
-  const readPreview = async () =>
-    secret && previewToken
-      ? await readClientPreviewEdge(previewToken, secret)
-      : null;
+  /**
+   * A preview cookie only counts next to the internal session that created
+   * it (same uid, not a CLIENT login); see lib/client-portal/session.ts.
+   */
+  const readPreview = async () => {
+    if (!secret || !previewToken) return null;
+    const [session, preview] = await Promise.all([
+      readSession(),
+      readClientPreviewEdge(previewToken, secret),
+    ]);
+    if (!session || !preview) return null;
+    if (session.role === "CLIENT" || session.uid !== preview.uid) return null;
+    return preview;
+  };
 
   if (pathname.startsWith("/api/")) {
     if (

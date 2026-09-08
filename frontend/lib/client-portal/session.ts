@@ -40,11 +40,9 @@ export const CLIENT_LOGIN_PATH = "/client/login";
 export const CLIENT_HOME_PATH = "/client/dashboard";
 
 async function resolveFromPreview(
-  previewToken: string | undefined,
+  claims: { uid: string; cid: string },
 ): Promise<ClientContext | null> {
-  if (!previewToken) return null;
-  const claims = verifyClientPreviewToken(previewToken);
-  if (!claims || !mongoose.isValidObjectId(claims.uid)) return null;
+  if (!mongoose.isValidObjectId(claims.uid)) return null;
 
   await dbConnect();
   const actor = await User.findById(claims.uid)
@@ -110,14 +108,30 @@ async function resolveFromSession(
   };
 }
 
+/**
+ * A preview cookie is only honoured next to the internal session that created
+ * it (same uid, not a CLIENT login). A client login therefore always resolves
+ * to its own client, whatever other cookies the browser carries.
+ */
 async function resolveClientContext(
   sessionToken: string | undefined,
   previewToken: string | undefined,
 ): Promise<ClientContext | null> {
-  return (
-    (await resolveFromPreview(previewToken)) ??
-    (await resolveFromSession(sessionToken))
-  );
+  if (previewToken && sessionToken) {
+    const claims = verifyClientPreviewToken(previewToken);
+    const session = verifySessionToken(sessionToken);
+    if (
+      claims &&
+      session &&
+      !session.typ &&
+      session.role !== "CLIENT" &&
+      session.uid === claims.uid
+    ) {
+      const ctx = await resolveFromPreview(claims);
+      if (ctx) return ctx;
+    }
+  }
+  return resolveFromSession(sessionToken);
 }
 
 async function loadClientContextFromCookies(): Promise<ClientContext | null> {
