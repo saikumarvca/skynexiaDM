@@ -26,7 +26,12 @@ function arc(cx: number, cy: number, r: number, start: number, end: number) {
   return `M${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)}`;
 }
 
-/** Donut with the total in the centre and a legend listing count and share. */
+/**
+ * Donut with the total in the centre and a legend listing count and share.
+ * The legend sits beside the donut when the container is wide enough for a
+ * full row (label, count, share) and wraps below it otherwise, so it never
+ * overflows a narrow card.
+ */
 export function DonutChart({
   slices,
   total,
@@ -51,7 +56,7 @@ export function DonutChart({
   const activeSlice = slices.find((s) => s.key === active) ?? null;
 
   return (
-    <div className={cn("flex flex-col items-center gap-5 sm:flex-row sm:items-center", className)}>
+    <div className={cn("flex flex-wrap items-center justify-center gap-x-6 gap-y-5", className)}>
       <div className="relative shrink-0">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -104,7 +109,7 @@ export function DonutChart({
           </span>
         </div>
       </div>
-      <ul className="w-full space-y-2.5 text-sm">
+      <ul className="min-w-0 grow basis-[200px] space-y-2.5 text-sm">
         {slices.map((s) => (
           <li
             key={s.key}
@@ -119,7 +124,7 @@ export function DonutChart({
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} aria-hidden />
               {s.label}
             </span>
-            <span className="tabular-nums text-muted-foreground">
+            <span className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">
               <span className="font-semibold text-foreground">{s.count}</span> ({s.pct}%)
             </span>
           </li>

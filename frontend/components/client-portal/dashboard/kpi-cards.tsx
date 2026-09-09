@@ -11,6 +11,20 @@ const KPI_STYLE: Record<ClientKpi["key"], { icon: LucideIcon; tile: string }> = 
   drafts: { icon: FileText, tile: "bg-sky-500/12 text-sky-700 dark:text-sky-400" },
 };
 
+/**
+ * What the period count of each KPI means. The headline is the current
+ * count, while the period figure is a flow ("120 started in last 30 days"),
+ * so a card can read "0 Drafts" next to "120 drafted" once every draft has
+ * moved on.
+ */
+const KPI_PERIOD_VERB: Record<ClientKpi["key"], string> = {
+  total: "new",
+  posted: "posted",
+  shared: "shared",
+  inProgress: "started",
+  drafts: "drafted",
+};
+
 export function KpiCard({ kpi, periodLabel }: { kpi: ClientKpi; periodLabel: string }) {
   const { icon: Icon, tile } = KPI_STYLE[kpi.key];
   const delta = kpi.periodValue - kpi.previousPeriodValue;
@@ -35,13 +49,16 @@ export function KpiCard({ kpi, periodLabel }: { kpi: ClientKpi; periodLabel: str
       </span>
       <p className="mt-4 text-[28px] font-bold leading-none tabular-nums tracking-tight">{kpi.value}</p>
       <p className="mt-1.5 text-[15px] text-muted-foreground">{kpi.label}</p>
-      <p className="mt-3 flex items-center gap-1.5 text-xs">
-        <Trend className={cn("h-3.5 w-3.5", trendColor)} aria-hidden />
-        <span className={cn("font-semibold", trendColor)}>{pct}</span>
-        <span className="text-muted-foreground">
-          vs previous · {kpi.periodValue} new {periodLabel}
-        </span>
-      </p>
+      <div className="mt-3 text-xs">
+        <p className="flex items-center gap-1.5">
+          <Trend className={cn("h-3.5 w-3.5 shrink-0", trendColor)} aria-hidden />
+          <span className={cn("font-semibold", trendColor)}>{pct}</span>
+          <span className="text-muted-foreground">vs previous period</span>
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          {kpi.periodValue} {KPI_PERIOD_VERB[kpi.key]} {periodLabel}
+        </p>
+      </div>
     </div>
   );
 }
