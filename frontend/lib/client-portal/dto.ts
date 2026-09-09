@@ -195,6 +195,14 @@ export const PORTAL_CATEGORY_LABEL: Record<ClientEventCategory, string> = {
   SYSTEM: "System",
 };
 
+/**
+ * Filter options of the client change log. They live here, not in
+ * change-log.ts, because the filter UI is a client component and that module
+ * loads mongoose; importing it from the browser bundle crashes at load.
+ */
+export const CHANGE_LOG_CATEGORIES: ClientEventCategory[] = ["FEATURE", "DATA", "REVIEW", "SYSTEM"];
+export const CHANGE_LOG_ROLES: ClientEventActorRole[] = ["EMPLOYEE", "DEVELOPER", "AGENT", "ADMIN", "SYSTEM"];
+
 export const PORTAL_UPDATE_CATEGORY_LABEL: Record<ClientUpdateCategory, string> = {
   ANNOUNCEMENT: "Announcement",
   PROGRESS: "Progress",

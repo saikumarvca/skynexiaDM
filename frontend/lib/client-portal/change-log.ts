@@ -1,3 +1,4 @@
+import "server-only";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import ClientEvent, {
@@ -5,10 +6,13 @@ import ClientEvent, {
   type ClientEventCategory,
 } from "@/models/ClientEvent";
 import { toActivityItem } from "@/lib/client-portal/analytics";
-import { paginate, type ClientActivityItem, type Paginated } from "@/lib/client-portal/dto";
-
-export const CHANGE_LOG_CATEGORIES: ClientEventCategory[] = ["FEATURE", "DATA", "REVIEW", "SYSTEM"];
-export const CHANGE_LOG_ROLES: ClientEventActorRole[] = ["EMPLOYEE", "DEVELOPER", "AGENT", "ADMIN", "SYSTEM"];
+import {
+  CHANGE_LOG_CATEGORIES,
+  CHANGE_LOG_ROLES,
+  paginate,
+  type ClientActivityItem,
+  type Paginated,
+} from "@/lib/client-portal/dto";
 
 export type ChangeLogQuery = {
   category?: string | null;

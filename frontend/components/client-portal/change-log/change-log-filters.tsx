@@ -11,8 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/client-portal/ui/date-range-picker";
-import { PORTAL_ACTOR_ROLE_LABEL } from "@/lib/client-portal/dto";
-import { CHANGE_LOG_ROLES } from "@/lib/client-portal/change-log";
+import { CHANGE_LOG_ROLES, PORTAL_ACTOR_ROLE_LABEL } from "@/lib/client-portal/dto";
 
 const ALL = "ALL";
 
