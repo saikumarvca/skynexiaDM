@@ -5,10 +5,11 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { DM_SESSION_COOKIE_NAME } from "@/lib/session-cookie-name";
 import type { UserRole } from "@/models/User";
-import { verifySessionToken, type SessionPayload } from "@/lib/session-token";
+import { isSessionRevoked, verifySessionToken, type SessionPayload } from "@/lib/session-token";
 
 // Token signing lives in lib/session-token.ts (no Next/DB imports, unit-tested).
 export {
+  isSessionRevoked,
   CLIENT_PREVIEW_MAX_AGE_SECONDS,
   CLIENT_PREVIEW_TOKEN_TYPE,
   createClientPreviewToken,
@@ -63,12 +64,13 @@ function readUserSessionPayload(token: string): SessionPayload {
   return payload;
 }
 
-async function loadActiveSessionUserById(userId: string): Promise<SessionUser> {
+async function loadActiveSessionUser(payload: SessionPayload): Promise<SessionUser> {
   await dbConnect();
-  const user = await User.findById(userId).select(
-    "_id email name role isActive agencyId agencyKind clientId",
+  const user = await User.findById(payload.uid).select(
+    "_id email name role isActive agencyId agencyKind clientId sessionsRevokedAt",
   );
   if (!user || !user.isActive) throw new Error("UNAUTHENTICATED");
+  if (isSessionRevoked(payload, user.sessionsRevokedAt)) throw new Error("UNAUTHENTICATED");
 
   return {
     userId: user._id.toString(),
@@ -87,7 +89,7 @@ export async function requireUserFromRequest(
   const token = getSessionTokenFromRequest(req);
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = readUserSessionPayload(token);
-  return loadActiveSessionUserById(payload.uid);
+  return loadActiveSessionUser(payload);
 }
 
 export async function requireUserFromCookieHeader(
@@ -96,14 +98,14 @@ export async function requireUserFromCookieHeader(
   const token = getSessionTokenFromCookieHeader(cookieHeader);
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = readUserSessionPayload(token);
-  return loadActiveSessionUserById(payload.uid);
+  return loadActiveSessionUser(payload);
 }
 
 export async function requireUser(): Promise<SessionUser> {
   const token = await getSessionTokenFromCookies();
   if (!token) throw new Error("UNAUTHENTICATED");
   const payload = readUserSessionPayload(token);
-  return loadActiveSessionUserById(payload.uid);
+  return loadActiveSessionUser(payload);
 }
 
 /** One user fetch per request when layout + pages both need the session. */

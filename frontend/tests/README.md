@@ -17,12 +17,15 @@ TypeScript files executed through `tsx`, so `@/` imports resolve. They cover
 code that has no Next.js or database dependency:
 
 - `session-token.test.ts` — HMAC session/preview tokens: tampering, expiry,
-  wrong secret, and that the Node signer (`lib/session-token.ts`) and the edge
-  verifier (`lib/session-edge.ts`) agree.
+  wrong secret, issued-at + revocation (`isSessionRevoked`), and that the Node
+  signer (`lib/session-token.ts`) and the edge verifier (`lib/session-edge.ts`)
+  agree.
 - `date-range.test.ts` — portal date presets, custom ranges, span cap,
   previous-period window.
 - `dto.test.ts` — paging clamps.
 - `update-schema.test.ts` — request bodies for staff-managed client updates.
+- `login-schema.test.ts` — request bodies for staff-managed client logins and
+  the temporary-password format.
 
 Keep new unit tests free of model imports: `models/*.ts` use
 `import * as mongoose`, which only works through the Next.js bundler.
@@ -52,6 +55,11 @@ The runner refuses to seed any database whose name does not end in `_test`.
 
 ### Fixtures (`seed.mjs`, `helpers.mjs`)
 
+Session tokens carry an issued-at in whole seconds, so a test that revokes
+sessions (password change, reset, deactivation, sign-out-everywhere) waits
+past the next second boundary first (`nextSecond()`), otherwise the token
+issued in the same second as the revocation legitimately survives.
+
 Two clients, **Alpha Dental** (A) and **Beta Motors** (B), each with their own
 reviews, events, updates and notifications, plus internal accounts:
 
@@ -72,11 +80,17 @@ seeded database.
 
 ### What each file covers
 
-- `account` — notification read state, password change, logout, deactivation.
+- `account` — notification read state, password change (revokes other
+  sessions, re-issues the current cookie), "sign out other devices", logout,
+  deactivation.
 - `auth` — client sign-in paths, wrong portal, anonymous redirects.
 - `hardening` — forged/expired cookies, paging clamps, filter junk, search
-  limits, login rate limit.
+  limits, login rate limit, security headers, `/api/health`.
 - `isolation` — every portal endpoint only returns the caller's client.
+- `logins` — staff create a client login (temporary password, shown once),
+  first sign-in is confined to the password page until a new password is
+  set, staff password reset and deactivation revoke sessions immediately,
+  logins are scoped to their client.
 - `permissions` — client sessions are refused on internal APIs and pages;
   staff need `manage_clients`.
 - `preview` — staff preview of a client portal is read-only, audited, and

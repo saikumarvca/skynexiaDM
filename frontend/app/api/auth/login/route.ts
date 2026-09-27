@@ -6,7 +6,7 @@ import { createSessionToken } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { ApiError, toErrorResponse } from "@/lib/api-errors";
 import { setSessionCookie, SESSION_MAX_AGE_SECONDS } from "@/lib/session-cookie";
-import { CLIENT_HOME_PATH } from "@/lib/client-portal/session";
+import { CLIENT_HOME_PATH, CLIENT_PASSWORD_CHANGE_PATH } from "@/lib/client-portal/session";
 import { recordClientPortalAudit } from "@/lib/client-portal/audit";
 
 export async function POST(req: NextRequest) {
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
     const user = await User.findOne({ email }).select(
-      "_id email name role passwordHash isActive clientId",
+      "_id email name role passwordHash isActive clientId mustChangePassword",
     );
     if (!user || !user.isActive || !user.passwordHash) {
       return toErrorResponse(
@@ -107,6 +107,9 @@ export async function POST(req: NextRequest) {
         : { uid: user._id.toString(), exp },
     );
 
+    await User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } });
+
+    const mustChangePassword = isClientLogin && user.mustChangePassword === true;
     if (isClientLogin) {
       await recordClientPortalAudit({
         action: "CLIENT_LOGIN",
@@ -123,7 +126,12 @@ export async function POST(req: NextRequest) {
         name: user.name,
         role: user.role,
       },
-      redirectTo: isClientLogin ? CLIENT_HOME_PATH : undefined,
+      mustChangePassword,
+      redirectTo: isClientLogin
+        ? mustChangePassword
+          ? CLIENT_PASSWORD_CHANGE_PATH
+          : CLIENT_HOME_PATH
+        : undefined,
     });
     setSessionCookie(res, token);
     return res;

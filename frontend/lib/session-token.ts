@@ -40,6 +40,8 @@ export const CLIENT_PREVIEW_TOKEN_TYPE = "client_preview" as const;
 export type SessionPayload = {
   uid: string;
   exp: number; // epoch seconds
+  /** Issued-at (epoch seconds); compared with User.sessionsRevokedAt. */
+  iat?: number;
   /** Only for CLIENT logins; the edge proxy reads it to confine the session. */
   role?: "CLIENT";
   /** Client id for CLIENT logins (and for client-portal preview tokens). */
@@ -53,7 +55,11 @@ export type SessionPayload = {
 };
 
 export function createSessionToken(payload: SessionPayload) {
-  const body = base64UrlEncode(Buffer.from(JSON.stringify(payload), "utf8"));
+  const withIat: SessionPayload = {
+    iat: Math.floor(Date.now() / 1000),
+    ...payload,
+  };
+  const body = base64UrlEncode(Buffer.from(JSON.stringify(withIat), "utf8"));
   const sig = sign(body);
   return `${body}.${sig}`;
 }
@@ -77,6 +83,20 @@ export function verifySessionToken(token: string): SessionPayload | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * True when the token was issued before the user's sessions were revoked.
+ * Tokens without `iat` (issued before revocation existed) count as old.
+ */
+export function isSessionRevoked(
+  payload: Pick<SessionPayload, "iat">,
+  revokedAt: Date | string | null | undefined,
+): boolean {
+  if (!revokedAt) return false;
+  const revokedSec = Math.floor(new Date(revokedAt).getTime() / 1000);
+  if (!Number.isFinite(revokedSec)) return false;
+  return (payload.iat ?? 0) < revokedSec;
 }
 
 /** Lifetime of a client-portal preview cookie. */

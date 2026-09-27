@@ -21,6 +21,12 @@ export interface IUser extends mongoose.Document {
   clientId?: mongoose.Types.ObjectId | null;
   passwordHash?: string;
   isActive: boolean;
+  /** Set when the account must pick a new password before using the app (temporary/reset passwords). */
+  mustChangePassword: boolean;
+  /** Sessions issued before this instant are rejected (password change, reset, "sign out everywhere"). */
+  sessionsRevokedAt?: Date | null;
+  passwordChangedAt?: Date | null;
+  lastLoginAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +57,10 @@ const UserSchema: mongoose.Schema = new mongoose.Schema(
     },
     passwordHash: { type: String },
     isActive: { type: Boolean, default: true },
+    mustChangePassword: { type: Boolean, default: false },
+    sessionsRevokedAt: { type: Date, default: null },
+    passwordChangedAt: { type: Date, default: null },
+    lastLoginAt: { type: Date, default: null },
   },
   {
     timestamps: true,

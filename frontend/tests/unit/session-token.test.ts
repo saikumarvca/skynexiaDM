@@ -8,6 +8,7 @@ import {
   CLIENT_PREVIEW_MAX_AGE_SECONDS,
   createClientPreviewToken,
   createSessionToken,
+  isSessionRevoked,
   verifyClientPreviewToken,
   verifySessionToken,
 } from "@/lib/session-token";
@@ -132,5 +133,33 @@ describe("edge verifier agrees with the Node signer", () => {
 
     const session = createSessionToken({ uid: UID, exp: nowSec() + 60 });
     assert.equal(await readClientPreviewEdge(session, SECRET), null);
+  });
+});
+
+describe("issued-at and revocation", () => {
+  test("new tokens carry iat = now; an explicit iat is kept", () => {
+    const before = nowSec();
+    const payload = verifySessionToken(createSessionToken({ uid: UID, exp: nowSec() + 60 }));
+    assert.ok(payload?.iat !== undefined && payload.iat >= before && payload.iat <= nowSec());
+    const pinned = verifySessionToken(createSessionToken({ uid: UID, exp: nowSec() + 60, iat: 1_700_000_000 }));
+    assert.equal(pinned?.iat, 1_700_000_000);
+  });
+
+  test("isSessionRevoked compares iat with the revocation instant", () => {
+    const revokedAt = new Date("2026-03-15T12:00:00.500Z");
+    const revokedSec = Math.floor(revokedAt.getTime() / 1000);
+    assert.equal(isSessionRevoked({ iat: revokedSec - 1 }, revokedAt), true, "older token");
+    assert.equal(isSessionRevoked({ iat: revokedSec }, revokedAt), false, "same second survives (fresh cookie)");
+    assert.equal(isSessionRevoked({ iat: revokedSec + 1 }, revokedAt), false, "newer token");
+    assert.equal(isSessionRevoked({}, revokedAt), true, "legacy token without iat counts as old");
+    assert.equal(isSessionRevoked({}, null), false);
+    assert.equal(isSessionRevoked({ iat: 1 }, undefined), false);
+    assert.equal(isSessionRevoked({ iat: 1 }, revokedAt.toISOString()), true, "accepts an ISO string");
+    assert.equal(isSessionRevoked({ iat: 1 }, "not a date"), false, "garbage never locks anyone out");
+  });
+
+  test("the edge verifier surfaces iat", async () => {
+    const token = createSessionToken({ uid: UID, exp: nowSec() + 60, iat: 1_700_000_000 });
+    assert.equal((await readSessionTokenEdge(token, SECRET))?.iat, 1_700_000_000);
   });
 });

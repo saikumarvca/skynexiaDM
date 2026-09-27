@@ -4,11 +4,13 @@ import { formatDate } from "@/components/client-portal/format";
 import { PortalPageHeader, SectionCard } from "@/components/client-portal/ui/primitives";
 import { ClientIdentity } from "@/components/client-portal/shell/portal-sidebar";
 import { ChangePasswordForm } from "@/components/client-portal/change-password-form";
+import { SignOutEverywhereButton } from "@/components/client-portal/sign-out-everywhere-button";
+import { PasswordChangeRequiredBanner } from "@/components/client-portal/password-change-required-banner";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientProfilePage() {
-  const ctx = await requireClientSession();
+  const ctx = await requireClientSession({ allowPasswordChangeRequired: true });
   const c = ctx.client;
 
   const rows: { icon: typeof Mail; label: string; value?: string | null }[] = [
@@ -24,6 +26,7 @@ export default async function ClientProfilePage() {
   return (
     <div className="space-y-6">
       <PortalPageHeader title="My Profile" subtitle="Your client account and sign-in details." />
+      {ctx.mustChangePassword ? <PasswordChangeRequiredBanner /> : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
@@ -66,6 +69,12 @@ export default async function ClientProfilePage() {
                 <dd className="mt-1 text-sm font-medium">{ctx.name}</dd>
               </div>
             </dl>
+            <div className="mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-muted-foreground">
+                Signed in on another device you no longer use? Sign it out from here.
+              </p>
+              <SignOutEverywhereButton disabled={ctx.isPreview} />
+            </div>
           </SectionCard>
         </div>
 
@@ -77,7 +86,7 @@ export default async function ClientProfilePage() {
               : "Choose a strong password you do not use elsewhere."
           }
         >
-          <ChangePasswordForm disabled={ctx.isPreview} />
+          <ChangePasswordForm disabled={ctx.isPreview} forced={ctx.mustChangePassword} />
         </SectionCard>
       </div>
     </div>

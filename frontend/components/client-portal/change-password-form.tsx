@@ -1,11 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-/** Password change for client logins (POST /api/client/profile/password). */
-export function ChangePasswordForm({ disabled = false }: { disabled?: boolean }) {
+/**
+ * Password change for client logins (POST /api/client/profile/password).
+ * With `forced` (temporary password in use) the portal is unusable until the
+ * change succeeds, so the form then sends the person on to the dashboard.
+ */
+export function ChangePasswordForm({
+  disabled = false,
+  forced = false,
+}: {
+  disabled?: boolean;
+  forced?: boolean;
+}) {
+  const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,9 +44,21 @@ export function ChangePasswordForm({ disabled = false }: { disabled?: boolean })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+        redirectTo?: string;
+      };
       if (!res.ok) throw new Error(data.error || "Failed to change password");
-      setSuccess(data.message || "Password updated.");
+      setSuccess(
+        forced
+          ? "Password set. Taking you to your dashboard…"
+          : `${data.message || "Password updated."} Other devices have been signed out.`,
+      );
+      if (forced) {
+        router.replace(data.redirectTo || "/client/dashboard");
+        router.refresh();
+      }
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -50,7 +74,7 @@ export function ChangePasswordForm({ disabled = false }: { disabled?: boolean })
       <fieldset disabled={disabled || loading} className="space-y-4">
         <div className="space-y-1">
           <label htmlFor="current-password" className="text-sm font-medium">
-            Current password
+            {forced ? "Temporary password" : "Current password"}
           </label>
           <Input
             id="current-password"

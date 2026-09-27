@@ -72,6 +72,7 @@ export async function proxy(req: NextRequest) {
     if (
       pathname === "/api/auth/login" ||
       pathname === "/api/auth/logout" ||
+      pathname === "/api/health" ||
       pathname.startsWith("/api/cron/") ||
       isIntegrationIngestPath(pathname) ||
       pathname === "/api/portal/approvals" ||

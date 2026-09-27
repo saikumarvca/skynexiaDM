@@ -146,3 +146,28 @@ test("login is rate limited per client address", async () => {
   });
   assert.equal(other.status, 401);
 });
+
+test("every response carries the baseline security headers", async () => {
+  const cookie = (await login(ACCOUNTS.clientA.email)).cookie;
+  for (const res of [
+    (await page("/client/login")).res,
+    (await page("/client/dashboard", cookie)).res,
+    (await api("/api/client/profile", { cookie })).res,
+  ]) {
+    assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(res.headers.get("x-frame-options"), "DENY");
+    assert.equal(res.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
+    assert.ok(res.headers.get("permissions-policy")?.includes("camera=()"));
+    assert.equal(res.headers.get("x-powered-by"), null, "framework banner is off");
+  }
+});
+
+test("health endpoint is public, uncached and reports the database", async () => {
+  const res = await api("/api/health");
+  assert.equal(res.status, 200);
+  assert.equal(res.json.status, "ok");
+  assert.equal(res.json.db, "up");
+  assert.ok(typeof res.json.dbLatencyMs === "number");
+  assert.match(res.res.headers.get("cache-control") ?? "", /no-store/);
+  assert.ok(!JSON.stringify(res.json).includes("mongodb://"), "no connection details leak");
+});

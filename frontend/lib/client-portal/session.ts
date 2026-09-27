@@ -5,7 +5,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import { verifyClientPreviewToken, verifySessionToken } from "@/lib/auth";
+import {
+  createSessionToken,
+  isSessionRevoked,
+  verifyClientPreviewToken,
+  verifySessionToken,
+} from "@/lib/auth";
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-cookie";
 import {
   DM_CLIENT_PREVIEW_COOKIE_NAME,
   DM_SESSION_COOKIE_NAME,
@@ -33,24 +39,37 @@ export type ClientContext = {
   brandName: string;
   client: PortalClient;
   isPreview: boolean;
+  /** The login must set a new password before using the portal. */
+  mustChangePassword: boolean;
   previewActor?: { userId: string; name: string; email: string; role: string };
 };
 
 export const CLIENT_LOGIN_PATH = "/client/login";
 export const CLIENT_HOME_PATH = "/client/dashboard";
+/** Where a login with a temporary password is sent until it picks its own. */
+export const CLIENT_PASSWORD_CHANGE_PATH = "/client/profile?reason=password#password";
+
+/** Client APIs that stay usable while a password change is pending. */
+const PASSWORD_CHANGE_ALLOWED_APIS = new Set([
+  "/api/client/profile",
+  "/api/client/profile/password",
+  "/api/client/preview/exit",
+]);
 
 async function resolveFromPreview(
   claims: { uid: string; cid: string },
+  session: { iat?: number },
 ): Promise<ClientContext | null> {
   if (!mongoose.isValidObjectId(claims.uid)) return null;
 
   await dbConnect();
   const actor = await User.findById(claims.uid)
-    .select("_id email name role isActive")
+    .select("_id email name role isActive sessionsRevokedAt")
     .lean();
   // Only active internal accounts may preview; a CLIENT login cannot borrow
   // another client's view through a preview cookie.
   if (!actor || !actor.isActive || actor.role === "CLIENT") return null;
+  if (isSessionRevoked(session, actor.sessionsRevokedAt)) return null;
 
   const client = await loadPortalClient(claims.cid);
   if (!client) return null;
@@ -65,6 +84,7 @@ async function resolveFromPreview(
     brandName: client.brandName,
     client,
     isPreview: true,
+    mustChangePassword: false,
     previewActor: {
       userId: String(actor._id),
       name: actor.name,
@@ -85,11 +105,12 @@ async function resolveFromSession(
 
   await dbConnect();
   const user = await User.findById(payload.uid)
-    .select("_id email name role isActive clientId")
+    .select("_id email name role isActive clientId sessionsRevokedAt mustChangePassword")
     .lean();
   if (!user || !user.isActive || user.role !== "CLIENT" || !user.clientId) {
     return null;
   }
+  if (isSessionRevoked(payload, user.sessionsRevokedAt)) return null;
 
   // The client comes from the user record, never from the token alone.
   const client = await loadPortalClient(String(user.clientId));
@@ -105,6 +126,7 @@ async function resolveFromSession(
     brandName: client.brandName,
     client,
     isPreview: false,
+    mustChangePassword: user.mustChangePassword === true,
   };
 }
 
@@ -127,7 +149,7 @@ async function resolveClientContext(
       session.role !== "CLIENT" &&
       session.uid === claims.uid
     ) {
-      const ctx = await resolveFromPreview(claims);
+      const ctx = await resolveFromPreview(claims, session);
       if (ctx) return ctx;
     }
   }
@@ -145,10 +167,19 @@ async function loadClientContextFromCookies(): Promise<ClientContext | null> {
 /** Per-request cached context for server components and layouts. */
 export const getCurrentClientContext = cache(loadClientContextFromCookies);
 
-/** Server pages: the client context, or a redirect to the client sign-in. */
-export async function requireClientSession(): Promise<ClientContext> {
+/**
+ * Server pages: the client context, or a redirect to the client sign-in.
+ * A login that must still change its password is sent to the profile page;
+ * the layout and the profile page itself pass `allowPasswordChangeRequired`.
+ */
+export async function requireClientSession(options?: {
+  allowPasswordChangeRequired?: boolean;
+}): Promise<ClientContext> {
   const ctx = await getCurrentClientContext();
   if (!ctx) redirect(CLIENT_LOGIN_PATH);
+  if (ctx.mustChangePassword && !options?.allowPasswordChangeRequired) {
+    redirect(CLIENT_PASSWORD_CHANGE_PATH);
+  }
   return ctx;
 }
 
@@ -177,6 +208,19 @@ export async function requireClientSessionApi(
         denied: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
       };
     }
+    if (ctx.mustChangePassword && !PASSWORD_CHANGE_ALLOWED_APIS.has(req.nextUrl.pathname)) {
+      return {
+        ctx: null,
+        denied: NextResponse.json(
+          {
+            error: "Please set a new password before continuing",
+            code: "PASSWORD_CHANGE_REQUIRED",
+            redirectTo: CLIENT_PASSWORD_CHANGE_PATH,
+          },
+          { status: 403 },
+        ),
+      };
+    }
     return { ctx, denied: null };
   } catch {
     return {
@@ -193,6 +237,22 @@ export function denyIfPreview(ctx: ClientContext): NextResponse | null {
     { error: "Preview mode is read-only", code: "PREVIEW_READ_ONLY" },
     { status: 403 },
   );
+}
+
+/**
+ * A new session token for the signed-in client login, issued now. Used after
+ * a password change or "sign out everywhere" so the current browser survives
+ * the revocation of every earlier token.
+ */
+export function freshClientSessionToken(ctx: ClientContext): string {
+  const nowSec = Math.floor(Date.now() / 1000);
+  return createSessionToken({
+    uid: ctx.userId,
+    cid: ctx.clientId,
+    role: "CLIENT",
+    iat: nowSec,
+    exp: nowSec + SESSION_MAX_AGE_SECONDS,
+  });
 }
 
 /** ObjectId for the authenticated client; use it in every portal query. */

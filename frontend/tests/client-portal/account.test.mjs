@@ -13,6 +13,7 @@ import {
   api,
   closeDb,
   cookieFromResponse,
+  cookieValue,
   db,
   login,
   oid,
@@ -68,16 +69,28 @@ test("password change: validates input and rejects a wrong current password", as
   assert.equal((await login(OWNER)).res.status, 200);
 });
 
-test("password change: new password works, old one stops working, change is audited", async () => {
+/** Session tokens carry an issued-at in whole seconds; cross a boundary before revoking. */
+const nextSecond = () => new Promise((r) => setTimeout(r, 1100));
+
+test("password change: new password works, old one stops working, other sessions are signed out", async () => {
+  const other = (await login(OWNER)).cookie; // e.g. a phone that stays signed in
   const cookie = (await login(OWNER)).cookie;
+  await nextSecond();
   const res = await api("/api/client/profile/password", {
     method: "POST",
     cookie,
     body: { currentPassword: PASSWORD, newPassword: NEW_PASSWORD },
   });
   assert.equal(res.status, 200);
+  assert.equal(res.json.otherSessionsSignedOut, true);
+  const fresh = cookieValue(res.res.headers.get("set-cookie") ?? "", "dm_session");
+  assert.ok(fresh, "the current browser gets a fresh session cookie");
 
   try {
+    assert.equal((await api("/api/client/dashboard", { cookie: other })).status, 401, "other device is signed out");
+    assert.equal((await api("/api/client/dashboard", { cookie })).status, 401, "the pre-change token is revoked");
+    assert.equal((await api("/api/client/dashboard", { cookie: `dm_session=${fresh}` })).status, 200, "fresh cookie works");
+
     assert.equal((await login(OWNER, PASSWORD, { portal: "client" })).res.status, 401);
     const fresh = await login(OWNER, NEW_PASSWORD, { portal: "client" });
     assert.equal(fresh.res.status, 200);
@@ -97,6 +110,23 @@ test("password change: new password works, old one stops working, change is audi
     });
     assert.equal(restore.status, 200);
   }
+});
+
+test("sign out other devices keeps the current session and revokes the rest", async () => {
+  const other = (await login(OWNER)).cookie;
+  const current = (await login(OWNER)).cookie;
+  await nextSecond();
+  const res = await api("/api/client/profile/sessions/revoke", { method: "POST", cookie: current });
+  assert.equal(res.status, 200);
+  const fresh = cookieValue(res.res.headers.get("set-cookie") ?? "", "dm_session");
+  assert.ok(fresh);
+  assert.equal((await api("/api/client/dashboard", { cookie: other })).status, 401);
+  assert.equal((await api("/api/client/dashboard", { cookie: `dm_session=${fresh}` })).status, 200);
+
+  const audit = await (await db())
+    .collection("teamactivitylogs")
+    .findOne({ action: "CLIENT_SESSIONS_REVOKED", userId: ID.clientAOwner });
+  assert.ok(audit, "revocation is audited");
 });
 
 test("logout clears the session cookie", async () => {
