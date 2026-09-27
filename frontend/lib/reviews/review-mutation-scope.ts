@@ -16,11 +16,13 @@ export type ScopedReviewMutationResult =
       denied: Response;
       allocation: null;
       canManage: false;
+      scopeFilter: null;
     }
   | {
       denied: null;
       allocation: AllocationDocument | null;
       canManage: boolean;
+      scopeFilter: Record<string, unknown>;
     };
 
 export async function findReviewAllocationForMutation(
@@ -32,11 +34,21 @@ export async function findReviewAllocationForMutation(
     "work_assigned_reviews",
   ]);
   if (authz.denied) {
-    return { denied: authz.denied, allocation: null, canManage: false };
+    return {
+      denied: authz.denied,
+      allocation: null,
+      canManage: false,
+      scopeFilter: null,
+    };
   }
 
   if (!mongoose.isValidObjectId(id)) {
-    return { denied: null, allocation: null, canManage: false };
+    return {
+      denied: null,
+      allocation: null,
+      canManage: false,
+      scopeFilter: { _id: { $in: [] } },
+    };
   }
 
   const ctx = resolveUserHierarchyContext(authz);
@@ -63,9 +75,12 @@ export async function findReviewAllocationForMutation(
     { workerOnly },
   );
 
-  const allocation = await ReviewAllocation.findOne(
-    andFilters({ _id: id }, hierarchyScope, clientDraftScope),
+  const scopeFilter = andFilters(
+    { _id: id },
+    hierarchyScope,
+    clientDraftScope,
   );
+  const allocation = await ReviewAllocation.findOne(scopeFilter);
 
-  return { denied: null, allocation, canManage };
+  return { denied: null, allocation, canManage, scopeFilter };
 }
