@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { cache } from "react";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
@@ -6,6 +5,18 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { DM_SESSION_COOKIE_NAME } from "@/lib/session-cookie-name";
 import type { UserRole } from "@/models/User";
+import { verifySessionToken, type SessionPayload } from "@/lib/session-token";
+
+// Token signing lives in lib/session-token.ts (no Next/DB imports, unit-tested).
+export {
+  CLIENT_PREVIEW_MAX_AGE_SECONDS,
+  CLIENT_PREVIEW_TOKEN_TYPE,
+  createClientPreviewToken,
+  createSessionToken,
+  verifyClientPreviewToken,
+  verifySessionToken,
+  type SessionPayload,
+} from "@/lib/session-token";
 
 export type SessionUser = {
   userId: string;
@@ -17,77 +28,6 @@ export type SessionUser = {
   /** For CLIENT logins: the client this account is confined to. */
   clientId?: string;
 };
-
-function requireAuthSecret(): string {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) throw new Error("Missing AUTH_SECRET");
-  return secret;
-}
-
-function base64UrlEncode(buf: Buffer) {
-  return buf
-    .toString("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-function base64UrlDecode(s: string) {
-  const padded =
-    s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
-  return Buffer.from(padded, "base64");
-}
-
-function sign(input: string) {
-  const secret = requireAuthSecret();
-  return base64UrlEncode(
-    crypto.createHmac("sha256", secret).update(input).digest(),
-  );
-}
-
-export const CLIENT_PREVIEW_TOKEN_TYPE = "client_preview" as const;
-
-export type SessionPayload = {
-  uid: string;
-  exp: number; // epoch seconds
-  /** Only for CLIENT logins; the edge proxy reads it to confine the session. */
-  role?: "CLIENT";
-  /** Client id for CLIENT logins (and for client-portal preview tokens). */
-  cid?: string;
-  /**
-   * Token kind. Absent for normal sessions. "client_preview" marks a token
-   * that lets an internal user look at the client portal as one client; such
-   * tokens are never accepted as a user session.
-   */
-  typ?: typeof CLIENT_PREVIEW_TOKEN_TYPE;
-};
-
-export function createSessionToken(payload: SessionPayload) {
-  const body = base64UrlEncode(Buffer.from(JSON.stringify(payload), "utf8"));
-  const sig = sign(body);
-  return `${body}.${sig}`;
-}
-
-export function verifySessionToken(token: string): SessionPayload | null {
-  const [body, sig] = token.split(".");
-  if (!body || !sig) return null;
-  const expected = sign(body);
-  const a = Buffer.from(sig);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return null;
-  if (!crypto.timingSafeEqual(a, b)) return null;
-
-  try {
-    const json = base64UrlDecode(body).toString("utf8");
-    const parsed = JSON.parse(json) as SessionPayload;
-    if (!parsed?.uid || !parsed?.exp) return null;
-    const now = Math.floor(Date.now() / 1000);
-    if (parsed.exp <= now) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
 
 export function getSessionTokenFromRequest(req: NextRequest): string | null {
   return req.cookies.get(DM_SESSION_COOKIE_NAME)?.value ?? null;
@@ -171,32 +111,4 @@ export const getCachedUser = cache(requireUser);
 
 export function assertAdmin(user: SessionUser) {
   if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
-}
-
-/** Lifetime of a client-portal preview cookie. */
-export const CLIENT_PREVIEW_MAX_AGE_SECONDS = 60 * 60; // 1 hour
-
-/**
- * Signed, short-lived token that lets the internal user `uid` browse the
- * client portal as client `cid`. It reuses the session HMAC but carries
- * `typ: "client_preview"`, so `requireUser*` never treat it as a login.
- */
-export function createClientPreviewToken(params: { uid: string; cid: string }) {
-  const exp = Math.floor(Date.now() / 1000) + CLIENT_PREVIEW_MAX_AGE_SECONDS;
-  return createSessionToken({
-    uid: params.uid,
-    cid: params.cid,
-    exp,
-    role: "CLIENT",
-    typ: CLIENT_PREVIEW_TOKEN_TYPE,
-  });
-}
-
-export function verifyClientPreviewToken(
-  token: string,
-): { uid: string; cid: string; exp: number } | null {
-  const payload = verifySessionToken(token);
-  if (!payload || payload.typ !== CLIENT_PREVIEW_TOKEN_TYPE) return null;
-  if (!payload.cid) return null;
-  return { uid: payload.uid, cid: payload.cid, exp: payload.exp };
 }

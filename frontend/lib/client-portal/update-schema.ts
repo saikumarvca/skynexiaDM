@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { CLIENT_UPDATE_CATEGORIES } from "@/lib/client-portal/updates";
+import type { ClientUpdateCategory } from "@/models/ClientUpdate";
+
+// Kept here (type-only import above) so the schema has no model/DB imports.
+export const CLIENT_UPDATE_CATEGORIES = [
+  "ANNOUNCEMENT",
+  "PROGRESS",
+  "FEATURE",
+  "MAINTENANCE",
+  "REPORTING",
+] as const satisfies readonly ClientUpdateCategory[];
 
 const fields = {
   title: z.string().trim().min(1).max(160),

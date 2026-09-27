@@ -47,7 +47,9 @@ export function toIsoDay(d: Date): string {
 function parseIsoDay(iso: string | null | undefined): Date | null {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const d = new Date(`${iso}T00:00:00.000Z`);
-  return Number.isNaN(d.getTime()) ? null : d;
+  // Date() rolls "2026-02-30" over to March 2; only a real calendar day counts.
+  if (Number.isNaN(d.getTime()) || toIsoDay(d) !== iso) return null;
+  return d;
 }
 
 function startOfUtcDay(d: Date): Date {

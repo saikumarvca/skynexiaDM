@@ -14,7 +14,8 @@
  * 4. Stops the server and exits with the test status.
  *
  * Set BASE_URL to reuse an already running instance (step 2 is skipped; it
- * must point at the seeded TEST_MONGODB_URI).
+ * must point at the seeded TEST_MONGODB_URI and run with the same AUTH_SECRET
+ * and LOGIN_RATE_LIMIT_MAX_ATTEMPTS as this process).
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -126,7 +127,7 @@ if (!externalBase) {
       NODE_ENV: hasBuild ? "production" : "development",
       NEXT_TELEMETRY_DISABLED: "1",
       // The suite signs in dozens of times from one IP.
-      LOGIN_RATE_LIMIT_MAX_ATTEMPTS: "1000",
+      LOGIN_RATE_LIMIT_MAX_ATTEMPTS: process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? "1000",
     },
     stdio: ["ignore", "pipe", "pipe"],
     detached: process.platform !== "win32",
@@ -152,7 +153,14 @@ const testFiles = fs
 
 const runner = spawn(process.execPath, ["--test", "--test-concurrency=1", ...testFiles], {
   cwd: root,
-  env: { ...process.env, BASE_URL: baseUrl, TEST_MONGODB_URI: testUri },
+  env: {
+    ...process.env,
+    BASE_URL: baseUrl,
+    TEST_MONGODB_URI: testUri,
+    // hardening.test.mjs mints tokens and probes the login rate limit.
+    AUTH_SECRET: authSecret,
+    LOGIN_RATE_LIMIT_MAX_ATTEMPTS: process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? "1000",
+  },
   stdio: "inherit",
 });
 const code = await new Promise((resolve) => runner.on("exit", resolve));
