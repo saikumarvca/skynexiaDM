@@ -92,9 +92,9 @@ test("password change: new password works, old one stops working, other sessions
     assert.equal((await api("/api/client/dashboard", { cookie: `dm_session=${fresh}` })).status, 200, "fresh cookie works");
 
     assert.equal((await login(OWNER, PASSWORD, { portal: "client" })).res.status, 401);
-    const fresh = await login(OWNER, NEW_PASSWORD, { portal: "client" });
-    assert.equal(fresh.res.status, 200);
-    assert.equal(fresh.body.user?.role, "CLIENT");
+    const relogin = await login(OWNER, NEW_PASSWORD, { portal: "client" });
+    assert.equal(relogin.res.status, 200);
+    assert.equal(relogin.body.user?.role, "CLIENT");
 
     const audit = await (await db())
       .collection("teamactivitylogs")

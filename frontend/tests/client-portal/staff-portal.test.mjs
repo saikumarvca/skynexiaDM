@@ -26,10 +26,12 @@ test("unknown or malformed client ids are 404 for staff", async () => {
 test("portal users: lists only this client's logins and never exposes secrets", async () => {
   const a = await api(portal(ID.clientA, "/users"), { cookie: admin });
   assert.equal(a.status, 200);
-  assert.deepEqual(
-    a.json.map((u) => u.id).sort(),
-    [ID.clientAUser, ID.clientAOwner, ID.clientInactive].sort(),
-  );
+  // logins.test.mjs (which runs earlier) adds a login of its own, so check
+  // the seeded ones are present and nothing from client B is.
+  const ids = a.json.map((u) => u.id);
+  for (const id of [ID.clientAUser, ID.clientAOwner, ID.clientInactive]) assert.ok(ids.includes(id), id);
+  assert.ok(!ids.includes(ID.clientBUser));
+  assert.ok(a.json.every((u) => "lastLoginAt" in u && "mustChangePassword" in u));
   assert.equal(a.json.find((u) => u.id === ID.clientInactive).isActive, false);
   assert.ok(!/passwordHash|\$2[aby]\$/.test(a.text), "no password hashes in the response");
 
