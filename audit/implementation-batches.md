@@ -73,7 +73,7 @@ If transactions are intentionally unavailable, implement a documented retry/reco
 
 ## SKY-AUDIT-004 — Partner Scope Regression Suite
 
-**Priority:** P1 — IMPLEMENTED / VERIFY CI  
+**Priority:** P1 — VERIFIED COMPLETE  
 **Requirements:** SKY-SCOPE-002, SKY-SCOPE-003, SKY-PROD-002
 
 Add executable tests proving:
@@ -90,7 +90,7 @@ Add executable tests proving:
 
 ## SKY-AUDIT-005 — Pagination & Query Hardening
 
-**Priority:** P1 — IMPLEMENTED / VERIFY CI  
+**Priority:** P1 — VERIFIED COMPLETE  
 **Requirement:** SKY-API-003
 
 Start with `GET /api/review-allocations`.
