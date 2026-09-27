@@ -6,6 +6,7 @@ export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "DUPLICATE_KEY"
   | "NOT_FOUND"
+  | "CONFLICT"
   | "INTERNAL_ERROR";
 
 export function apiError(

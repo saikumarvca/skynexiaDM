@@ -26,6 +26,8 @@ export async function seedTestDatabase(uri) {
       phone: "1111111111",
       email: "alpha@test.local",
       status: "ACTIVE",
+      ownerAgencyId: oid(ID.mainAgency),
+      assignedPartnerAgencyId: oid(ID.partnerAAgency),
       createdAt: daysAgo(90),
       updatedAt: daysAgo(90),
     },
@@ -38,6 +40,8 @@ export async function seedTestDatabase(uri) {
       phone: "2222222222",
       email: "beta@test.local",
       status: "ACTIVE",
+      ownerAgencyId: oid(ID.mainAgency),
+      assignedPartnerAgencyId: oid(ID.partnerBAgency),
       createdAt: daysAgo(90),
       updatedAt: daysAgo(90),
     },
@@ -45,24 +49,39 @@ export async function seedTestDatabase(uri) {
 
   const roleAccounts = oid("66a0000000000000000000e1");
   const roleViewer = oid("66a0000000000000000000e2");
+  const rolePartnerManager = oid("66a0000000000000000000e3");
+  const rolePartnerWorker = oid("66a0000000000000000000e4");
   await db.collection("teamroles").insertMany([
     { _id: roleAccounts, roleName: "Account Manager", permissions: ["manage_clients", "view_clients"], isDeleted: false },
     { _id: roleViewer, roleName: "Reviewer", permissions: ["view_reviews"], isDeleted: false },
+    { _id: rolePartnerManager, roleName: "Partner Manager", permissions: ["view_clients", "manage_team", "view_reviews", "manage_reviews", "view_tasks", "manage_tasks"], isDeleted: false },
+    { _id: rolePartnerWorker, roleName: "Partner Worker", permissions: ["view_clients", "work_assigned_reviews", "work_assigned_tasks"], isDeleted: false },
   ]);
 
   await db.collection("users").insertMany([
     { _id: oid(ID.admin), email: ACCOUNTS.admin.email, name: ACCOUNTS.admin.name, role: "ADMIN", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.managerNoPerm), email: ACCOUNTS.managerNoPerm.email, name: ACCOUNTS.managerNoPerm.name, role: "MANAGER", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.managerClients), email: ACCOUNTS.managerClients.email, name: ACCOUNTS.managerClients.name, role: "MANAGER", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerAUser), email: ACCOUNTS.partnerA.email, name: ACCOUNTS.partnerA.name, role: "MANAGER", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerBUser), email: ACCOUNTS.partnerB.email, name: ACCOUNTS.partnerB.name, role: "MANAGER", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerAEmployeeUser), email: ACCOUNTS.partnerAEmployee.email, name: ACCOUNTS.partnerAEmployee.name, role: "AGENT", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientAUser), email: ACCOUNTS.clientA.email, name: ACCOUNTS.clientA.name, role: "CLIENT", clientId: oid(ID.clientA), passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientBUser), email: ACCOUNTS.clientB.email, name: ACCOUNTS.clientB.name, role: "CLIENT", clientId: oid(ID.clientB), passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientAOwner), email: ACCOUNTS.clientAOwner.email, name: ACCOUNTS.clientAOwner.name, role: "CLIENT", clientId: oid(ID.clientA), passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientInactive), email: ACCOUNTS.clientInactive.email, name: ACCOUNTS.clientInactive.name, role: "CLIENT", clientId: oid(ID.clientA), passwordHash: hash, isActive: false, createdAt: now, updatedAt: now },
   ]);
 
+  await db.collection("partneragencies").insertMany([
+    { _id: oid(ID.partnerAAgency), name: "Partner Agency A", code: "PA", status: "ACTIVE", isDeleted: false, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerBAgency), name: "Partner Agency B", code: "PB", status: "ACTIVE", isDeleted: false, createdAt: now, updatedAt: now },
+  ]);
+
   await db.collection("teammembers").insertMany([
     { name: ACCOUNTS.managerNoPerm.name, email: ACCOUNTS.managerNoPerm.email, userId: ID.managerNoPerm, roleId: roleViewer, roleName: "Reviewer", accountType: "MAIN_EMPLOYEE", assignedClientIds: [], status: "Active", isDeleted: false, joinedAt: now, createdAt: now, updatedAt: now },
     { name: ACCOUNTS.managerClients.name, email: ACCOUNTS.managerClients.email, userId: ID.managerClients, roleId: roleAccounts, roleName: "Account Manager", accountType: "MAIN_EMPLOYEE", assignedClientIds: [], status: "Active", isDeleted: false, joinedAt: now, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerAMember), name: ACCOUNTS.partnerA.name, email: ACCOUNTS.partnerA.email, userId: ID.partnerAUser, roleId: rolePartnerManager, roleName: "Partner Manager", accountType: "PARTNER_AGENCY", partnerAgencyId: oid(ID.partnerAAgency), assignedClientIds: [], status: "Active", isDeleted: false, joinedAt: now, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerBMember), name: ACCOUNTS.partnerB.name, email: ACCOUNTS.partnerB.email, userId: ID.partnerBUser, roleId: rolePartnerManager, roleName: "Partner Manager", accountType: "PARTNER_AGENCY", partnerAgencyId: oid(ID.partnerBAgency), assignedClientIds: [], status: "Active", isDeleted: false, joinedAt: now, createdAt: now, updatedAt: now },
+    { _id: oid(ID.partnerAEmployeeMember), name: ACCOUNTS.partnerAEmployee.name, email: ACCOUNTS.partnerAEmployee.email, userId: ID.partnerAEmployeeUser, roleId: rolePartnerWorker, roleName: "Partner Worker", accountType: "PARTNER_EMPLOYEE", partnerAgencyId: oid(ID.partnerAAgency), assignedClientIds: [], status: "Active", isDeleted: false, joinedAt: now, createdAt: now, updatedAt: now },
   ]);
 
   const draft = (id, clientId, clientName, subject, status, rating, createdAt) => ({
@@ -101,6 +120,7 @@ export async function seedTestDatabase(uri) {
       platform: "Google",
       sentDate: daysAgo(12),
       allocationStatus: "Posted",
+      assignedPartnerAgencyId: oid(ID.partnerAAgency),
       postedDate: daysAgo(10),
       usedDate: daysAgo(10),
       assigneeType: "MAIN_EMPLOYEE",
@@ -110,12 +130,13 @@ export async function seedTestDatabase(uri) {
     {
       _id: oid(ID.allocA3),
       draftId: oid(ID.draftA3),
-      assignedToUserId: "member-1",
-      assignedToUserName: "Team Member",
+      assignedToUserId: ID.partnerAEmployeeMember,
+      assignedToUserName: ACCOUNTS.partnerAEmployee.name,
       assignedByUserId: ID.admin,
       assignedByUserName: ACCOUNTS.admin.name,
       assignedDate: daysAgo(7),
       allocationStatus: "Assigned",
+      assignedPartnerAgencyId: oid(ID.partnerAAgency),
       assigneeType: "MAIN_EMPLOYEE",
       createdAt: daysAgo(7),
       updatedAt: daysAgo(7),
@@ -132,6 +153,7 @@ export async function seedTestDatabase(uri) {
       platform: "Facebook",
       sentDate: daysAgo(9),
       allocationStatus: "Shared with Customer",
+      assignedPartnerAgencyId: oid(ID.partnerBAgency),
       assigneeType: "MAIN_EMPLOYEE",
       createdAt: daysAgo(14),
       updatedAt: daysAgo(9),
@@ -257,6 +279,11 @@ export async function seedTestDatabase(uri) {
       createdAt: daysAgo(2),
       updatedAt: daysAgo(2),
     },
+  ]);
+
+  await db.collection("tasks").insertMany([
+    { _id: oid(ID.taskA), clientId: oid(ID.clientA), title: "Partner A task", assignedPartnerAgencyId: oid(ID.partnerAAgency), assignedToUserId: ID.partnerAEmployeeMember, assignedToName: ACCOUNTS.partnerAEmployee.name, priority: "MEDIUM", status: "TODO", createdAt: now, updatedAt: now },
+    { _id: oid(ID.taskB), clientId: oid(ID.clientB), title: "Partner B task", assignedPartnerAgencyId: oid(ID.partnerBAgency), assignedToUserId: ID.partnerBMember, assignedToName: ACCOUNTS.partnerB.name, priority: "HIGH", status: "TODO", createdAt: now, updatedAt: now },
   ]);
 
   await db.collection("notifications").insertMany([

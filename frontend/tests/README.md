@@ -91,10 +91,13 @@ seeded database.
   first sign-in is confined to the password page until a new password is
   set, staff password reset and deactivation revoke sessions immediately,
   logins are scoped to their client.
+- `partner-scope` — Partner A/B client, team, review and task isolation; partner-worker direct-assignment scope; foreign review mutation denial; main-agency ownership preservation.
 - `permissions` — client sessions are refused on internal APIs and pages;
   staff need `manage_clients`.
 - `preview` — staff preview of a client portal is read-only, audited, and
   bound to the session that started it.
+- `review-allocation-pagination` — bounded page size, pagination metadata, client/draft/search filtering before pagination.
+- `review-workflow-hardening` — review mutation permission, lifecycle transitions, posted retry idempotency, and generic status-bypass rejection.
 - `staff-portal` — staff management APIs: logins list, event feed, update
   create/edit/publish/remove.
 - `visibility` — INTERNAL vs CLIENT_VISIBLE events, live activity mapping,
