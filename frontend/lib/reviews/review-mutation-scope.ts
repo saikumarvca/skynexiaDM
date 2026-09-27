@@ -28,11 +28,17 @@ export type ScopedReviewMutationResult =
 export async function findReviewAllocationForMutation(
   request: NextRequest,
   id: string,
+  options?: {
+    requiredPermissions?: string[];
+    workerPermission?: string;
+    managerPermissions?: string[];
+  },
 ): Promise<ScopedReviewMutationResult> {
-  const authz = await requireAnyPermissionApi(request, [
+  const requiredPermissions = options?.requiredPermissions ?? [
     "manage_reviews",
     "work_assigned_reviews",
-  ]);
+  ];
+  const authz = await requireAnyPermissionApi(request, requiredPermissions);
   if (authz.denied) {
     return {
       denied: authz.denied,
@@ -52,8 +58,15 @@ export async function findReviewAllocationForMutation(
   }
 
   const ctx = resolveUserHierarchyContext(authz);
-  const canManage = authz.perms.includes("manage_reviews");
-  const workerOnly = !canManage && authz.perms.includes("work_assigned_reviews");
+  const managerPermissions = options?.managerPermissions ?? ["manage_reviews"];
+  const canManage = managerPermissions.some((permission) =>
+    authz.perms.includes(permission),
+  );
+  const workerPermission = options?.workerPermission ?? "work_assigned_reviews";
+  const workerOnly =
+    !canManage &&
+    !!workerPermission &&
+    authz.perms.includes(workerPermission);
 
   // Allocation documents do not carry clientId directly. For main-agency
   // users with assigned-client restrictions, translate those client ids to
