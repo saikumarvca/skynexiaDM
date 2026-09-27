@@ -4,7 +4,7 @@ These batches convert the 2026-09-27 audit into an implementation sequence.
 
 ## SKY-AUDIT-001 — Review Mutation Authorization & Scope
 
-**Priority:** P0  
+**Priority:** P0 — IMPLEMENTED / VERIFY CI  
 **Requirements:** SKY-SCOPE-002, SKY-SCOPE-003, SKY-REV-001
 
 Update all review-allocation mutation endpoints so they:
@@ -26,7 +26,7 @@ Cover mark-shared, mark-posted, reassignment, cancel/recycle/archive and custome
 
 ## SKY-AUDIT-002 — Review State Machine & Posted Idempotency
 
-**Priority:** P0  
+**Priority:** P0 — IMPLEMENTED / VERIFY CI  
 **Requirements:** SKY-REV-001, SKY-REV-003
 
 Create one domain transition helper with explicit allowed transitions.
@@ -54,7 +54,7 @@ Required:
 
 ## SKY-AUDIT-003 — Atomic Review Completion
 
-**Priority:** P0/P1  
+**Priority:** P0/P1 — RECOVERABLE SAGA IMPLEMENTED / VERIFY CI  
 **Requirements:** SKY-REV-003, SKY-EVT-003
 
 Define primary completion writes as:
