@@ -21,6 +21,10 @@ The application lives primarily under `frontend/` and is built with Next.js 16, 
 7. [Review operations](spec/06-review-operations.md)
 8. [Non-functional requirements](spec/07-nfr-production-readiness.md)
 9. [Acceptance criteria](spec/08-acceptance-criteria.md)
+10. [Module contracts](spec/09-module-contracts.md)
+11. [Events, audit & observability](spec/10-events-audit-observability.md)
+12. [Data lifecycle & recovery](spec/11-data-lifecycle.md)
+13. [Requirement traceability](spec/12-requirement-traceability.md)
 
 ## Engineering docs
 
