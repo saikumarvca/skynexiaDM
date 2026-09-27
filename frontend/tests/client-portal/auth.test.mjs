@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ACCOUNTS, PASSWORD, api, cookieValue, login, page } from "./helpers.mjs";
+import { ACCOUNTS, FIXTURE_IDS as ID, PASSWORD, api, assertRedirect, cookieValue, login, page } from "./helpers.mjs";
 
 test("client login: valid credentials create a client session", async () => {
   const { res, body, cookie } = await login(ACCOUNTS.clientA.email, PASSWORD, { portal: "client" });
@@ -15,7 +15,7 @@ test("client login: valid credentials create a client session", async () => {
 
   const profile = await api("/api/client/profile", { cookie });
   assert.equal(profile.status, 200);
-  assert.equal(profile.json.client.id, "66a000000000000000000a01");
+  assert.equal(profile.json.client.id, ID.clientA);
   assert.equal(profile.json.isPreview, false);
 });
 
@@ -41,8 +41,8 @@ test("internal session is not a client session", async () => {
   assert.equal(apiRes.status, 403);
 
   const pageRes = await page("/client/dashboard", cookie);
-  assert.ok([302, 307, 308].includes(pageRes.status), `expected redirect, got ${pageRes.status}`);
-  assert.match(pageRes.location ?? "", /\/dashboard$/);
+  assertRedirect(pageRes, /\/dashboard$/);
+  assert.doesNotMatch(pageRes.location ?? "", /\/client\//);
 });
 
 test("anonymous requests are redirected to the client sign-in", async () => {
@@ -50,15 +50,13 @@ test("anonymous requests are redirected to the client sign-in", async () => {
   assert.equal(apiRes.status, 401);
 
   const pageRes = await page("/client/reviews");
-  assert.ok([302, 307, 308].includes(pageRes.status));
-  assert.match(pageRes.location ?? "", /\/client\/login\?next=%2Fclient%2Freviews/);
+  assertRedirect(pageRes, /\/client\/login\?next=%2Fclient%2Freviews/);
 });
 
 test("legacy /client-portal path redirects to the new dashboard", async () => {
   const { cookie } = await login(ACCOUNTS.clientA.email);
   const res = await page("/client-portal", cookie);
-  assert.ok([302, 307, 308].includes(res.status));
-  assert.match(res.location ?? "", /\/client\/dashboard$/);
+  assertRedirect(res, /\/client\/dashboard$/);
 });
 
 test("client login via the team sign-in is sent to the client portal", async () => {
