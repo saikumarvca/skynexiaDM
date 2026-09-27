@@ -20,6 +20,7 @@ export const FIXTURE_IDS = {
   partnerAUser: "66a0000000000000000000a4",
   partnerBUser: "66a0000000000000000000a5",
   partnerAEmployeeUser: "66a0000000000000000000a6",
+  mainAgency: "66a000000000000000000cc1",
   partnerAAgency: "66a000000000000000000aa1",
   partnerBAgency: "66a000000000000000000bb1",
   partnerAMember: "66a000000000000000000ab1",
