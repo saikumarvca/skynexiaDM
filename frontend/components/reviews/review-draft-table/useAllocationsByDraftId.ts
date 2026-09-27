@@ -30,11 +30,13 @@ export function useAllocationsByDraftId(draftIds: string[]) {
         }
         const url = new URL("/api/review-allocations", window.location.origin);
         url.searchParams.set("draftIds", draftIds.join(","));
+        url.searchParams.set("pageSize", "100");
         const res = await fetch(url.pathname + url.search, {
           cache: "no-store",
         });
         if (!res.ok) throw new Error("Failed to load allocations");
-        const list = (await res.json()) as AllocationLite[];
+        const payload = (await res.json()) as { items?: AllocationLite[] } | AllocationLite[];
+        const list = Array.isArray(payload) ? payload : (payload.items ?? []);
         const map: Record<string, DraftAllocationSummary> = {};
         for (const a of list) {
           const id =
