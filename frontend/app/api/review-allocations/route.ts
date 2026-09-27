@@ -38,60 +38,114 @@ export async function GET(request: NextRequest) {
     const assignedToUserId = searchParams.get("assignedToUserId");
     const draftIds = searchParams.get("draftIds");
     const platform = searchParams.get("platform");
-    const search = searchParams.get("search");
+    const search = searchParams.get("search")?.trim();
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
     const groupByContact = searchParams.get("groupByContact");
+    const page = Math.max(
+      1,
+      Number.parseInt(searchParams.get("page") || "1", 10) || 1,
+    );
+    const pageSize = Math.min(
+      100,
+      Math.max(
+        1,
+        Number.parseInt(
+          searchParams.get("pageSize") || searchParams.get("limit") || "25",
+          10,
+        ) || 25,
+      ),
+    );
+
     const ctx = resolveUserHierarchyContext(authz);
     const canSeeAll =
-      authz.perms.includes("manage_reviews") || authz.perms.includes("assign_reviews");
-    const workerOnly = !canSeeAll && authz.perms.includes("work_assigned_reviews");
+      authz.perms.includes("manage_reviews") ||
+      authz.perms.includes("assign_reviews");
+    const workerOnly =
+      !canSeeAll && authz.perms.includes("work_assigned_reviews");
 
-    const draftClientIds = [clientId, ...ctx.assignedClientIds].filter(
-      (value): value is string => typeof value === "string" && value.length > 0,
-    );
-    let scopedDraftIds: string[] = [];
-    if (draftClientIds.length > 0) {
-      const draftDocs = await ReviewDraft.find({ clientId: { $in: draftClientIds } })
-        .select("_id")
-        .lean();
-      scopedDraftIds = draftDocs
-        .map((draft) => draft?._id?.toString?.() ?? (draft?._id ? String(draft._id) : ""))
-        .filter(Boolean);
+    let allowedClientIds: string[] | null = null;
+    if (
+      ctx.accountType === "MAIN_EMPLOYEE" &&
+      !ctx.isAdmin &&
+      ctx.assignedClientIds.length > 0
+    ) {
+      allowedClientIds = [...ctx.assignedClientIds];
+      if (clientId) {
+        allowedClientIds = allowedClientIds.includes(clientId) ? [clientId] : [];
+      }
+    } else if (clientId) {
+      allowedClientIds = [clientId];
     }
 
-    const baseReviewScope = buildReviewScopeFilter(ctx, {
-      workerOnly,
-      clientIdField: "draftId",
-    });
-    const reviewScope = andFilters(
-      baseReviewScope,
-      draftClientIds.length > 0 ? { draftId: { $in: scopedDraftIds } } : {},
+    let clientScopedDraftIds: string[] | null = null;
+    if (allowedClientIds !== null) {
+      const docs = await ReviewDraft.find({
+        clientId: { $in: allowedClientIds },
+      })
+        .select("_id")
+        .lean();
+      clientScopedDraftIds = docs.map((draft) => String(draft._id));
+    }
+
+    const baseReviewScope = buildReviewScopeFilter(
+      { ...ctx, assignedClientIds: [] },
+      { workerOnly },
     );
 
-    // Special mode: return unique customer contacts for a client (used for autocomplete)
+    const query: Record<string, unknown> = {};
+    if (status && status !== "ALL") query.allocationStatus = status;
+    if (assignedToUserId) query.assignedToUserId = assignedToUserId;
+    if (platform) query.platform = platform;
+
+    const explicitDraftIds = draftIds
+      ? draftIds
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : [];
+
+    const draftFilters: Record<string, unknown>[] = [];
+    if (clientScopedDraftIds !== null) {
+      draftFilters.push({ draftId: { $in: clientScopedDraftIds } });
+    }
+    if (explicitDraftIds.length > 0) {
+      draftFilters.push({ draftId: { $in: explicitDraftIds } });
+    }
+
+    if (dateFrom || dateTo) {
+      query.assignedDate = {};
+      if (dateFrom) {
+        (query.assignedDate as Record<string, unknown>).$gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        (query.assignedDate as Record<string, unknown>).$lte = new Date(
+          dateTo + "T23:59:59.999Z",
+        );
+      }
+    }
+
+    if (search) {
+      const escaped = search.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
+      const regex = new RegExp(escaped, "i");
+      const matchingDraftIds = await ReviewDraft.find({
+        $or: [{ subject: regex }, { reviewText: regex }, { clientName: regex }],
+      }).distinct("_id");
+      query.$or = [
+        { draftId: { $in: matchingDraftIds } },
+        { customerName: regex },
+        { customerContact: regex },
+        { platform: regex },
+        { assignedToUserName: regex },
+      ];
+    }
+
+    const reviewScope = andFilters(baseReviewScope, ...draftFilters);
+
     if (groupByContact === "true" && clientId) {
-      const aggregateScope = buildReviewScopeFilter(ctx, {
-        workerOnly,
-        clientIdField: "draft.clientId",
-      });
       const contacts = await ReviewAllocation.aggregate([
-        { $match: reviewScope },
-        {
-          $lookup: {
-            from: "reviewdrafts",
-            localField: "draftId",
-            foreignField: "_id",
-            as: "draft",
-          },
-        },
-        { $unwind: { path: "$draft", preserveNullAndEmptyArrays: false } },
-        {
-          $match: andFilters(
-            { "draft.clientId": clientId, customerContact: { $exists: true, $nin: [null, ""] } },
-            aggregateScope,
-          ),
-        },
+        { $match: andFilters(query, reviewScope) },
+        { $match: { customerContact: { $exists: true, $nin: [null, ""] } } },
         {
           $group: {
             _id: "$customerContact",
@@ -115,68 +169,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(contacts);
     }
 
-    const query: Record<string, unknown> = {};
-    if (status && status !== "ALL") query.allocationStatus = status;
-    if (assignedToUserId) query.assignedToUserId = assignedToUserId;
-    if (platform) query.platform = platform;
-    if (draftIds) {
-      const ids = draftIds
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      if (ids.length > 0) {
-        query.draftId = { $in: ids };
-      }
-    }
-
-    if (dateFrom || dateTo) {
-      query.assignedDate = {};
-      if (dateFrom)
-        (query.assignedDate as Record<string, unknown>).$gte = new Date(
-          dateFrom,
-        );
-      if (dateTo)
-        (query.assignedDate as Record<string, unknown>).$lte = new Date(
-          dateTo + "T23:59:59.999Z",
-        );
-    }
-
     const scopedQuery = andFilters(query, reviewScope);
+    const [items, total] = await Promise.all([
+      ReviewAllocation.find(scopedQuery)
+        .populate("draftId", "subject reviewText clientId clientName")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize),
+      ReviewAllocation.countDocuments(scopedQuery),
+    ]);
 
-    let allocations = await ReviewAllocation.find(scopedQuery)
-      .populate("draftId", "subject reviewText clientId clientName")
-      .sort({ createdAt: -1 });
-
-    if (clientId) {
-      allocations = allocations.filter((a) => {
-        const draft = a.draftId as {
-          clientId?: { toString: () => string };
-          _id?: unknown;
-        };
-        return draft?.clientId?.toString?.() === clientId;
-      });
-    }
-    if (search) {
-      const s = search.toLowerCase();
-      allocations = allocations.filter((a) => {
-        const draft = a.draftId as {
-          subject?: string;
-          reviewText?: string;
-        } | null;
-        const subject = (draft?.subject ?? "").toLowerCase();
-        const reviewText = (draft?.reviewText ?? "").toLowerCase();
-        const customerName = (a.customerName ?? "").toLowerCase();
-        const platformStr = (a.platform ?? "").toLowerCase();
-        return (
-          subject.includes(s) ||
-          reviewText.includes(s) ||
-          customerName.includes(s) ||
-          platformStr.includes(s)
-        );
-      });
-    }
-
-    return NextResponse.json(allocations);
+    return NextResponse.json({
+      items,
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    });
   } catch (error) {
     console.error("Error fetching review allocations:", error);
     return NextResponse.json(
