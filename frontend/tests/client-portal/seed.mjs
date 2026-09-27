@@ -128,8 +128,8 @@ export async function seedTestDatabase(uri) {
     {
       _id: oid(ID.allocA3),
       draftId: oid(ID.draftA3),
-      assignedToUserId: "member-1",
-      assignedToUserName: "Team Member",
+      assignedToUserId: ID.partnerAEmployeeMember,
+      assignedToUserName: ACCOUNTS.partnerAEmployee.name,
       assignedByUserId: ID.admin,
       assignedByUserName: ACCOUNTS.admin.name,
       assignedDate: daysAgo(7),
