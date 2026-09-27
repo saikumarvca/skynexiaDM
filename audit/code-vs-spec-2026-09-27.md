@@ -27,12 +27,12 @@ The highest-risk gaps are in internal review mutations:
 | SKY-AUTH-003 | PASS | `proxy.ts` blocks CLIENT from internal APIs; `permissions.test.mjs` verifies it. |
 | SKY-AUTH-004 | PASS | Internal sessions are blocked from client APIs except bound preview context; tests verify this. |
 | SKY-SCOPE-001 | PASS | Client scope comes from authenticated User.clientId; isolation tests prove caller clientId cannot widen scope. |
-| SKY-SCOPE-002 | PARTIAL | Critical review mutations now use hierarchy scope filters; a dedicated full Partner A-vs-B regression suite is still pending. |
-| SKY-SCOPE-003 | PARTIAL | Review mutation scope now honors partner-employee worker-only assignment filters; broader dedicated partner regression coverage is still pending. |
+| SKY-SCOPE-002 | PASS | Partner A/B regression tests verify client, team, review and task isolation plus foreign review mutation denial. |
+| SKY-SCOPE-003 | PASS | Partner employee regression tests verify review/task visibility is constrained to directly assigned work. |
 | SKY-ARCH-001 | PARTIAL | Client-safe DTO split and the Mongoose bundle fix exist; CI now performs a production build, but a successful workflow run still needs verification. |
 | SKY-API-001 | PARTIAL | Shared Zod validation is used by sampled mutations; universal mutation coverage was not established. |
 | SKY-API-002 | PASS | Client portal uses explicit DTOs that exclude internal notes, permissions, secrets and raw documents. |
-| SKY-API-003 | FAIL | Review-allocation GET is an unbounded list endpoint. |
+| SKY-API-003 | PASS | Review-allocation GET now uses server-side page/pageSize bounds (max 100), DB-side filters, total and totalPages; integration tests pass. |
 | SKY-API-004 | PASS | Cross-client review IDs return 404; isolation test covers both directions. |
 | SKY-REV-001 | PASS | Explicit state-machine helpers gate mark-shared/mark-posted, generic PATCH cannot bypass lifecycle transitions, and unit/integration tests were added. |
 | SKY-REV-002 | PASS | mark-shared is permission/scoped, state-guarded, idempotent when already shared, and appends activity only on the actual transition. |
@@ -73,17 +73,13 @@ A central state-machine helper now defines Shared/Posted transition decisions. I
 
 The posted flow now uses a guarded allocation claim followed by deterministic PostedReview reconciliation and repair-safe draft convergence. This deliberately avoids replica-set-only transactions so it works with the existing standalone MongoDB CI service; retries converge primary state. Legacy Review/activity projections remain secondary side effects.
 
-### F-005 — Unbounded review-allocation listing — Medium
+### F-005 — Unbounded review-allocation listing — Resolved
 
-`GET /api/review-allocations` fetches all matching records and performs some filtering in application memory.
+`GET /api/review-allocations` now applies scope/client/draft/search/date filters before pagination, enforces a maximum page size of 100, and returns pagination metadata. The draft-table consumer was updated for the paginated response.
 
-**Remediation:** server pagination, max page size, DB-side filters, pagination metadata.
+### F-006 — Partner scope regression suite — Resolved
 
-### F-006 — Partner scope needs a dedicated regression suite — Medium
-
-The hierarchy and scope helpers are meaningful, but the inspected tests focus on CLIENT isolation.
-
-**Remediation:** Partner A vs B and partner-employee assignment tests across clients, team, reviews and tasks.
+Dedicated Partner A/B fixtures and tests now cover clients, team members, review allocations, tasks, foreign review mutation denial, partner-worker direct-assignment scope, and preservation of main-agency ownership.
 
 ### F-007 — Health/readiness endpoint — Resolved in newer branch
 
