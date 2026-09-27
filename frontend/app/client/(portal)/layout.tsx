@@ -21,7 +21,7 @@ export default async function ClientPortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const ctx = await requireClientSession();
+  const ctx = await requireClientSession({ allowPasswordChangeRequired: true });
 
   await dbConnect();
   const [unreadNotifications, unreadUpdates] = await Promise.all([

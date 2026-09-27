@@ -5,14 +5,17 @@
  *
  * 1. Seeds an isolated test database (TEST_MONGODB_URI, default: the
  *    MONGODB_URI from .env/.env.local with the database renamed to
- *    "<db>_client_portal_test").
+ *    "<db>_client_portal_test"). The database is dropped first, so its name
+ *    must end in "_test".
  * 2. Starts the app on TEST_PORT (default 3199) against that database
  *    (`next start` when a production build exists, otherwise `next dev`).
- * 3. Runs every *.test.mjs in this folder with node:test.
+ * 3. Runs every *.test.mjs in this folder with node:test, one file at a
+ *    time in alphabetical order (they share the seeded database).
  * 4. Stops the server and exits with the test status.
  *
  * Set BASE_URL to reuse an already running instance (step 2 is skipped; it
- * must point at the seeded TEST_MONGODB_URI).
+ * must point at the seeded TEST_MONGODB_URI and run with the same AUTH_SECRET
+ * and LOGIN_RATE_LIMIT_MAX_ATTEMPTS as this process).
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -58,6 +61,12 @@ function testUriFrom(uri) {
   return u.toString();
 }
 const testUri = process.env.TEST_MONGODB_URI || testUriFrom(baseUri);
+// seed.mjs drops the whole database; never let it near a real one.
+const testDbName = new URL(testUri).pathname.replace(/^\//, "");
+if (!/_test$/.test(testDbName)) {
+  console.error(`Refusing to seed "${testDbName || "(default)"}": the test database name must end in "_test".`);
+  process.exit(1);
+}
 const port = Number(process.env.TEST_PORT || 3199);
 const externalBase = process.env.BASE_URL;
 const baseUrl = externalBase || `http://127.0.0.1:${port}`;
@@ -84,9 +93,22 @@ function killTree(child) {
   if (!child || child.exitCode !== null) return;
   if (process.platform === "win32") {
     spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-  } else {
+    return;
+  }
+  // The server is spawned detached, so it leads its own process group;
+  // signal the group so `next dev` workers go down with it.
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
     child.kill("SIGTERM");
   }
+}
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    killTree(server);
+    process.exit(130);
+  });
 }
 
 if (!externalBase) {
@@ -105,9 +127,10 @@ if (!externalBase) {
       NODE_ENV: hasBuild ? "production" : "development",
       NEXT_TELEMETRY_DISABLED: "1",
       // The suite signs in dozens of times from one IP.
-      LOGIN_RATE_LIMIT_MAX_ATTEMPTS: "1000",
+      LOGIN_RATE_LIMIT_MAX_ATTEMPTS: process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? "1000",
     },
     stdio: ["ignore", "pipe", "pipe"],
+    detached: process.platform !== "win32",
   });
   server.stdout.on("data", (d) => process.env.TEST_VERBOSE && process.stdout.write(d));
   server.stderr.on("data", (d) => process.stderr.write(d));
@@ -124,11 +147,20 @@ console.log(`▶ Running tests against ${baseUrl}\n`);
 const testFiles = fs
   .readdirSync(here)
   .filter((f) => f.endsWith(".test.mjs"))
+  // Files share one seeded database and run one at a time; keep the order stable.
+  .sort()
   .map((f) => path.join(here, f));
 
 const runner = spawn(process.execPath, ["--test", "--test-concurrency=1", ...testFiles], {
   cwd: root,
-  env: { ...process.env, BASE_URL: baseUrl, TEST_MONGODB_URI: testUri },
+  env: {
+    ...process.env,
+    BASE_URL: baseUrl,
+    TEST_MONGODB_URI: testUri,
+    // hardening.test.mjs mints tokens and probes the login rate limit.
+    AUTH_SECRET: authSecret,
+    LOGIN_RATE_LIMIT_MAX_ATTEMPTS: process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? "1000",
+  },
   stdio: "inherit",
 });
 const code = await new Promise((resolve) => runner.on("exit", resolve));

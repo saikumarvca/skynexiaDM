@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import { denyIfPreview, requireClientSessionApi } from "@/lib/client-portal/session";
+import {
+  CLIENT_HOME_PATH,
+  denyIfPreview,
+  freshClientSessionToken,
+  requireClientSessionApi,
+} from "@/lib/client-portal/session";
+import { setSessionCookie } from "@/lib/session-cookie";
 import { recordClientPortalAudit } from "@/lib/client-portal/audit";
 
 /** POST /api/client/profile/password { currentPassword, newPassword } */
@@ -41,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
     const user = await User.findOne({ _id: ctx.userId, role: "CLIENT" }).select(
-      "passwordHash",
+      "passwordHash mustChangePassword passwordChangedAt sessionsRevokedAt",
     );
     if (!user?.passwordHash) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -51,7 +57,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
     }
 
+    // Every other session of this login is signed out; this one gets a fresh
+    // cookie so the person changing the password stays signed in.
+    const now = new Date();
     user.passwordHash = await bcrypt.hash(newPassword, 12);
+    user.mustChangePassword = false;
+    user.passwordChangedAt = now;
+    user.sessionsRevokedAt = now;
     await user.save();
 
     await recordClientPortalAudit({
@@ -61,7 +73,13 @@ export async function POST(request: NextRequest) {
       details: { email: ctx.email },
     });
 
-    return NextResponse.json({ message: "Password updated successfully" });
+    const res = NextResponse.json({
+      message: "Password updated successfully",
+      otherSessionsSignedOut: true,
+      redirectTo: CLIENT_HOME_PATH,
+    });
+    setSessionCookie(res, freshClientSessionToken(ctx));
+    return res;
   } catch (error) {
     console.error("Error changing client password:", error);
     return NextResponse.json({ error: "Failed to change password" }, { status: 500 });

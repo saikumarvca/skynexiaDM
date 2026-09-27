@@ -12,6 +12,8 @@
     "create:client-user": "node scripts/create-client-user.mjs",
     "seed:vr-filings-client": "node scripts/seed-vr-filings-client.mjs",
     "backfill:client-events": "node scripts/backfill-client-events.mjs",
+    "test": "pnpm test:unit && pnpm test:client-portal",
+    "test:unit": "node --import tsx --test \"tests/unit/**/*.test.ts\"",
     "test:client-portal": "node tests/client-portal/run.mjs",
     "lint": "eslint .",
     "check-types": "next typegen && tsc --noEmit"
@@ -55,6 +57,7 @@
     "postcss": "^8.5.0",
     "tailwindcss": "^3.4.16",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.23.15",
     "typescript": "5.9.2"
   }
 }

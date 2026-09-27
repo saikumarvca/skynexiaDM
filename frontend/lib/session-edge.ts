@@ -13,6 +13,7 @@ export function getSessionCookieName(): string {
 export type EdgeSessionPayload = {
   uid: string;
   exp: number;
+  iat?: number;
   /** Only set for external client logins; lets the proxy confine them. */
   role?: string;
   /** Client id for CLIENT logins. */
@@ -82,6 +83,7 @@ export async function readSessionTokenEdge(
     return {
       uid: parsed.uid,
       exp: parsed.exp,
+      iat: typeof parsed.iat === "number" ? parsed.iat : undefined,
       role: typeof parsed.role === "string" ? parsed.role : undefined,
       cid: typeof parsed.cid === "string" ? parsed.cid : undefined,
       typ: typeof parsed.typ === "string" ? parsed.typ : undefined,

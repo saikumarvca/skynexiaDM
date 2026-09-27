@@ -3,6 +3,7 @@
  * Tests talk HTTP to a running app (BASE_URL) that points at the seeded test
  * database (TEST_MONGODB_URI); see run.mjs and seed.mjs.
  */
+import assert from "node:assert/strict";
 import mongoose from "mongoose";
 
 export const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:3199").replace(/\/$/, "");
@@ -19,6 +20,7 @@ export const FIXTURE_IDS = {
   clientAUser: "66a0000000000000000000c1",
   clientBUser: "66a0000000000000000000c2",
   clientInactive: "66a0000000000000000000c3",
+  clientAOwner: "66a0000000000000000000c4",
   draftA1: "66a000000000000000000d01",
   draftA2: "66a000000000000000000d02",
   draftA3: "66a000000000000000000d03",
@@ -32,8 +34,11 @@ export const FIXTURE_IDS = {
   eventBVisible: "66a0000000000000000001b1",
   updateA: "66a0000000000000000002a1",
   updateB: "66a0000000000000000002b1",
+  updateADraft: "66a0000000000000000002a2",
   notifA: "66a0000000000000000003a1",
   notifB: "66a0000000000000000003b1",
+  notifOwner1: "66a0000000000000000003c1",
+  notifOwner2: "66a0000000000000000003c2",
 };
 
 export const ACCOUNTS = {
@@ -43,7 +48,21 @@ export const ACCOUNTS = {
   clientA: { email: "alpha@test.local", name: "Alpha Dental" },
   clientB: { email: "beta@test.local", name: "Beta Motors" },
   clientInactive: { email: "inactive@test.local", name: "Inactive Client" },
+  // Second login for client A, reserved for tests that mutate account state
+  // (password, read flags, deactivation) so other suites see stable data.
+  clientAOwner: { email: "alpha-owner@test.local", name: "Alpha Owner" },
 };
+
+const REDIRECT_STATUSES = [302, 303, 307, 308];
+
+/** Assert a redirect response whose Location matches `pattern`. */
+export function assertRedirect(res, pattern, label = "") {
+  assert.ok(
+    REDIRECT_STATUSES.includes(res.status),
+    `${label ? `${label}: ` : ""}expected a redirect, got ${res.status}`,
+  );
+  assert.match(res.location ?? "", pattern, label || undefined);
+}
 
 export function cookieFromResponse(res) {
   const raw = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get("set-cookie")];

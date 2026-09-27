@@ -1,11 +1,11 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { ACCOUNTS, FIXTURE_IDS as ID, api, closeDb, cookieFromResponse, cookieValue, db, login, page } from "./helpers.mjs";
+import { ACCOUNTS, BASE_URL, FIXTURE_IDS as ID, api, closeDb, cookieFromResponse, cookieValue, db, login, page } from "./helpers.mjs";
 
 after(closeDb);
 
 async function startPreview(cookie, clientId = ID.clientA) {
-  const res = await fetch(`${process.env.BASE_URL}/api/clients/${clientId}/portal/preview`, {
+  const res = await fetch(`${BASE_URL}/api/clients/${clientId}/portal/preview`, {
     method: "POST",
     headers: { cookie },
     redirect: "manual",

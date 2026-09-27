@@ -9,14 +9,6 @@ import type { SessionUser } from "@/lib/auth";
 import type { ClientContext } from "@/lib/client-portal/session";
 import { paginate, type ClientUpdateItem, type Paginated } from "@/lib/client-portal/dto";
 
-export const CLIENT_UPDATE_CATEGORIES: ClientUpdateCategory[] = [
-  "ANNOUNCEMENT",
-  "PROGRESS",
-  "FEATURE",
-  "MAINTENANCE",
-  "REPORTING",
-];
-
 const EVENT_CATEGORY_FOR_UPDATE: Record<ClientUpdateCategory, ClientEventCategory> = {
   ANNOUNCEMENT: "FEATURE",
   PROGRESS: "REVIEW",

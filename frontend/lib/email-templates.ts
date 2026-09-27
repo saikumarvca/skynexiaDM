@@ -168,3 +168,80 @@ export function leadNotificationEmail(opts: {
     text,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Client portal logins
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function temporaryPasswordBlock(temporaryPassword: string): string {
+  return `<p style="margin:16px 0 4px;font-size:13px;color:#71717a;">Temporary password</p>
+    <p style="margin:0 0 16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;letter-spacing:1px;color:#18181b;">${escapeHtml(temporaryPassword)}</p>
+    <p style="margin:0 0 16px;font-size:13px;color:#71717a;">You will be asked to choose your own password when you first sign in.</p>`;
+}
+
+export function clientLoginInviteEmail(opts: {
+  name: string;
+  clientName: string;
+  email: string;
+  temporaryPassword: string;
+  loginUrl: string;
+}): EmailTemplate {
+  const subject = `Your ${opts.clientName} client portal login`;
+  const bodyHtml = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#18181b;">Welcome to your client portal</h2>
+    <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">Hi ${escapeHtml(opts.name)},</p>
+    <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">
+      A portal login has been created for <strong>${escapeHtml(opts.clientName)}</strong>. Sign in with
+      <strong>${escapeHtml(opts.email)}</strong> and the temporary password below.
+    </p>
+    ${temporaryPasswordBlock(opts.temporaryPassword)}
+    ${ctaButton("Sign in to the portal", opts.loginUrl)}
+  `;
+  const text = [
+    `Hi ${opts.name},`,
+    ``,
+    `A portal login has been created for ${opts.clientName}.`,
+    `Sign in with ${opts.email} and this temporary password: ${opts.temporaryPassword}`,
+    `You will be asked to choose your own password when you first sign in.`,
+    ``,
+    `Sign in: ${opts.loginUrl}`,
+  ].join("\n");
+  return { subject, html: baseHtml(subject, bodyHtml), text };
+}
+
+export function clientLoginPasswordResetEmail(opts: {
+  name: string;
+  clientName: string;
+  temporaryPassword: string;
+  loginUrl: string;
+}): EmailTemplate {
+  const subject = `Your ${opts.clientName} portal password was reset`;
+  const bodyHtml = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#18181b;">Password reset</h2>
+    <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">Hi ${escapeHtml(opts.name)},</p>
+    <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">
+      Your agency reset the password of your <strong>${escapeHtml(opts.clientName)}</strong> portal login.
+      Any device that was signed in has been signed out.
+    </p>
+    ${temporaryPasswordBlock(opts.temporaryPassword)}
+    ${ctaButton("Sign in to the portal", opts.loginUrl)}
+  `;
+  const text = [
+    `Hi ${opts.name},`,
+    ``,
+    `Your agency reset the password of your ${opts.clientName} portal login. Any device that was signed in has been signed out.`,
+    `Temporary password: ${opts.temporaryPassword}`,
+    `You will be asked to choose your own password when you first sign in.`,
+    ``,
+    `Sign in: ${opts.loginUrl}`,
+  ].join("\n");
+  return { subject, html: baseHtml(subject, bodyHtml), text };
+}

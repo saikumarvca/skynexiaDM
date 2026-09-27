@@ -1,6 +1,6 @@
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
-import { ACCOUNTS, FIXTURE_IDS as ID, api, login, page } from "./helpers.mjs";
+import { ACCOUNTS, FIXTURE_IDS as ID, api, assertRedirect, login, page } from "./helpers.mjs";
 
 let cookieA = "";
 before(async () => {
@@ -50,8 +50,7 @@ test("client session cannot manage any client portal (staff APIs)", async () => 
 test("client session is redirected away from internal pages", async () => {
   for (const path of ["/dashboard", "/dashboard/admin/users", "/clients", `/clients/${ID.clientA}`, "/team"]) {
     const res = await page(path, cookieA);
-    assert.ok([302, 307, 308].includes(res.status), `${path} should redirect, got ${res.status}`);
-    assert.match(res.location ?? "", /\/client\/dashboard$/);
+    assertRedirect(res, /\/client\/dashboard$/, path);
   }
 });
 

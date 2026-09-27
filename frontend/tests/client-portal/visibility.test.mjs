@@ -28,8 +28,11 @@ test("change log filters by category and role", async () => {
   const review = await api("/api/client/change-log?category=REVIEW&role=AGENT", { cookie: cookieA });
   assert.ok(review.json.items.every((e) => e.category === "REVIEW" && e.actorRole === "AGENT"));
   assert.ok(review.json.items.length >= 1);
+  assert.ok(review.json.items.some((e) => e.id === ID.eventAVisible));
   const system = await api("/api/client/change-log?category=SYSTEM", { cookie: cookieA });
-  assert.equal(system.json.items.length, 0);
+  assert.equal(system.status, 200);
+  assert.ok(system.json.items.every((e) => e.category === "SYSTEM"));
+  assert.ok(!system.json.items.some((e) => e.id === ID.eventAVisible));
 });
 
 test("staff can toggle an event's visibility and the client feed follows", async () => {
@@ -68,7 +71,7 @@ test("staff cannot change events of a client through another client's route", as
 });
 
 test("live review activity is mapped into the client feed with actor role and a notification", async () => {
-  const before = await api("/api/client/notifications/unread-count", { cookie: cookieA });
+  const unreadBefore = await api("/api/client/notifications/unread-count", { cookie: cookieA });
   const shared = await api(`/api/review-allocations/${ID.allocA3}/mark-shared`, {
     method: "PATCH",
     cookie: admin,
@@ -88,8 +91,8 @@ test("live review activity is mapped into the client feed with actor role and a 
   assert.equal(ev.actorName, ACCOUNTS.admin.name);
   assert.match(ev.description, /Sneha Reddy/);
 
-  const after = await api("/api/client/notifications/unread-count", { cookie: cookieA });
-  assert.equal(after.json.count, before.json.count + 1);
+  const unreadAfter = await api("/api/client/notifications/unread-count", { cookie: cookieA });
+  assert.equal(unreadAfter.json.count, unreadBefore.json.count + 1);
 
   const reviews = await api("/api/client/reviews?status=SHARED", { cookie: cookieA });
   assert.ok(reviews.json.items.some((r) => r.id === ID.allocA3 && r.customerName === "Sneha Reddy"));
@@ -117,7 +120,7 @@ test("internal-only review activity stays hidden (contact-only allocation update
 });
 
 test("published updates notify client logins and appear in the change log", async () => {
-  const before = await api("/api/client/notifications/unread-count", { cookie: cookieA });
+  const unreadBefore = await api("/api/client/notifications/unread-count", { cookie: cookieA });
   const created = await api(`/api/clients/${ID.clientA}/portal/updates`, {
     method: "POST",
     cookie: admin,
@@ -126,8 +129,8 @@ test("published updates notify client logins and appear in the change log", asyn
   assert.equal(created.status, 201);
   const updates = await api("/api/client/updates", { cookie: cookieA });
   assert.ok(updates.json.items.some((u) => u.title === "Google review target reached" && u.isRead === false));
-  const after = await api("/api/client/notifications/unread-count", { cookie: cookieA });
-  assert.equal(after.json.count, before.json.count + 1);
+  const unreadAfter = await api("/api/client/notifications/unread-count", { cookie: cookieA });
+  assert.equal(unreadAfter.json.count, unreadBefore.json.count + 1);
 
   const draft = await api(`/api/clients/${ID.clientA}/portal/updates`, {
     method: "POST",

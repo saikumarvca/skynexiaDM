@@ -3,15 +3,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Check,
+  Copy,
   Eye,
   EyeOff,
   ExternalLink,
   History,
+  KeyRound,
   Loader2,
   Megaphone,
   RefreshCw,
   Send,
   Trash2,
+  UserCheck,
+  UserPlus,
+  UserX,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -27,6 +33,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { formatDateTime } from "@/components/client-portal/format";
 import { ActivityIcon } from "@/components/client-portal/activity-icon";
 import { RoleBadge } from "@/components/client-portal/ui/primitives";
@@ -40,7 +54,7 @@ import type { AdminClientUpdate } from "@/lib/client-portal/updates";
 import type { ClientUpdateCategory } from "@/models/ClientUpdate";
 
 type StaffEvent = ClientActivityItem & { visibility: "INTERNAL" | "CLIENT_VISIBLE"; source: string };
-type ClientLogin = { id: string; name: string; email: string; isActive: boolean; createdAt: string };
+import type { ClientLogin } from "@/lib/client-portal/logins";
 
 const UPDATE_CATEGORIES = Object.keys(PORTAL_UPDATE_CATEGORY_LABEL) as ClientUpdateCategory[];
 
@@ -487,9 +501,136 @@ function EventsPanel({ clientId }: { clientId: string }) {
 
 // ─── Logins ──────────────────────────────────────────────────────────────────
 
+type CreatedLogin = { login: ClientLogin; temporaryPassword: string; emailSent: boolean };
+
+/** Shows a temporary password exactly once, with a copy button. */
+function TemporaryPasswordDialog({
+  result,
+  title,
+  onClose,
+}: {
+  result: CreatedLogin | null;
+  title: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    if (!result) return;
+    try {
+      await navigator.clipboard.writeText(result.temporaryPassword);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Could not copy. Select the password and copy it manually.");
+    }
+  };
+  return (
+    <Dialog open={result !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {result?.emailSent
+              ? `The temporary password was emailed to ${result.login.email}. It is also shown here once.`
+              : `Share this temporary password with ${result?.login.email ?? "the client"} through a secure channel. It is shown only once.`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
+          <code className="flex-1 select-all break-all font-mono text-base tracking-wide">
+            {result?.temporaryPassword}
+          </code>
+          <Button type="button" variant="outline" size="sm" onClick={copy}>
+            {copied ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
+            {copied ? "Copied" : "Copy"}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          The client is asked to choose their own password at their first sign-in. Any earlier
+          session of this login has been signed out.
+        </p>
+        <DialogFooter>
+          <Button type="button" onClick={onClose}>
+            Done
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CreateLoginForm({ clientId, onCreated }: { clientId: string; onCreated: (r: CreatedLogin) => void }) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [sendInvite, setSendInvite] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const created = await readJson<CreatedLogin>(
+        await fetch(`/api/clients/${clientId}/portal/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined, sendInvite }),
+        }),
+      );
+      setEmail("");
+      setName("");
+      onCreated(created);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not create login");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="grid gap-3 rounded-lg border p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_auto]">
+      <div className="space-y-1">
+        <label htmlFor="new-login-email" className="text-xs font-medium text-muted-foreground">
+          Email
+        </label>
+        <Input
+          id="new-login-email"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="owner@client.com"
+        />
+      </div>
+      <div className="space-y-1">
+        <label htmlFor="new-login-name" className="text-xs font-medium text-muted-foreground">
+          Display name <span className="font-normal">(optional)</span>
+        </label>
+        <Input id="new-login-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Defaults to the business name" />
+      </div>
+      <div className="flex items-end">
+        <Button type="submit" disabled={saving || !email.trim()}>
+          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+          Create login
+        </Button>
+      </div>
+      <label className="flex items-center gap-2 text-xs text-muted-foreground sm:col-span-3">
+        <input
+          type="checkbox"
+          className="h-4 w-4"
+          checked={sendInvite}
+          onChange={(e) => setSendInvite(e.target.checked)}
+        />
+        Email the temporary password to the client (needs an email provider configured)
+      </label>
+    </form>
+  );
+}
+
 function LoginsPanel({ clientId }: { clientId: string }) {
   const [users, setUsers] = useState<ClientLogin[] | null>(null);
-  useEffect(() => {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState<{ result: CreatedLogin; title: string } | null>(null);
+
+  const load = useCallback(() => {
     fetch(`/api/clients/${clientId}/portal/users`, { cache: "no-store" })
       .then((res) => readJson<ClientLogin[]>(res))
       .then((list) => setUsers(list))
@@ -499,13 +640,72 @@ function LoginsPanel({ clientId }: { clientId: string }) {
       });
   }, [clientId]);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const toggleActive = async (u: ClientLogin) => {
+    const verb = u.isActive ? "Deactivate" : "Reactivate";
+    if (
+      !window.confirm(
+        u.isActive
+          ? `Deactivate ${u.email}? They will be signed out immediately and cannot sign in again until reactivated.`
+          : `Reactivate ${u.email}?`,
+      )
+    )
+      return;
+    setBusyId(u.id);
+    try {
+      await readJson(
+        await fetch(`/api/clients/${clientId}/portal/users/${u.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: !u.isActive }),
+        }),
+      );
+      toast.success(`${verb}d ${u.email}`);
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : `Could not ${verb.toLowerCase()} login`);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const resetPassword = async (u: ClientLogin) => {
+    if (!window.confirm(`Reset the password of ${u.email}? Every device they are signed in on will be signed out.`)) return;
+    setBusyId(u.id);
+    try {
+      const result = await readJson<CreatedLogin>(
+        await fetch(`/api/clients/${clientId}/portal/users/${u.id}/reset-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }),
+      );
+      setRevealed({ result, title: `Password reset for ${u.email}` });
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not reset password");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Client logins are created in <a href="/dashboard/admin/users">Admin → Users</a> with the
-        role <code>CLIENT</code>, or with <code>pnpm create:client-user</code>. Passwords are only
-        ever stored as bcrypt hashes.
+        Client logins can only open this client&apos;s portal. New logins and password resets use a
+        temporary password that must be changed at the first sign-in. Every action here is recorded
+        in the team activity log.
       </p>
+      <CreateLoginForm
+        clientId={clientId}
+        onCreated={(result) => {
+          setRevealed({ result, title: `Login created for ${result.login.email}` });
+          load();
+        }}
+      />
       {users === null ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : users.length === 0 ? (
@@ -515,25 +715,60 @@ function LoginsPanel({ clientId }: { clientId: string }) {
       ) : (
         <ul className="divide-y rounded-lg border">
           {users.map((u) => (
-            <li key={u.id} className="flex items-center justify-between gap-3 p-3 text-sm">
+            <li key={u.id} className="flex flex-col gap-3 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="truncate font-medium">{u.name}</p>
                 <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {u.lastLoginAt ? `Last sign-in ${formatDateTime(u.lastLoginAt)}` : "Never signed in"}
+                </p>
               </div>
-              <span
-                className={cn(
-                  "shrink-0 rounded-md px-2 py-0.5 text-xs font-semibold",
-                  u.isActive
-                    ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {u.isActive ? "Active" : "Inactive"}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {u.mustChangePassword ? (
+                  <span className="rounded-md bg-amber-500/12 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                    Temporary password
+                  </span>
+                ) : null}
+                <span
+                  className={cn(
+                    "rounded-md px-2 py-0.5 text-xs font-semibold",
+                    u.isActive
+                      ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {u.isActive ? "Active" : "Inactive"}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={busyId === u.id || !u.isActive}
+                  onClick={() => resetPassword(u)}
+                >
+                  <KeyRound className="mr-1.5 h-4 w-4" />
+                  Reset password
+                </Button>
+                <Button
+                  type="button"
+                  variant={u.isActive ? "ghost" : "outline"}
+                  size="sm"
+                  disabled={busyId === u.id}
+                  onClick={() => toggleActive(u)}
+                >
+                  {u.isActive ? <UserX className="mr-1.5 h-4 w-4" /> : <UserCheck className="mr-1.5 h-4 w-4" />}
+                  {u.isActive ? "Deactivate" : "Reactivate"}
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
       )}
+      <TemporaryPasswordDialog
+        result={revealed?.result ?? null}
+        title={revealed?.title ?? ""}
+        onClose={() => setRevealed(null)}
+      />
     </div>
   );
 }

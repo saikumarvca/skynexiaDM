@@ -43,7 +43,7 @@ export async function seedTestDatabase(uri) {
     },
   ]);
 
-  const roleAccounts = oid("66a0000000000000000000r1".replace("r", "e"));
+  const roleAccounts = oid("66a0000000000000000000e1");
   const roleViewer = oid("66a0000000000000000000e2");
   await db.collection("teamroles").insertMany([
     { _id: roleAccounts, roleName: "Account Manager", permissions: ["manage_clients", "view_clients"], isDeleted: false },
@@ -56,6 +56,7 @@ export async function seedTestDatabase(uri) {
     { _id: oid(ID.managerClients), email: ACCOUNTS.managerClients.email, name: ACCOUNTS.managerClients.name, role: "MANAGER", passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientAUser), email: ACCOUNTS.clientA.email, name: ACCOUNTS.clientA.name, role: "CLIENT", clientId: oid(ID.clientA), passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientBUser), email: ACCOUNTS.clientB.email, name: ACCOUNTS.clientB.name, role: "CLIENT", clientId: oid(ID.clientB), passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
+    { _id: oid(ID.clientAOwner), email: ACCOUNTS.clientAOwner.email, name: ACCOUNTS.clientAOwner.name, role: "CLIENT", clientId: oid(ID.clientA), passwordHash: hash, isActive: true, createdAt: now, updatedAt: now },
     { _id: oid(ID.clientInactive), email: ACCOUNTS.clientInactive.email, name: ACCOUNTS.clientInactive.name, role: "CLIENT", clientId: oid(ID.clientA), passwordHash: hash, isActive: false, createdAt: now, updatedAt: now },
   ]);
 
@@ -226,6 +227,21 @@ export async function seedTestDatabase(uri) {
       updatedAt: daysAgo(3),
     },
     {
+      _id: oid(ID.updateADraft),
+      clientId: oid(ID.clientA),
+      title: "Alpha unpublished feature note",
+      body: "A new reporting view is coming soon.",
+      category: "FEATURE",
+      postedByUserId: ID.admin,
+      postedByName: ACCOUNTS.admin.name,
+      postedByRole: "ADMIN",
+      isPublished: false,
+      readByUserIds: [],
+      isDeleted: false,
+      createdAt: daysAgo(1),
+      updatedAt: daysAgo(1),
+    },
+    {
       _id: oid(ID.updateB),
       clientId: oid(ID.clientB),
       title: "BETA-ONLY reporting schedule changed",
@@ -264,6 +280,26 @@ export async function seedTestDatabase(uri) {
       message: "Beta review shared.",
       isRead: false,
       createdAt: daysAgo(9),
+    },
+    {
+      _id: oid(ID.notifOwner1),
+      userId: ID.clientAOwner,
+      clientId: oid(ID.clientA),
+      type: "REVIEW_POSTED",
+      title: "Review posted on Google",
+      message: "Ramesh Kumar's review is live.",
+      isRead: false,
+      createdAt: daysAgo(10),
+    },
+    {
+      _id: oid(ID.notifOwner2),
+      userId: ID.clientAOwner,
+      clientId: oid(ID.clientA),
+      type: "CLIENT_UPDATE",
+      title: "Alpha campaign started",
+      message: "We have started your Google review campaign.",
+      isRead: false,
+      createdAt: daysAgo(3),
     },
   ]);
 
