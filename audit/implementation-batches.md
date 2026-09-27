@@ -109,39 +109,42 @@ Then audit all list endpoints for unbounded `.find()`, large in-memory filtering
 
 ## SKY-AUDIT-006 — Health, Readiness & Observability
 
-**Priority:** P1  
+**Priority:** P1 — PARTIALLY IMPLEMENTED  
 **Requirements:** SKY-OBS-001, SKY-OBS-002, SKY-OPS-001
 
-Add:
+Already implemented on the newer branch:
 - `GET /api/health`
-- DB readiness semantics
+- MongoDB readiness ping with timeout
+- safe 200/503 response with no configuration leakage
+
+Remaining:
 - request/correlation ID helper
 - structured critical-route error logging
-- cron run outcome logging
-
-Health output must not leak secrets, connection strings or host details.
+- cron run outcome logging/metrics
+- deployment monitoring wired to health/readiness
 
 ---
 
 ## SKY-AUDIT-007 — CI Release Gates
 
-**Priority:** P1  
+**Priority:** P1 — IMPLEMENTATION PRESENT / VERIFY RUN  
 **Requirements:** SKY-NFR-001 through SKY-NFR-004
 
-Create GitHub Actions for PR/main:
+`.github/workflows/frontend-ci.yml` now provides:
+- frozen-lockfile install
+- lint
+- typecheck
+- unit tests
+- production build
+- client-portal integration tests
+- MongoDB service for integration testing
 
-```bash
-cd frontend
-pnpm install --frozen-lockfile
-pnpm lint
-pnpm check-types
-pnpm build
-pnpm test:client-portal
-```
+Remaining:
+- verify a successful run on the integrated PR
+- configure required branch checks if desired
+- retain run evidence for release acceptance
 
-Use an isolated MongoDB test service/database for the portal tests.
-
-**Exit gate:** required checks are visible and retained on PRs/main.
+**Exit gate:** all required jobs pass on the integration PR/main.
 
 ---
 
