@@ -1,6 +1,6 @@
 # SkyNexiaDM Code-vs-Spec Audit — 2026-09-27
 
-Audited implementation: `main@d549a25fd5c27779c0be55196ad2697a53a1a902`.
+Re-audited implementation baseline: `claude/specs-review-improvise-rkte3a`, integrated with the specification/docs on `integration/specs-audit-hardening`. The Claude branch is four commits ahead of `main@d549a25fd5c27779c0be55196ad2697a53a1a902`.
 
 ## Executive summary
 
@@ -14,8 +14,8 @@ The highest-risk gaps are in internal review mutations:
 - `PostedReview.allocationId` is indexed but not unique.
 - the posted transition updates multiple collections without an atomic primary-state boundary.
 - `GET /api/review-allocations` is unpaginated.
-- the proxy excludes `/api/health`, but no health route was found.
-- no GitHub Actions runs are attached to the audited main commit, so release commands cannot be marked executed.
+- health/readiness is now implemented with a MongoDB ping, timeout, no-store response and 200/503 readiness semantics.
+- GitHub Actions now defines lint, typecheck, unit-test, production-build and client-portal integration jobs; successful execution still needs to be verified from an actual workflow run.
 
 ## Requirement matrix
 
@@ -30,7 +30,7 @@ The highest-risk gaps are in internal review mutations:
 | SKY-SCOPE-001 | PASS | Client scope comes from authenticated User.clientId; isolation tests prove caller clientId cannot widen scope. |
 | SKY-SCOPE-002 | PARTIAL | Partner scope helpers exist, but critical review mutations bypass them and dedicated cross-partner tests were not found. |
 | SKY-SCOPE-003 | PARTIAL | Partner employee assignment filtering exists in helpers, but coverage/testing is incomplete. |
-| SKY-ARCH-001 | PARTIAL | Client-safe DTO split and latest Mongoose bundle fix exist; no CI build evidence is attached to main. |
+| SKY-ARCH-001 | PARTIAL | Client-safe DTO split and the Mongoose bundle fix exist; CI now performs a production build, but a successful workflow run still needs verification. |
 | SKY-API-001 | PARTIAL | Shared Zod validation is used by sampled mutations; universal mutation coverage was not established. |
 | SKY-API-002 | PASS | Client portal uses explicit DTOs that exclude internal notes, permissions, secrets and raw documents. |
 | SKY-API-003 | FAIL | Review-allocation GET is an unbounded list endpoint. |
@@ -44,13 +44,13 @@ The highest-risk gaps are in internal review mutations:
 | SKY-EVT-003 | PASS | Backfill skips mapped logs and unique `sourceLogId + clientId` index guards duplicate mapping. |
 | SKY-DATA-001 | PARTIAL | Backfill is batched/idempotent with counters; no dry-run mode was found. |
 | SKY-DATA-002 | NOT TESTED | No tested backup/restore evidence was found in the inspected repository. |
-| SKY-NFR-001 | NOT TESTED | `pnpm lint` exists; no workflow execution evidence on audited commit. |
-| SKY-NFR-002 | NOT TESTED | `pnpm check-types` exists; no workflow execution evidence on audited commit. |
-| SKY-NFR-003 | NOT TESTED | `pnpm build` exists; no workflow execution evidence on audited commit. |
-| SKY-NFR-004 | NOT TESTED | client-portal test suite exists; no attached run evidence on audited commit. |
+| SKY-NFR-001 | NOT TESTED | CI now includes `pnpm lint`; execution result has not yet been verified. |
+| SKY-NFR-002 | NOT TESTED | CI now includes `pnpm check-types`; execution result has not yet been verified. |
+| SKY-NFR-003 | NOT TESTED | CI now performs `pnpm build` before portal integration tests; execution result has not yet been verified. |
+| SKY-NFR-004 | NOT TESTED | CI now runs unit and client-portal integration suites against MongoDB; execution result has not yet been verified. |
 | SKY-OBS-001 | PARTIAL | Client login/preview/update actions use TeamActivityLog; universal privileged-action coverage is not established. |
 | SKY-OBS-002 | PARTIAL | Inspected logs avoid credentials, but no automated secret-log check was found. |
-| SKY-OPS-001 | PARTIAL | Operational guidance now exists, but there is no CI/CD release/rollback evidence on main. |
+| SKY-OPS-001 | PARTIAL | Health/readiness and CI definitions now exist; deployment rollback evidence and a verified successful pipeline remain outstanding. |
 
 ## High-priority findings
 
@@ -99,17 +99,17 @@ The hierarchy and scope helpers are meaningful, but the inspected tests focus on
 
 **Remediation:** Partner A vs B and partner-employee assignment tests across clients, team, reviews and tasks.
 
-### F-007 — Health/readiness route missing — Medium
+### F-007 — Health/readiness endpoint — Resolved in newer branch
 
-`proxy.ts` explicitly excludes `/api/health`, but `frontend/app/api/health/route.ts` was not found.
+`frontend/app/api/health/route.ts` now provides a public, uncached readiness check with a MongoDB ping, a 2-second timeout, `200` when ready and `503` when degraded. It does not expose connection strings or secret configuration.
 
-**Remediation:** liveness/readiness endpoint with DB readiness and no secret/config leakage.
+**Remaining work:** connect deployment smoke checks/monitoring to this endpoint and retain operational evidence.
 
-### F-008 — Release gates not evidenced in CI — Medium
+### F-008 — CI release gates — Implemented, execution pending verification
 
-Scripts exist for lint, typecheck, build and portal tests, but the audited commit has no associated GitHub Actions runs.
+`.github/workflows/frontend-ci.yml` now runs frozen-lockfile install, lint, typecheck, unit tests, production build and client-portal integration tests using a MongoDB service.
 
-**Remediation:** mandatory PR/main workflow and retained check evidence.
+**Remaining work:** verify a successful workflow run on the integrated branch/PR and make required checks part of the merge policy.
 
 ### F-009 — Backup/restore evidence absent — Medium
 
