@@ -8,11 +8,10 @@ The client portal is the strongest audited area: CLIENT route confinement, authe
 
 The highest-risk gaps are in internal review mutations:
 
-- `mark-shared` and `mark-posted` authenticate a session but do not use the granular review permission/hierarchy scope helpers.
-- those endpoints do not validate the current lifecycle state before transition.
-- `mark-posted` creates a new PostedReview without an idempotency guard.
-- `PostedReview.allocationId` is indexed but not unique.
-- the posted transition updates multiple collections without an atomic primary-state boundary.
+- review mutation routes now enforce granular review permissions and hierarchy scope at the database query/write boundary.
+- explicit review allocation transition decisions now gate Shared and Posted lifecycle changes.
+- repeated mark-posted requests are idempotent and converge on one deterministic canonical PostedReview.
+- posted completion uses a recoverable guarded-write sequence compatible with standalone MongoDB CI, so retries repair draft state instead of duplicating the completed record.
 - `GET /api/review-allocations` is unpaginated.
 - health/readiness is now implemented with a MongoDB ping, timeout, no-store response and 200/503 readiness semantics.
 - GitHub Actions now defines lint, typecheck, unit-test, production-build and client-portal integration jobs; successful execution still needs to be verified from an actual workflow run.
@@ -28,16 +27,16 @@ The highest-risk gaps are in internal review mutations:
 | SKY-AUTH-003 | PASS | `proxy.ts` blocks CLIENT from internal APIs; `permissions.test.mjs` verifies it. |
 | SKY-AUTH-004 | PASS | Internal sessions are blocked from client APIs except bound preview context; tests verify this. |
 | SKY-SCOPE-001 | PASS | Client scope comes from authenticated User.clientId; isolation tests prove caller clientId cannot widen scope. |
-| SKY-SCOPE-002 | PARTIAL | Partner scope helpers exist, but critical review mutations bypass them and dedicated cross-partner tests were not found. |
-| SKY-SCOPE-003 | PARTIAL | Partner employee assignment filtering exists in helpers, but coverage/testing is incomplete. |
+| SKY-SCOPE-002 | PARTIAL | Critical review mutations now use hierarchy scope filters; a dedicated full Partner A-vs-B regression suite is still pending. |
+| SKY-SCOPE-003 | PARTIAL | Review mutation scope now honors partner-employee worker-only assignment filters; broader dedicated partner regression coverage is still pending. |
 | SKY-ARCH-001 | PARTIAL | Client-safe DTO split and the Mongoose bundle fix exist; CI now performs a production build, but a successful workflow run still needs verification. |
 | SKY-API-001 | PARTIAL | Shared Zod validation is used by sampled mutations; universal mutation coverage was not established. |
 | SKY-API-002 | PASS | Client portal uses explicit DTOs that exclude internal notes, permissions, secrets and raw documents. |
 | SKY-API-003 | FAIL | Review-allocation GET is an unbounded list endpoint. |
 | SKY-API-004 | PASS | Cross-client review IDs return 404; isolation test covers both directions. |
-| SKY-REV-001 | FAIL | mark-shared/mark-posted do not validate allowed current state. |
-| SKY-REV-002 | PARTIAL | mark-shared logs activity, but authorization/scope/state controls are incomplete. |
-| SKY-REV-003 | FAIL | No duplicate posted-review guard; allocationId is not unique; repeated posting can create duplicates. |
+| SKY-REV-001 | PASS | Explicit state-machine helpers gate mark-shared/mark-posted, generic PATCH cannot bypass lifecycle transitions, and unit/integration tests were added. |
+| SKY-REV-002 | PASS | mark-shared is permission/scoped, state-guarded, idempotent when already shared, and appends activity only on the actual transition. |
+| SKY-REV-003 | PASS | mark-posted claims Shared→Posted conditionally, uses a deterministic canonical PostedReview id/upsert, makes retries idempotent, and repairs draft state on retry. |
 | SKY-REV-004 | NOT TESTED | Reassignment history was not directly verified in this baseline. |
 | SKY-EVT-001 | PASS | ClientEvent visibility model plus client change-log isolation is implemented/tested. |
 | SKY-EVT-002 | PARTIAL | Sanitized DTO/projection architecture exists; dedicated sanitization-content test was not found. |
@@ -54,38 +53,25 @@ The highest-risk gaps are in internal review mutations:
 
 ## High-priority findings
 
-### F-001 — Review mutation authorization/scope gap — High
+### F-001 — Review mutation authorization/scope gap — Resolved in integration branch
 
 Affected:
 - `frontend/app/api/review-allocations/[id]/mark-shared/route.ts`
 - `frontend/app/api/review-allocations/[id]/mark-posted/route.ts`
 
-Both use `requireSessionApi()` only. They do not call `requireAnyPermissionApi()` or apply `buildReviewScopeFilter()` to the target allocation.
+Review mutation routes now use centralized permission/hierarchy scope resolution and carry the same scope filter into the guarded write itself. The generic allocation detail/PATCH route was also scoped so the workflow cannot be bypassed through a different endpoint.
 
-**Remediation:** require the relevant review permission, resolve hierarchy context, and fetch/update through a scoped query.
+### F-002 — Review state machine not enforced — Resolved in integration branch
 
-### F-002 — Review state machine not enforced — High
+A central state-machine helper now defines Shared/Posted transition decisions. Invalid backward/out-of-order changes return `409 CONFLICT`; repeated identical transitions are handled idempotently. Generic PATCH status changes are blocked from bypassing explicit workflow endpoints.
 
-The same transition routes overwrite lifecycle state without verifying the previous state.
+### F-003 — Duplicate PostedReview risk — Resolved in integration branch
 
-Examples currently not explicitly blocked:
-- Posted -> Shared
-- Cancelled -> Posted
-- Posted -> Posted
+`mark-posted` now conditionally claims the Shared→Posted transition and creates/reconciles the canonical PostedReview with a deterministic `_id` derived from the allocation id. Retries return the existing completed state instead of creating another canonical record.
 
-**Remediation:** central transition table + stable conflict response + regression tests.
+### F-004 — Multi-collection posted transition can become inconsistent — Mitigated with recoverable saga
 
-### F-003 — Duplicate PostedReview risk — High
-
-`mark-posted` creates a PostedReview before any duplicate check. `PostedReview.allocationId` has a normal index, not a unique one.
-
-**Remediation:** unique invariant/upsert or guarded create, plus retry/concurrency tests.
-
-### F-004 — Multi-collection posted transition can become inconsistent — High/Medium
-
-Primary state spans PostedReview, ReviewAllocation and ReviewDraft, with further Review/activity side effects, but no transaction or explicit reconciliation strategy is present.
-
-**Remediation:** transactional primary writes where supported, or a documented idempotent reconciliation workflow.
+The posted flow now uses a guarded allocation claim followed by deterministic PostedReview reconciliation and repair-safe draft convergence. This deliberately avoids replica-set-only transactions so it works with the existing standalone MongoDB CI service; retries converge primary state. Legacy Review/activity projections remain secondary side effects.
 
 ### F-005 — Unbounded review-allocation listing — Medium
 
